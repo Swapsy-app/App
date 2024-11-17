@@ -1,4 +1,9 @@
-package com.example.freeupcopy.ui.presentation.home_screen.componants
+package com.example.freeupcopy.ui.presentation.home_screen
 
-class HomeScreen {
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+
+@Composable
+fun HomeScreen(modifier: Modifier = Modifier) {
+
 }
