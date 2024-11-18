@@ -14,12 +14,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarDefaults
@@ -28,10 +22,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.freeupcopy.R
 import com.example.freeupcopy.ui.theme.FreeUpCopyTheme
 
 @Composable
@@ -55,15 +51,15 @@ fun CustomNavigationBar(
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.primary)
                 .clickable(
-                    onClick = {  }
+                    onClick = { }
                 )
                 .align(Alignment.TopCenter),
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = Icons.Default.Add,
+                painter = painterResource(R.drawable.rounded_sell_24),
                 contentDescription = "add",
-                tint = Color.Black,
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
                 modifier = Modifier.size(40.dp)
             )
         }
@@ -76,7 +72,8 @@ fun CustomNavigationBarItem(
     modifier: Modifier = Modifier,
     selected: Boolean,
     onClick: () -> Unit,
-    icon: ImageVector
+    icon: ImageVector,
+    selectedIcon: ImageVector
 ) {
     Box(
         modifier = modifier
@@ -88,7 +85,31 @@ fun CustomNavigationBarItem(
         Icon(
             modifier = Modifier.size(28.dp),
             tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-            imageVector = icon,
+            imageVector = if(selected) selectedIcon else icon,
+            contentDescription = null
+        )
+    }
+}
+
+@Composable
+fun CustomNavigationBarItem(
+    modifier: Modifier = Modifier,
+    selected: Boolean,
+    onClick: () -> Unit,
+    icon: Painter,
+    selectedIcon: Painter
+) {
+    Box(
+        modifier = modifier
+            .clip(CircleShape)
+            .size(60.dp)
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            modifier = Modifier.size(28.dp),
+            tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+            painter = if(selected) selectedIcon else icon,
             contentDescription = null
         )
     }
@@ -110,15 +131,17 @@ fun CustomBottomBar(
         verticalAlignment = Alignment.CenterVertically
     ) {
         CustomNavigationBarItem(
-            selected = true,
+            selected = false,
             onClick = { },
-            icon = Icons.Outlined.Person
+            icon = painterResource(id = R.drawable.ic_home),
+            selectedIcon = painterResource(id = R.drawable.ic_home_selected)
         )
 
         CustomNavigationBarItem(
-            selected = false,
+            selected = true,
             onClick = { },
-            icon = Icons.Outlined.Home
+            icon = painterResource(id = R.drawable.ic_favorite),
+            selectedIcon = painterResource(id = R.drawable.ic_favorite_selected)
         )
 
         Spacer(modifier = Modifier.size(80.dp)) // Leave space for the FAB
@@ -126,13 +149,15 @@ fun CustomBottomBar(
         CustomNavigationBarItem(
             selected = false,
             onClick = { },
-            icon = Icons.Outlined.FavoriteBorder
+            icon = painterResource(id = R.drawable.ic_message),
+            selectedIcon = painterResource(id = R.drawable.ic_message_selected)
         )
 
         CustomNavigationBarItem(
             selected = false,
             onClick = { },
-            icon = Icons.Outlined.Add
+            icon = painterResource(id = R.drawable.ic_person),
+            selectedIcon = painterResource(id = R.drawable.ic_person_selected)
         )
     }
 }
