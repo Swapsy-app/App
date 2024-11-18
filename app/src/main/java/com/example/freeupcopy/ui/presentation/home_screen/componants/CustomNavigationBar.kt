@@ -18,6 +18,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,13 +39,14 @@ fun CustomNavigationBar(
     modifier: Modifier = Modifier,
     windowInsets: WindowInsets = NavigationBarDefaults.windowInsets,
 ) {
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-    ) {
+    Box(modifier = modifier.fillMaxWidth()) {
 
         CustomBottomBar(
-            windowInsets = windowInsets
+            windowInsets = windowInsets,
+            onHomeClick = { },
+            onWishListClick = { },
+            onNotificationClick = { },
+            onProfileClick = { }
         )
         Box(
             modifier = Modifier
@@ -68,58 +73,43 @@ fun CustomNavigationBar(
 }
 
 @Composable
-fun CustomNavigationBarItem(
-    modifier: Modifier = Modifier,
-    selected: Boolean,
-    onClick: () -> Unit,
-    icon: ImageVector,
-    selectedIcon: ImageVector
-) {
-    Box(
-        modifier = modifier
-            .clip(CircleShape)
-            .size(60.dp)
-            .clickable { onClick() },
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            modifier = Modifier.size(28.dp),
-            tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-            imageVector = if(selected) selectedIcon else icon,
-            contentDescription = null
-        )
-    }
-}
-
-@Composable
-fun CustomNavigationBarItem(
-    modifier: Modifier = Modifier,
-    selected: Boolean,
-    onClick: () -> Unit,
-    icon: Painter,
-    selectedIcon: Painter
-) {
-    Box(
-        modifier = modifier
-            .clip(CircleShape)
-            .size(60.dp)
-            .clickable { onClick() },
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            modifier = Modifier.size(28.dp),
-            tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-            painter = if(selected) selectedIcon else icon,
-            contentDescription = null
-        )
-    }
-}
-
-@Composable
 fun CustomBottomBar(
     modifier: Modifier = Modifier,
     windowInsets: WindowInsets = NavigationBarDefaults.windowInsets,
+    onHomeClick: () -> Unit,
+    onWishListClick: () -> Unit,
+    onNotificationClick: () -> Unit,
+    onProfileClick: () -> Unit
 ) {
+    var selectedItem by remember { mutableIntStateOf(0) }
+
+    val items = listOf(
+        BottomNavigationItem(
+            contentDescription = "Home",
+            selectedIcon = painterResource(id = R.drawable.ic_home_selected),
+            unselectedIcon = painterResource(id = R.drawable.ic_home),
+            onClick = onHomeClick
+        ),
+        BottomNavigationItem(
+            contentDescription = "WishList",
+            selectedIcon = painterResource(id = R.drawable.ic_favorite_selected),
+            unselectedIcon = painterResource(id = R.drawable.ic_favorite),
+            onClick = onWishListClick
+        ),
+        BottomNavigationItem(
+            contentDescription = "Notification",
+            selectedIcon = painterResource(id = R.drawable.ic_message_selected),
+            unselectedIcon = painterResource(id = R.drawable.ic_message),
+            onClick = onNotificationClick
+        ),
+        BottomNavigationItem(
+            contentDescription = "Profile",
+            selectedIcon = painterResource(id = R.drawable.ic_person_selected),
+            unselectedIcon = painterResource(id = R.drawable.ic_person),
+            onClick = onProfileClick
+        )
+    )
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -130,37 +120,79 @@ fun CustomBottomBar(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        CustomNavigationBarItem(
-            selected = false,
-            onClick = { },
-            icon = painterResource(id = R.drawable.ic_home),
-            selectedIcon = painterResource(id = R.drawable.ic_home_selected)
-        )
 
-        CustomNavigationBarItem(
-            selected = true,
-            onClick = { },
-            icon = painterResource(id = R.drawable.ic_favorite),
-            selectedIcon = painterResource(id = R.drawable.ic_favorite_selected)
-        )
+        items.forEachIndexed { index, item ->
+            CustomNavigationBarItem(
+                selected = index == selectedItem,
+                onClick = {
+                    selectedItem = index
+                    item.onClick()
+                },
+                icon = item.unselectedIcon,
+                selectedIcon = item.selectedIcon,
+                contentDescription = item.contentDescription
+            )
+            if (index == 1) Spacer(modifier = Modifier.size(80.dp)) // Leave space for the FAB
+        }
+    }
+}
 
-        Spacer(modifier = Modifier.size(80.dp)) // Leave space for the FAB
-
-        CustomNavigationBarItem(
-            selected = false,
-            onClick = { },
-            icon = painterResource(id = R.drawable.ic_message),
-            selectedIcon = painterResource(id = R.drawable.ic_message_selected)
-        )
-
-        CustomNavigationBarItem(
-            selected = false,
-            onClick = { },
-            icon = painterResource(id = R.drawable.ic_person),
-            selectedIcon = painterResource(id = R.drawable.ic_person_selected)
+@Composable
+fun CustomNavigationBarItem(
+    modifier: Modifier = Modifier,
+    selected: Boolean,
+    onClick: () -> Unit,
+    icon: Painter,
+    selectedIcon: Painter,
+    contentDescription: String
+) {
+    Box(
+        modifier = modifier
+            .clip(CircleShape)
+            .size(60.dp)
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            modifier = Modifier.size(28.dp),
+            tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+            painter = if (selected) selectedIcon else icon,
+            contentDescription = contentDescription
         )
     }
 }
+
+@Composable
+fun CustomNavigationBarItem(
+    modifier: Modifier = Modifier,
+    selected: Boolean,
+    onClick: () -> Unit,
+    icon: ImageVector,
+    selectedIcon: ImageVector,
+    contentDescription: String
+) {
+    Box(
+        modifier = modifier
+            .clip(CircleShape)
+            .size(60.dp)
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            modifier = Modifier.size(28.dp),
+            tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+            imageVector = if (selected) selectedIcon else icon,
+            contentDescription = contentDescription
+        )
+    }
+}
+
+data class BottomNavigationItem(
+    val contentDescription: String,
+    val selectedIcon: Painter,
+    val unselectedIcon: Painter,
+    val onClick: () -> Unit
+)
 
 @Preview(showBackground = true)
 @Composable
