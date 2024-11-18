@@ -29,24 +29,30 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.freeupcopy.R
-import com.example.freeupcopy.ui.theme.FreeUpCopyTheme
+import com.example.freeupcopy.Screen
 
 @Composable
 fun CustomNavigationBar(
     modifier: Modifier = Modifier,
     windowInsets: WindowInsets = NavigationBarDefaults.windowInsets,
+    onHomeClick: () -> Unit,
+    onWishListClick: () -> Unit,
+    onNotificationClick: () -> Unit,
+    onProfileClick: () -> Unit,
+    navController: NavController
 ) {
     Box(modifier = modifier.fillMaxWidth()) {
 
         CustomBottomBar(
             windowInsets = windowInsets,
-            onHomeClick = { },
-            onWishListClick = { },
-            onNotificationClick = { },
-            onProfileClick = { }
+            onHomeClick = onHomeClick,
+            onWishListClick = onWishListClick,
+            onNotificationClick = onNotificationClick,
+            onProfileClick = onProfileClick,
+            navController = navController
         )
         Box(
             modifier = Modifier
@@ -56,7 +62,9 @@ fun CustomNavigationBar(
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.primary)
                 .clickable(
-                    onClick = { }
+                    onClick = {
+                        navController.navigate(Screen.ScreenE)
+                    }
                 )
                 .align(Alignment.TopCenter),
             contentAlignment = Alignment.Center
@@ -79,7 +87,8 @@ fun CustomBottomBar(
     onHomeClick: () -> Unit,
     onWishListClick: () -> Unit,
     onNotificationClick: () -> Unit,
-    onProfileClick: () -> Unit
+    onProfileClick: () -> Unit,
+    navController: NavController
 ) {
     var selectedItem by remember { mutableIntStateOf(0) }
 
@@ -123,7 +132,7 @@ fun CustomBottomBar(
 
         items.forEachIndexed { index, item ->
             CustomNavigationBarItem(
-                selected = index == selectedItem,
+                selected = index == currentScreenIndex(navController.currentDestination?.route.toString()),
                 onClick = {
                     selectedItem = index
                     item.onClick()
@@ -194,10 +203,14 @@ data class BottomNavigationItem(
     val onClick: () -> Unit
 )
 
-@Preview(showBackground = true)
-@Composable
-fun CustomNavigationPreview() {
-    FreeUpCopyTheme {
-        CustomNavigationBar()
-    }
+private val routeIndexMap = mapOf(
+    "ScreenA" to 0,
+    "ScreenB" to 1,
+    "ScreenC" to 2,
+    "ScreenD" to 3
+)
+
+private fun currentScreenIndex(currentRoute: String?): Int {
+    val transformedRoute = currentRoute?.substringAfterLast('.')?.substringBefore('@') ?: return -1
+    return routeIndexMap[transformedRoute] ?: -1
 }
