@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -42,8 +43,8 @@ fun CustomNavigationBar(
     modifier: Modifier = Modifier,
     windowInsets: WindowInsets = NavigationBarDefaults.windowInsets,
     onHomeClick: () -> Unit,
+    onCommunityClick: () -> Unit,
     onWishListClick: () -> Unit,
-    onNotificationClick: () -> Unit,
     onProfileClick: () -> Unit,
     navController: NavController
 ) {
@@ -53,7 +54,7 @@ fun CustomNavigationBar(
             windowInsets = windowInsets,
             onHomeClick = onHomeClick,
             onWishListClick = onWishListClick,
-            onNotificationClick = onNotificationClick,
+            onCommunityClick = onCommunityClick,
             onProfileClick = onProfileClick,
             navController = navController
         )
@@ -66,7 +67,7 @@ fun CustomNavigationBar(
                 .background(MaterialTheme.colorScheme.primary)
                 .clickable(
                     onClick = {
-                        navController.navigate(Screen.ScreenE)
+                        navController.navigate(Screen.SellScreen)
                     }
                 )
                 .align(Alignment.TopCenter),
@@ -88,8 +89,8 @@ fun CustomBottomBar(
     modifier: Modifier = Modifier,
     windowInsets: WindowInsets = NavigationBarDefaults.windowInsets,
     onHomeClick: () -> Unit,
+    onCommunityClick: () -> Unit,
     onWishListClick: () -> Unit,
-    onNotificationClick: () -> Unit,
     onProfileClick: () -> Unit,
     navController: NavController
 ) {
@@ -103,16 +104,16 @@ fun CustomBottomBar(
             onClick = onHomeClick
         ),
         BottomNavigationItem(
+            contentDescription = "Community",
+            selectedIcon = painterResource(id = R.drawable.ic_community_selected),
+            unselectedIcon = painterResource(id = R.drawable.ic_community),
+            onClick = onCommunityClick
+        ),
+        BottomNavigationItem(
             contentDescription = "WishList",
             selectedIcon = painterResource(id = R.drawable.ic_favorite_selected),
             unselectedIcon = painterResource(id = R.drawable.ic_favorite),
             onClick = onWishListClick
-        ),
-        BottomNavigationItem(
-            contentDescription = "Notification",
-            selectedIcon = painterResource(id = R.drawable.ic_message_selected),
-            unselectedIcon = painterResource(id = R.drawable.ic_message),
-            onClick = onNotificationClick
         ),
         BottomNavigationItem(
             contentDescription = "Profile",
@@ -158,18 +159,34 @@ fun CustomNavigationBarItem(
     selectedIcon: Painter,
     contentDescription: String
 ) {
-    Box(
-        modifier = modifier
-            .clip(CircleShape)
-            .size(60.dp)
-            .clickable { onClick() },
-        contentAlignment = Alignment.Center
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        Icon(
-            modifier = Modifier.size(28.dp),
-            tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-            painter = if (selected) selectedIcon else icon,
-            contentDescription = contentDescription
+        Box(
+            modifier = modifier
+                .clip(CircleShape)
+                .size(50.dp)
+                .clickable { onClick() },
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                modifier = Modifier.size(30.dp),
+                tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                painter = if (selected) selectedIcon else icon,
+                contentDescription = contentDescription
+            )
+        }
+
+        Text(
+            modifier = Modifier.offset(y=(-3).dp),
+            text = contentDescription,
+            fontSize = 13.sp,
+            fontWeight = if(selected) FontWeight.Bold else FontWeight.Normal,
+            color = if (selected)
+                MaterialTheme.colorScheme.onSurface
+            else
+                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
         )
     }
 }
@@ -207,10 +224,10 @@ data class BottomNavigationItem(
 )
 
 private val routeIndexMap = mapOf(
-    "ScreenA" to 0,
-    "ScreenB" to 1,
-    "ScreenC" to 2,
-    "ScreenD" to 3
+    "HomeScreen" to 0,
+    "CommunityScreen" to 1,
+    "WishListScreen" to 2,
+    "ProfileScreen" to 3
 )
 
 private fun currentScreenIndex(currentRoute: String?): Int {

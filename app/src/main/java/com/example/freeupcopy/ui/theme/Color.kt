@@ -17,7 +17,16 @@ val PrimaryContainerLight = Color(0xFFFFFFFF)
 val PrimaryContainerDark = Color(0xFF2C2B30)
 
 val PrimaryLight = Color(0xFF362A6F)
-val PrimaryDark = Color(0xFF907DE6)
+val PrimaryDark = Color(0xFF896FFF)
 
 val OnPrimaryContainerLight = Color(0xFFFFFFFF)
 val OnPrimaryContainerDark = Color(0xFF000000)
+
+val CoinColor1 = Color(0xFFFFD700)
+val CoinColor2 = Color(0xFFFFA500)
+
+val CashColor1 = Color(0xFFB2F368)
+val CashColor2 = Color(0xFF00B800)
+
+val BadgeLight = Color(0xFFFF3B30)
+val BadgeDark = Color(0xFFFF4F38)

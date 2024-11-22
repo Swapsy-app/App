@@ -1,4 +1,4 @@
-package com.example.freeupcopy.ui.presentation.favorite_screen
+package com.example.freeupcopy.ui.presentation.inbox_screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -10,7 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
 @Composable
-fun FavoriteScreen(modifier: Modifier = Modifier) {
+fun InboxScreen(modifier: Modifier = Modifier) {
 
     Box(
         modifier = Modifier
@@ -18,6 +18,6 @@ fun FavoriteScreen(modifier: Modifier = Modifier) {
             .background(MaterialTheme.colorScheme.surface),
         contentAlignment = Alignment.Center
     ) {
-        Text(text = "Favorite Screen")
+        Text(text = "Inbox Screen")
     }
 }

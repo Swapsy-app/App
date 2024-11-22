@@ -1,11 +1,15 @@
 package com.example.freeupcopy
 
 import android.annotation.SuppressLint
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -14,10 +18,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.freeupcopy.ui.presentation.favorite_screen.FavoriteScreen
+import com.example.freeupcopy.ui.presentation.cart_screen.CartScreen
+import com.example.freeupcopy.ui.presentation.community_screen.CommunityScreen
 import com.example.freeupcopy.ui.presentation.home_screen.HomeScreen
 import com.example.freeupcopy.ui.presentation.home_screen.componants.CustomNavigationBar
+import com.example.freeupcopy.ui.presentation.inbox_screen.InboxScreen
 import com.example.freeupcopy.ui.presentation.profile_screen.ProfileScreen
+import com.example.freeupcopy.ui.presentation.search_screen.SearchScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.SellScreen
 import com.example.freeupcopy.ui.presentation.wish_list.WishListScreen
 import com.example.freeupcopy.ui.theme.FreeUpCopyTheme
@@ -26,6 +33,7 @@ import kotlinx.serialization.Serializable
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 class MainActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -37,60 +45,92 @@ class MainActivity : ComponentActivity() {
                 val currentRoute = navBackStackEntry?.destination
 
                 Scaffold(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surface),
+                    containerColor = MaterialTheme.colorScheme.surface
+                    ,
                     bottomBar = {
                         currentRoute?.let { route ->
-                            if(!route.hasRoute(Screen.ScreenE::class)){
+                            if (
+                                route.hasRoute(Screen.HomeScreen::class)
+                                || route.hasRoute(Screen.CommunityScreen::class)
+                                || route.hasRoute(Screen.ProfileScreen::class)
+                                || route.hasRoute(Screen.InboxScreen::class)
+                                ) {
                                 CustomNavigationBar(
                                     navController = navController,
                                     onHomeClick = {
-                                        navController.navigate(Screen.ScreenA) {
-                                            popUpTo(Screen.ScreenA) { inclusive = true }
+                                        navController.navigate(Screen.HomeScreen) {
+                                            popUpTo(Screen.HomeScreen) { inclusive = true }
+                                        }
+                                    },
+                                    onCommunityClick = {
+                                        navController.navigate(Screen.CommunityScreen) {
+                                            popUpTo(Screen.HomeScreen) { inclusive = false }
                                         }
                                     },
                                     onWishListClick = {
-                                        navController.navigate(Screen.ScreenB) {
-                                            popUpTo(Screen.ScreenA) { inclusive = false }
-                                        }
-                                    },
-                                    onNotificationClick = {
-                                        navController.navigate(Screen.ScreenC) {
-                                            popUpTo(Screen.ScreenA) { inclusive = false }
+                                        navController.navigate(Screen.WishListScreen) {
+                                            popUpTo(Screen.HomeScreen) { inclusive = false }
                                         }
                                     },
                                     onProfileClick = {
-                                        navController.navigate(Screen.ScreenD) {
-                                            popUpTo(Screen.ScreenA) { inclusive = false }
+                                        navController.navigate(Screen.ProfileScreen) {
+                                            popUpTo(Screen.HomeScreen) { inclusive = false }
                                         }
                                     }
                                 )
                             }
                         }
-                    },
-                ) {
+                    }
+                ) { innerPadding ->
 
                     NavHost(
                         navController = navController,
-                        startDestination = Screen.ScreenA
+                        startDestination = Screen.HomeScreen
                     ) {
-                        composable<Screen.ScreenA> {
-                            HomeScreen()
+                        composable<Screen.HomeScreen> {
+                            HomeScreen(
+                                innerPadding = innerPadding,
+                                onSearchBarClick = {
+                                    navController.navigate(Screen.SearchScreen)
+                                },
+                                onInboxClick = {
+                                    navController.navigate(Screen.InboxScreen)
+                                },
+                                onCartClick = {
+                                    navController.navigate(Screen.CartScreen)
+                                }
+                            )
                         }
 
-                        composable<Screen.ScreenB> {
+                        composable<Screen.CommunityScreen> {
+                            CommunityScreen()
+                        }
+
+                        composable<Screen.WishListScreen> {
                             WishListScreen()
                         }
 
-                        composable<Screen.ScreenC> {
-                            FavoriteScreen()
-                        }
-
-                        composable<Screen.ScreenD> {
+                        composable<Screen.ProfileScreen> {
                             ProfileScreen()
                         }
 
-                        composable<Screen.ScreenE> {
+                        composable<Screen.SellScreen> {
                             SellScreen()
+                        }
+
+                        composable<Screen.SearchScreen> {
+                            SearchScreen()
+                        }
+
+                        composable<Screen.InboxScreen> {
+                            InboxScreen()
+                        }
+
+                        composable<Screen.CartScreen> {
+                            CartScreen()
                         }
                     }
                 }
@@ -102,17 +142,26 @@ class MainActivity : ComponentActivity() {
 @Serializable
 sealed class Screen {
     @Serializable
-    data object ScreenA : Screen()
+    data object HomeScreen : Screen()
 
     @Serializable
-    data object ScreenB : Screen()
+    data object CommunityScreen : Screen()
 
     @Serializable
-    data object ScreenC : Screen()
+    data object WishListScreen : Screen()
 
     @Serializable
-    data object ScreenD : Screen()
+    data object ProfileScreen : Screen()
 
     @Serializable
-    data object ScreenE : Screen()
+    data object SellScreen : Screen()
+
+    @Serializable
+    data object SearchScreen: Screen()
+
+    @Serializable
+    data object InboxScreen: Screen()
+
+    @Serializable
+    data object CartScreen: Screen()
 }
