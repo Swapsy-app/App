@@ -21,6 +21,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.freeupcopy.ui.presentation.home_screen.componants.AppNameTopSection
 import com.example.freeupcopy.ui.presentation.home_screen.componants.FlexibleTopBar
 import com.example.freeupcopy.ui.presentation.home_screen.componants.FlexibleTopBarDefaults
@@ -33,21 +35,24 @@ fun HomeScreen(
     innerPadding: PaddingValues,
     onSearchBarClick: () -> Unit,
     onInboxClick: () -> Unit,
-    onCartClick: () -> Unit
+    onCartClick: () -> Unit,
+    onCoinClick: () -> Unit,
+    onCashClick: () -> Unit
 ) {
-
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    val lifeCycleOwner = LocalLifecycleOwner.current
 
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
             .padding(innerPadding)
             .nestedScroll(scrollBehavior.nestedScrollConnection),
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             Column(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
                 Box(
                     modifier = Modifier.offset(y = 6.dp)
-                ){
+                ) {
 
                     FlexibleTopBar(
                         scrollBehavior = scrollBehavior,
@@ -56,11 +61,23 @@ fun HomeScreen(
                             scrolledContainerColor = Color.Transparent
                         )
                     ) {
-                        AppNameTopSection()
+                        AppNameTopSection(
+                            onCoinClick = {
+                                val currentState = lifeCycleOwner.lifecycle.currentState
+                                if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                                    onCoinClick()
+                                }
+                            },
+                            onCashClick = {
+                                val currentState = lifeCycleOwner.lifecycle.currentState
+                                if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                                    onCashClick()
+                                }
+                            }
+                        )
                     }
                 }
                 Box {
-
                     FlexibleTopBar(
                         colors = FlexibleTopBarDefaults.topAppBarColors(
                             containerColor = MaterialTheme.colorScheme.surface,
@@ -73,21 +90,39 @@ fun HomeScreen(
                                 .padding(
                                     start = 16.dp,
                                     end = 16.dp,
-                                    bottom = 12.dp,
+                                    //bottom = 12.dp,
                                     top = 8.dp
                                 ),
-                            onSearchBarClick = { onSearchBarClick() },
-                            onInboxClick = { onInboxClick() },
-                            onCartClick = { onCartClick() }
+                            onSearchBarClick = {
+                                val currentState = lifeCycleOwner.lifecycle.currentState
+                                if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                                    onSearchBarClick()
+                                }
+                            },
+                            onInboxClick = {
+                                val currentState = lifeCycleOwner.lifecycle.currentState
+                                if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                                    onInboxClick()
+                                }
+                            },
+                            onCartClick = {
+                                val currentState = lifeCycleOwner.lifecycle.currentState
+                                if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                                    onCartClick()
+                                }
+                            }
                         )
                     }
                 }
-
             }
         }
     ) { innerPadding2 ->
+        //if remove offset int the content of the home screen then add the
+        // bottom padding that is commented out SearchTopSection
+
         LazyColumn(
             modifier = Modifier
+                .offset(y = 12.dp)
                 .fillMaxSize()
                 .padding(innerPadding2)
         ) {

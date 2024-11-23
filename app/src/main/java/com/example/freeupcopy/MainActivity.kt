@@ -7,6 +7,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -19,6 +23,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.freeupcopy.ui.presentation.cart_screen.CartScreen
+import com.example.freeupcopy.ui.presentation.cash_screen.CashScreen
+import com.example.freeupcopy.ui.presentation.coin_screen.CoinScreen
 import com.example.freeupcopy.ui.presentation.community_screen.CommunityScreen
 import com.example.freeupcopy.ui.presentation.home_screen.HomeScreen
 import com.example.freeupcopy.ui.presentation.home_screen.componants.CustomNavigationBar
@@ -48,8 +54,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier
                         .fillMaxSize()
                         .background(MaterialTheme.colorScheme.surface),
-                    containerColor = MaterialTheme.colorScheme.surface
-                    ,
+                    containerColor = MaterialTheme.colorScheme.surface,
                     bottomBar = {
                         currentRoute?.let { route ->
                             if (
@@ -57,7 +62,7 @@ class MainActivity : ComponentActivity() {
                                 || route.hasRoute(Screen.CommunityScreen::class)
                                 || route.hasRoute(Screen.ProfileScreen::class)
                                 || route.hasRoute(Screen.InboxScreen::class)
-                                ) {
+                            ) {
                                 CustomNavigationBar(
                                     navController = navController,
                                     onHomeClick = {
@@ -88,9 +93,28 @@ class MainActivity : ComponentActivity() {
 
                     NavHost(
                         navController = navController,
-                        startDestination = Screen.HomeScreen
+                        startDestination = Screen.HomeScreen,
+                        enterTransition = {
+                            slideIntoContainer(
+                                towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                                animationSpec = tween(500)
+                            ) + fadeIn(tween(300, 200))
+                        },
+                        exitTransition = {
+                            slideOutOfContainer(
+                                towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                                animationSpec = tween(500)
+                            ) + fadeOut(tween(250, 100))
+                        }
                     ) {
-                        composable<Screen.HomeScreen> {
+                        composable<Screen.HomeScreen>(
+                            enterTransition = {
+                                fadeIn(tween(700))
+                            },
+                            exitTransition = {
+                                fadeOut(tween(700))
+                            }
+                        ) {
                             HomeScreen(
                                 innerPadding = innerPadding,
                                 onSearchBarClick = {
@@ -101,11 +125,24 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onCartClick = {
                                     navController.navigate(Screen.CartScreen)
+                                },
+                                onCoinClick = {
+                                    navController.navigate(Screen.CoinScreen)
+                                },
+                                onCashClick = {
+                                    navController.navigate(Screen.CashScreen)
                                 }
                             )
                         }
 
-                        composable<Screen.CommunityScreen> {
+                        composable<Screen.CommunityScreen>(
+                            enterTransition = {
+                                fadeIn(tween(700))
+                            },
+                            exitTransition = {
+                                fadeOut(tween(700))
+                            }
+                        ) {
                             CommunityScreen()
                         }
 
@@ -113,16 +150,34 @@ class MainActivity : ComponentActivity() {
                             WishListScreen()
                         }
 
-                        composable<Screen.ProfileScreen> {
+                        composable<Screen.ProfileScreen>(
+                            enterTransition = {
+                                fadeIn(tween(700))
+                            },
+                            exitTransition = {
+                                fadeOut(tween(700))
+                            }
+                        ) {
                             ProfileScreen()
                         }
 
-                        composable<Screen.SellScreen> {
+                        composable<Screen.SellScreen>(
+                            enterTransition = {
+                                fadeIn(tween(700))
+                            },
+                            exitTransition = {
+                                fadeOut(tween(700))
+                            }
+                        ) {
                             SellScreen()
                         }
 
                         composable<Screen.SearchScreen> {
-                            SearchScreen()
+                            SearchScreen(
+                                onBack = {
+                                    navController.popBackStack()
+                                }
+                            )
                         }
 
                         composable<Screen.InboxScreen> {
@@ -131,6 +186,14 @@ class MainActivity : ComponentActivity() {
 
                         composable<Screen.CartScreen> {
                             CartScreen()
+                        }
+
+                        composable<Screen.CashScreen> {
+                            CashScreen()
+                        }
+
+                        composable<Screen.CoinScreen> {
+                            CoinScreen()
                         }
                     }
                 }
@@ -157,11 +220,17 @@ sealed class Screen {
     data object SellScreen : Screen()
 
     @Serializable
-    data object SearchScreen: Screen()
+    data object SearchScreen : Screen()
 
     @Serializable
-    data object InboxScreen: Screen()
+    data object InboxScreen : Screen()
 
     @Serializable
-    data object CartScreen: Screen()
+    data object CartScreen : Screen()
+
+    @Serializable
+    data object CashScreen : Screen()
+
+    @Serializable
+    data object CoinScreen : Screen()
 }

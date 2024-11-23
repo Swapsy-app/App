@@ -34,7 +34,11 @@ import com.example.freeupcopy.ui.theme.CoinColor1
 import com.example.freeupcopy.ui.theme.CoinColor2
 
 @Composable
-fun AppNameTopSection(modifier: Modifier = Modifier) {
+fun AppNameTopSection(
+    modifier: Modifier = Modifier,
+    onCoinClick: () -> Unit,
+    onCashClick: () -> Unit
+) {
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -51,18 +55,21 @@ fun AppNameTopSection(modifier: Modifier = Modifier) {
         )
         Spacer(modifier = Modifier.weight(1f))
         CoinButton {
-
+            onCoinClick()
         }
         Spacer(modifier = Modifier.size(8.dp))
         CashButton {
-
+            onCashClick()
         }
     }
 }
 
 
 @Composable
-fun CoinButton(modifier: Modifier = Modifier, onClick: () -> Unit) {
+fun CoinButton(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(100))
@@ -104,7 +111,10 @@ fun CoinButton(modifier: Modifier = Modifier, onClick: () -> Unit) {
 
 
 @Composable
-fun CashButton(modifier: Modifier = Modifier, onClick: () -> Unit) {
+fun CashButton(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(100))
