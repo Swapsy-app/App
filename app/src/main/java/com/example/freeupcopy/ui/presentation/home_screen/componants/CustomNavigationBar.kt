@@ -36,7 +36,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.freeupcopy.R
-import com.example.freeupcopy.Screen
 
 @Composable
 fun CustomNavigationBar(
@@ -46,6 +45,7 @@ fun CustomNavigationBar(
     onCommunityClick: () -> Unit,
     onWishListClick: () -> Unit,
     onProfileClick: () -> Unit,
+    onSellClick: () -> Unit,
     navController: NavController
 ) {
     Box(modifier = modifier.fillMaxWidth()) {
@@ -66,9 +66,7 @@ fun CustomNavigationBar(
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.primary)
                 .clickable(
-                    onClick = {
-                        navController.navigate(Screen.SellScreen)
-                    }
+                    onClick = onSellClick
                 )
                 .align(Alignment.TopCenter),
             contentAlignment = Alignment.Center

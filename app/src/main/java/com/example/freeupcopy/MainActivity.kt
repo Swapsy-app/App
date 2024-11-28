@@ -32,6 +32,7 @@ import com.example.freeupcopy.ui.presentation.inbox_screen.InboxScreen
 import com.example.freeupcopy.ui.presentation.profile_screen.ProfileScreen
 import com.example.freeupcopy.ui.presentation.search_screen.SearchScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.SellScreen
+import com.example.freeupcopy.ui.presentation.sell_screen.componants.CategoryScreen
 import com.example.freeupcopy.ui.presentation.wish_list.WishListScreen
 import com.example.freeupcopy.ui.theme.FreeUpCopyTheme
 import kotlinx.serialization.Serializable
@@ -84,6 +85,11 @@ class MainActivity : ComponentActivity() {
                                         navController.navigate(Screen.ProfileScreen) {
                                             popUpTo(Screen.HomeScreen) { inclusive = false }
                                         }
+                                    },
+                                    onSellClick = {
+                                        navController.navigate(Screen.SellScreen(null)) {
+                                            popUpTo(Screen.HomeScreen) { inclusive = false }
+                                        }
                                     }
                                 )
                             }
@@ -108,12 +114,8 @@ class MainActivity : ComponentActivity() {
                         }
                     ) {
                         composable<Screen.HomeScreen>(
-                            enterTransition = {
-                                fadeIn(tween(700))
-                            },
-                            exitTransition = {
-                                fadeOut(tween(700))
-                            }
+                            enterTransition = { fadeIn(tween(700)) },
+                            exitTransition = { fadeOut(tween(700)) }
                         ) {
                             HomeScreen(
                                 innerPadding = innerPadding,
@@ -136,12 +138,8 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable<Screen.CommunityScreen>(
-                            enterTransition = {
-                                fadeIn(tween(700))
-                            },
-                            exitTransition = {
-                                fadeOut(tween(700))
-                            }
+                            enterTransition = { fadeIn(tween(700)) },
+                            exitTransition = { fadeOut(tween(700)) }
                         ) {
                             CommunityScreen()
                         }
@@ -151,25 +149,24 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable<Screen.ProfileScreen>(
-                            enterTransition = {
-                                fadeIn(tween(700))
-                            },
-                            exitTransition = {
-                                fadeOut(tween(700))
-                            }
+                            enterTransition = { fadeIn(tween(700)) },
+                            exitTransition = { fadeOut(tween(700)) }
                         ) {
                             ProfileScreen()
                         }
 
                         composable<Screen.SellScreen>(
-                            enterTransition = {
-                                fadeIn(tween(700))
-                            },
-                            exitTransition = {
-                                fadeOut(tween(700))
-                            }
+                            enterTransition = { fadeIn(tween(700)) },
+                            exitTransition = { fadeOut(tween(700)) }
                         ) {
-                            SellScreen()
+                            val selectedCategory = it.savedStateHandle.get<String>("selected_category")
+                            SellScreen(
+                                onCategoryClick = {
+                                    navController.navigate(Screen.CategoryScreen)
+                                    selectedCategory ?: ""
+                                },
+                                chosenCategory1 = selectedCategory ?: ""
+                            )
                         }
 
                         composable<Screen.SearchScreen> {
@@ -180,7 +177,10 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        composable<Screen.InboxScreen> {
+                        composable<Screen.InboxScreen>(
+                            enterTransition = { fadeIn(tween(700)) },
+                            exitTransition = { fadeOut(tween(700)) }
+                        ) {
                             InboxScreen()
                         }
 
@@ -194,6 +194,16 @@ class MainActivity : ComponentActivity() {
 
                         composable<Screen.CoinScreen> {
                             CoinScreen()
+                        }
+                        composable<Screen.CategoryScreen> {
+                            CategoryScreen(
+                                onCategoryClick = { s ->
+                                    navController.previousBackStackEntry
+                                        ?.savedStateHandle
+                                        ?.set("selected_category", s)
+                                    navController.popBackStack()
+                                }
+                            )
                         }
                     }
                 }
@@ -217,7 +227,9 @@ sealed class Screen {
     data object ProfileScreen : Screen()
 
     @Serializable
-    data object SellScreen : Screen()
+    data class SellScreen(
+        val selectedCategory: String?
+    ) : Screen()
 
     @Serializable
     data object SearchScreen : Screen()
@@ -233,4 +245,9 @@ sealed class Screen {
 
     @Serializable
     data object CoinScreen : Screen()
+
+    @Serializable
+    data object CategoryScreen : Screen()
+
 }
+

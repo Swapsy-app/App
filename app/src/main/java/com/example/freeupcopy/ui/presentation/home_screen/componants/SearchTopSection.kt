@@ -133,11 +133,11 @@ fun SearchBar(
             onValueChange = onValueChange,
             textStyle = TextStyle(
                 fontSize = 18.sp,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
+                color = MaterialTheme.colorScheme.onSurface
             ),
             cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
             modifier = Modifier
-                .fillMaxWidth() // Ensure BasicTextField takes full width
+                .fillMaxWidth()
                 .onFocusChanged {
                     isFocused.value = it.hasFocus
                     onFocusChange(it.hasFocus)
@@ -166,8 +166,17 @@ fun SearchBar(
                         )
                     )
                 },
+                leadingIcon = {
+                    Icon(
+                        modifier = Modifier
+                            .size(28.dp),
+                        imageVector = Icons.Outlined.Search,
+                        contentDescription = "search",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                },
                 trailingIcon = {
-                    if (isFocused.value){
+                    if (value.isNotBlank()) {
                         Icon(
                             modifier = Modifier
                                 .size(40.dp)
@@ -178,14 +187,6 @@ fun SearchBar(
                             contentDescription = "close",
                             tint = MaterialTheme.colorScheme.onSurface
                         )
-                    } else {
-                        Icon(
-                            modifier = Modifier
-                                .size(28.dp),
-                            imageVector = Icons.Outlined.Search,
-                            contentDescription = "search",
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
                     }
                 },
                 colors = TextFieldDefaults.colors(
@@ -194,8 +195,9 @@ fun SearchBar(
                     unfocusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                     focusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                     disabledIndicatorColor = Color.Transparent,
-                    disabledContainerColor = MaterialTheme.colorScheme.primaryContainer
-
+                    disabledContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    disabledTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
                 ),
                 contentPadding = TextFieldDefaults.contentPaddingWithoutLabel(
                     top = 0.dp,
