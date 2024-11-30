@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -21,6 +20,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -42,8 +42,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -57,6 +55,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.freeupcopy.R
 import com.example.freeupcopy.domain.model.Category
 import com.example.freeupcopy.ui.presentation.home_screen.componants.SearchBar
+import com.example.freeupcopy.ui.presentation.sell_screen.CustomDivider
 
 @Composable
 fun CategoryScreen(
@@ -136,7 +135,8 @@ fun ChooseCategory(
                     disabledLabelColor = MaterialTheme.colorScheme.onSurface,
                     disabledLeadingIconColor = MaterialTheme.colorScheme.onSurface,
                     disabledTrailingIconColor = MaterialTheme.colorScheme.onSurface
-                )
+                ),
+                shape = RoundedCornerShape(16.dp)
             )
             DropdownMenu(
                 expanded = mExpanded,
@@ -242,26 +242,7 @@ fun SubCategorySection(
             if (filteredSubcategories.firstOrNull()?.subcategories?.isNotEmpty() == true) {
                 items(filteredSubcategories) { subCategory ->
                     if (subCategory != filteredSubcategories.first()) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(2.dp)
-                        ) {
-                            Spacer(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(2.dp)
-                                    .background(
-                                        Brush.horizontalGradient(
-                                            colors = listOf(
-                                                Color.Transparent,
-                                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                                                Color.Transparent
-                                            )
-                                        )
-                                    )
-                            )
-                        }
+                        CustomDivider()
                         Spacer(modifier = Modifier.size(16.dp))
                     }
                     SubCategoryHeadingWithCategory(
@@ -282,8 +263,10 @@ fun SubCategorySection(
                         )
                     } else {
                         FlowRow(
+                            modifier = Modifier.fillMaxWidth(),
                             verticalArrangement = Arrangement.spacedBy(12.dp),
                             horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            maxLines = 4
                         ) {
                             filteredSubcategories.forEach { category ->
                                 FinalCategoryItems(
@@ -321,8 +304,10 @@ fun SubCategoryHeadingWithCategory(
         )
         Spacer(modifier = Modifier.size(16.dp))
         FlowRow(
+            modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(12.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
+            maxLines = 4
         ) {
             category.subcategories.forEach { category ->
                 FinalCategoryItems(
@@ -343,7 +328,8 @@ fun FinalCategoryItems(
     onClick: (String) -> Unit
 ) {
     Box(
-        modifier = modifier,
+        modifier = modifier
+            .fillMaxWidth(0.21f),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -352,7 +338,7 @@ fun FinalCategoryItems(
         ) {
             Image(
                 modifier = Modifier
-                    .size(75.dp)
+                    //.size(75.dp)
                     .clip(CircleShape)
                     .clickable { onClick(category.name) },
                 painter = painterResource(id = R.drawable.kurta_men),

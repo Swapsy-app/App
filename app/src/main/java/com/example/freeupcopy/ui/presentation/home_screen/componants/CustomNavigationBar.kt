@@ -42,7 +42,7 @@ fun CustomNavigationBar(
     modifier: Modifier = Modifier,
     windowInsets: WindowInsets = NavigationBarDefaults.windowInsets,
     onHomeClick: () -> Unit,
-    onCommunityClick: () -> Unit,
+    onCommunityClick: () -> Unit, 
     onWishListClick: () -> Unit,
     onProfileClick: () -> Unit,
     onSellClick: () -> Unit,
@@ -75,7 +75,7 @@ fun CustomNavigationBar(
                 text = "Sell",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
+                color = MaterialTheme.colorScheme.onPrimary
             )
         }
     }

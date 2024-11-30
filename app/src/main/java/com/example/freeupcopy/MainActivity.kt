@@ -1,9 +1,11 @@
 package com.example.freeupcopy
 
 import android.annotation.SuppressLint
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
@@ -22,6 +24,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import com.example.freeupcopy.ui.presentation.cart_screen.CartScreen
 import com.example.freeupcopy.ui.presentation.cash_screen.CashScreen
 import com.example.freeupcopy.ui.presentation.coin_screen.CoinScreen
@@ -32,7 +35,11 @@ import com.example.freeupcopy.ui.presentation.inbox_screen.InboxScreen
 import com.example.freeupcopy.ui.presentation.profile_screen.ProfileScreen
 import com.example.freeupcopy.ui.presentation.search_screen.SearchScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.SellScreen
+import com.example.freeupcopy.ui.presentation.sell_screen.componants.BrandScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.componants.CategoryScreen
+import com.example.freeupcopy.ui.presentation.sell_screen.componants.ConditionScreen
+import com.example.freeupcopy.ui.presentation.sell_screen.componants.ManufacturingScreen
+import com.example.freeupcopy.ui.presentation.sell_screen.componants.WeightScreen
 import com.example.freeupcopy.ui.presentation.wish_list.WishListScreen
 import com.example.freeupcopy.ui.theme.FreeUpCopyTheme
 import kotlinx.serialization.Serializable
@@ -43,9 +50,12 @@ class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
+        )
         setContent {
-            FreeUpCopyTheme {
+            FreeUpCopyTheme(darkTheme = false) {
 
                 val navController = rememberNavController()
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -87,7 +97,7 @@ class MainActivity : ComponentActivity() {
                                         }
                                     },
                                     onSellClick = {
-                                        navController.navigate(Screen.SellScreen(null)) {
+                                        navController.navigate(Screen.SellScreen(null, null)) {
                                             popUpTo(Screen.HomeScreen) { inclusive = false }
                                         }
                                     }
@@ -160,12 +170,33 @@ class MainActivity : ComponentActivity() {
                             exitTransition = { fadeOut(tween(700)) }
                         ) {
                             val selectedCategory = it.savedStateHandle.get<String>("selected_category")
+                            val selectedWeight = it.savedStateHandle.get<String>("selected_weight")
+                            val selectedBrand = it.savedStateHandle.get<String>("selected_brand")
+                            val selectedCondition = it.savedStateHandle.get<String>("selected_condition")
+                            val selectedCountry = it.savedStateHandle.get<String>("selected_country")
                             SellScreen(
                                 onCategoryClick = {
                                     navController.navigate(Screen.CategoryScreen)
                                     selectedCategory ?: ""
                                 },
-                                chosenCategory1 = selectedCategory ?: ""
+                                onWeightClick = {
+                                    navController.navigate(Screen.WeightScreen(selectedWeight = selectedWeight))
+                                },
+                                onConditionClick = {
+                                    navController.navigate(Screen.ConditionScreen(selectedCondition = selectedCondition))
+                                },
+                                onBrandClick = {
+                                    navController.navigate(Screen.BrandScreen(selectedBrand = selectedBrand))
+                                    //selectedBrand ?: ""
+                                },
+                                onManufacturingClick = {
+                                    navController.navigate(Screen.ManufacturingScreen(selectedCountry = selectedCountry))
+                                },
+                                selectedWeight = selectedWeight ?: "",
+                                selectedCategory = selectedCategory ?: "",
+                                selectedBrand = selectedBrand ?: "",
+                                selectedCondition = selectedCondition ?: "",
+                                selectedCountry = selectedCountry ?: "India"
                             )
                         }
 
@@ -205,6 +236,70 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
+
+                        composable<Screen.WeightScreen> {
+                            val args = it.toRoute<Screen.WeightScreen>()
+                            WeightScreen(
+                                selectedWeight = args.selectedWeight ?: "",
+                                onWeightClick = { s ->
+                                    navController.previousBackStackEntry
+                                        ?.savedStateHandle
+                                        ?.set("selected_weight", s)
+                                    navController.popBackStack()
+                                },
+                                onClose = {
+                                    navController.popBackStack()
+                                }
+                            )
+                        }
+
+                        composable<Screen.BrandScreen> {
+                            val args = it.toRoute<Screen.BrandScreen>()
+                            BrandScreen(
+                                onClose = {
+                                    navController.popBackStack()
+                                },
+                                navigatedBrand = args.selectedBrand ?: "",
+                                onBrandClick = { s ->
+                                    navController.previousBackStackEntry
+                                        ?.savedStateHandle
+                                        ?.set("selected_brand", s)
+                                    navController.popBackStack()
+                                }
+                            )
+                        }
+
+                        composable<Screen.ConditionScreen> {
+                            val args = it.toRoute<Screen.ConditionScreen>()
+                            ConditionScreen(
+                                onConditionClick = { s ->
+                                    navController.previousBackStackEntry
+                                        ?.savedStateHandle
+                                        ?.set("selected_condition", s)
+                                    navController.popBackStack()
+                                },
+                                onClose = {
+                                    navController.popBackStack()
+                                },
+                                selectedCondition = args.selectedCondition ?: ""
+                            )
+                        }
+
+                        composable<Screen.ManufacturingScreen> {
+                            val args = it.toRoute<Screen.ManufacturingScreen>()
+                            ManufacturingScreen(
+                                onManufacturingClick = { s ->
+                                    navController.previousBackStackEntry
+                                        ?.savedStateHandle
+                                        ?.set("selected_country", s)
+                                    navController.popBackStack()
+                                },
+                                onClose = {
+                                    navController.popBackStack()
+                                },
+                                manufacturingCountry = args.selectedCountry ?: "India"
+                            )
+                        }
                     }
                 }
             }
@@ -228,7 +323,8 @@ sealed class Screen {
 
     @Serializable
     data class SellScreen(
-        val selectedCategory: String?
+        val selectedCategory: String?,
+        val selectedWeight: String?,
     ) : Screen()
 
     @Serializable
@@ -249,5 +345,24 @@ sealed class Screen {
     @Serializable
     data object CategoryScreen : Screen()
 
+    @Serializable
+    data class WeightScreen(
+        val selectedWeight: String?
+    ) : Screen()
+
+    @Serializable
+    data class BrandScreen(
+        val selectedBrand: String?
+    ) : Screen()
+
+    @Serializable
+    data class ManufacturingScreen(
+        val selectedCountry: String?
+    ) : Screen()
+
+    @Serializable
+    data class ConditionScreen(
+        val selectedCondition: String? = ""
+    ) : Screen()
 }
 

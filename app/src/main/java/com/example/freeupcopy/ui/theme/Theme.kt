@@ -19,6 +19,7 @@ private val DarkColorScheme = darkColorScheme(
     surface = SurfaceDark,
     primaryContainer = PrimaryContainerDark,
     onPrimaryContainer = OnPrimaryContainerDark,
+    tertiaryContainer = TertiaryContainerDark,
     onSurface = Color.White
 )
 
@@ -29,6 +30,7 @@ private val LightColorScheme = lightColorScheme(
     surface = SurfaceLight,
     primaryContainer = PrimaryContainerLight,
     onPrimaryContainer = OnPrimaryContainerLight,
+    tertiaryContainer = TertiaryContainerLight,
     onSurface = Color.Black
 
     /* Other default colors to override
@@ -53,6 +55,7 @@ fun FreeUpCopyTheme(
     }
 
     MaterialTheme(
+
         colorScheme = colorScheme,
         typography = Typography
     ) {
