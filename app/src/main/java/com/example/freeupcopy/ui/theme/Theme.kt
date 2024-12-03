@@ -1,20 +1,16 @@
 package com.example.freeupcopy.ui.theme
 
-import android.app.Activity
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.ripple.LocalRippleTheme
 import androidx.compose.material.ripple.RippleAlpha
 import androidx.compose.material.ripple.RippleTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 
 private val DarkColorScheme = darkColorScheme(
     primary = PrimaryDark,
@@ -22,7 +18,9 @@ private val DarkColorScheme = darkColorScheme(
     tertiary = Pink80,
     surface = SurfaceDark,
     primaryContainer = PrimaryContainerDark,
-    onPrimaryContainer = OnPrimaryContainerDark
+    onPrimaryContainer = OnPrimaryContainerDark,
+    tertiaryContainer = TertiaryContainerDark,
+    onSurface = Color.White
 )
 
 private val LightColorScheme = lightColorScheme(
@@ -31,7 +29,9 @@ private val LightColorScheme = lightColorScheme(
     tertiary = Pink40,
     surface = SurfaceLight,
     primaryContainer = PrimaryContainerLight,
-    onPrimaryContainer = OnPrimaryContainerLight
+    onPrimaryContainer = OnPrimaryContainerLight,
+    tertiaryContainer = TertiaryContainerLight,
+    onSurface = Color.Black
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),
@@ -55,6 +55,7 @@ fun FreeUpCopyTheme(
     }
 
     MaterialTheme(
+
         colorScheme = colorScheme,
         typography = Typography
     ) {
@@ -68,7 +69,7 @@ fun FreeUpCopyTheme(
 @Immutable
 object PrimaryRipple : RippleTheme {
     @Composable
-    override fun defaultColor() = PrimaryDark
+    override fun defaultColor() = PrimaryLight
 
     @Composable
     override fun rippleAlpha(): RippleAlpha = RippleAlpha(0.3f, 0.3f, 0.2f, 0.3f)
