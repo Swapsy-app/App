@@ -30,6 +30,7 @@ import com.example.freeupcopy.ui.presentation.cash_screen.CashScreen
 import com.example.freeupcopy.ui.presentation.coin_screen.CoinScreen
 import com.example.freeupcopy.ui.presentation.community_screen.CommunityScreen
 import com.example.freeupcopy.ui.presentation.home_screen.HomeScreen
+import com.example.freeupcopy.ui.presentation.home_screen.componants.CategoryRow
 import com.example.freeupcopy.ui.presentation.home_screen.componants.CustomNavigationBar
 import com.example.freeupcopy.ui.presentation.inbox_screen.InboxScreen
 import com.example.freeupcopy.ui.presentation.profile_screen.ProfileScreen
@@ -302,6 +303,23 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 }
+                val imageId = arrayOf(
+                    R.drawable.p1,
+                    R.drawable.p1,
+                    R.drawable.p1,
+                    R.drawable.p1,
+                    R.drawable.p1,
+                    R.drawable.p1
+                )
+                val names = arrayOf(
+                    "Peperoni",
+                    "Vegan",
+                    "FourCheese",
+                    "Margaritta",
+                    "American",
+                    "Mexican"
+                )
+             CategoryRow(imageId, names )
             }
         }
     }
