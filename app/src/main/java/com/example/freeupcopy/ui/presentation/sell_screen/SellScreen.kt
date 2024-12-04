@@ -1,6 +1,7 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.example.freeupcopy.ui.presentation.sell_screen
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -12,25 +13,33 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -40,7 +49,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -56,10 +64,11 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.freeupcopy.R
 import com.example.freeupcopy.domain.model.Price
-import com.example.freeupcopy.ui.theme.FreeUpCopyTheme
+import com.example.freeupcopy.ui.theme.SwapsyTheme
 import com.example.freeupcopy.utils.clearFocusOnKeyboardDismiss
 import com.example.freeupcopy.utils.dashedBorder
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SellScreen(
     modifier: Modifier = Modifier,
@@ -69,10 +78,16 @@ fun SellScreen(
     selectedBrand: String,
     selectedCondition: String,
     selectedCountry: String,
+    selectedLocation: String,
+    //selectedGst: String,
     onBrandClick: () -> Unit,
     onConditionClick: () -> Unit,
     onWeightClick: () -> Unit,
-    onManufacturingClick: () -> Unit
+    onManufacturingClick: () -> Unit,
+    onPriceClick: () -> Unit,
+    onLocationClick: () -> Unit,
+    onAdvanceSettingClick: () -> Unit,
+    onClose: () -> Unit
 ) {
     val lifeCycleOwner = LocalLifecycleOwner.current
     //var chosenCategory by remember { mutableStateOf("") }
@@ -82,12 +97,94 @@ fun SellScreen(
 
     Scaffold(
         modifier = modifier
-            .fillMaxSize()
-            .padding(top = 8.dp, start = 16.dp, end = 16.dp),
+            .fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.surface,
+        topBar = {
+            TopAppBar(
+                title = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Spacer(modifier = Modifier.size(8.dp))
+                        Text(text = "Selling Details")
+                    }
+                },
+                navigationIcon = {
+                    IconButton(onClick = {
+                        val currentState = lifeCycleOwner.lifecycle.currentState
+                        if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                            onClose()
+                        }
+                    }) {
+                        Icon(
+                            imageVector = Icons.Rounded.Close,
+                            contentDescription = "close"
+                        )
+                    }
+                }
+            )
+        },
+        bottomBar = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(20.dp, 20.dp, 0.dp, 0.dp))
+                    .background(MaterialTheme.colorScheme.primaryContainer.copy(0.85f))
+                    .windowInsetsPadding(NavigationBarDefaults.windowInsets)
+                    .defaultMinSize(minHeight = 70.dp)
+
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Row {
+                    Box(
+                        modifier = Modifier
+                            .weight(0.70f)
+                            .heightIn(min = 50.dp)
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .clickable { }
+                            .border(
+                                1.dp,
+                                MaterialTheme.colorScheme.onPrimaryContainer,
+                                RoundedCornerShape(10.dp)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Save", color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp
+                        )
+                    }
+                    Spacer(modifier = Modifier.size(8.dp))
+
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .heightIn(min = 50.dp)
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .clickable { }
+                            .background(MaterialTheme.colorScheme.primary),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Sell", color = MaterialTheme.colorScheme.onPrimary,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp
+                        )
+                    }
+                }
+            }
+        }
     ) { paddingValues ->
         LazyColumn(
-            modifier = Modifier.padding(paddingValues),
+            modifier = Modifier
+                .padding(paddingValues)
+                .padding(top = 8.dp, start = 16.dp, end = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {
@@ -104,6 +201,19 @@ fun SellScreen(
             item {
                 DetailsSection()
             }
+
+            item {
+                PickupLocationSection(
+                    location = selectedLocation,
+                    onClick = {
+                        val currentState = lifeCycleOwner.lifecycle.currentState
+                        if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                            onLocationClick()
+                        }
+                    }
+                )
+            }
+
             item {
                 SpecificationSection(
                     selectedWeight = selectedWeight,
@@ -133,18 +243,34 @@ fun SellScreen(
                         if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
                             onWeightClick()
                         }
-                    }
+                    },
+                    selectedTertiaryCategory = selectedCategory
                 )
             }
 
             item {
                 KeyInfoSection(
                     price = Price("0.0", "INR"),
-                    gst = "843552032417829",
                     onPriceClick = {
-
+                        val currentState = lifeCycleOwner.lifecycle.currentState
+                        if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                            onPriceClick()
+                        }
                     }
                 )
+            }
+            item {
+                AdvancedSellerSettingSection(
+                    onClick = {
+                        val currentState = lifeCycleOwner.lifecycle.currentState
+                        if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                            onAdvanceSettingClick()
+                        }
+                    }
+                )
+            }
+            item {
+
             }
         }
     }
@@ -153,7 +279,7 @@ fun SellScreen(
 @Composable
 fun CategorySection(
     modifier: Modifier = Modifier,
-    chosenCategory: String = "",
+    chosenCategory: String,
     onClick: () -> Unit
 ) {
     Row(
@@ -188,7 +314,7 @@ fun DetailsSection(
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
 
-    val items = listOf(0)
+    val items = listOf(7,)
 
     Box(
         modifier = modifier
@@ -364,6 +490,7 @@ fun AddPhotoBox(
 @Composable
 fun SpecificationSection(
     modifier: Modifier = Modifier,
+    selectedTertiaryCategory: String,
     selectedWeight: String,
     selectedBrand: String,
     selectedCondition: String,
@@ -394,7 +521,7 @@ fun SpecificationSection(
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp
             )
-            Spacer(modifier = Modifier.size(16.dp))
+            Spacer(modifier = Modifier.size(10.dp))
             Column(
                 modifier = modifier.fillMaxWidth()
             ) {
@@ -440,69 +567,71 @@ fun SpecificationSection(
                     }
                 )
             }
+            if(selectedTertiaryCategory.isNotBlank()) {
+                Spacer(modifier = Modifier.size(10.dp))
 
-            Spacer(modifier = Modifier.size(10.dp))
+                Column(
+                    modifier = modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.6f))
+                        .padding(16.dp),
 
-            Column(
-                modifier = modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.6f))
-                    .padding(16.dp),
-
-                ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    val isCategoryChosen = selectedBrand.isEmpty()
-                    Text(text = if (isCategoryChosen) "Choose a Brand" else "Brand")
-                    Spacer(modifier = Modifier.weight(1f))
-                    Text(
-                        text = selectedBrand,
-                        color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.6f)
-                    )
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                        contentDescription = "Choose a Brand",
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
-                    )
-                }
-                CustomDivider(modifier = Modifier.padding(12.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    Text(text = "Condition")
-                    Spacer(modifier = Modifier.weight(1f))
-                    Text(
-                        text = selectedBrand,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
-                    )
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                        contentDescription = "condition",
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
-                    )
-                }
-                CustomDivider(modifier = Modifier.padding(12.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    Text(text = "Size")
-                    Spacer(modifier = Modifier.weight(1f))
-                    Text(
-                        text = selectedBrand,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
-                    )
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                        contentDescription = "size",
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
-                    )
+                    ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        val isCategoryChosen = selectedBrand.isEmpty()
+                        Text(text = if (isCategoryChosen) "Choose a Brand" else "Brand")
+                        Spacer(modifier = Modifier.weight(1f))
+                        Text(
+                            text = selectedBrand,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.6f)
+                        )
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                            contentDescription = "Choose a Brand",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
+                        )
+                    }
+                    CustomDivider(modifier = Modifier.padding(12.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Text(text = "Condition")
+                        Spacer(modifier = Modifier.weight(1f))
+                        Text(
+                            text = selectedBrand,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
+                        )
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                            contentDescription = "condition",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
+                        )
+                    }
+                    CustomDivider(modifier = Modifier.padding(12.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Text(text = "Size")
+                        Spacer(modifier = Modifier.weight(1f))
+                        Text(
+                            text = selectedBrand,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
+                        )
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                            contentDescription = "size",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
+                        )
+                    }
                 }
             }
+
 
             Spacer(modifier = Modifier.size(10.dp))
             Text(text = "Size (Optional)", modifier = Modifier.padding(bottom = 4.dp))
@@ -574,7 +703,6 @@ fun CommonSpecification(
 fun KeyInfoSection(
     modifier: Modifier = Modifier,
     price: Price,
-    gst: String,
     onPriceClick: () -> Unit
 ) {
     var quantity by remember { mutableIntStateOf(1) }
@@ -588,11 +716,11 @@ fun KeyInfoSection(
             .padding(16.dp)
     ) {
         Text(
-            text = "Key Info",
+            text = "Information",
             fontWeight = FontWeight.Bold,
             fontSize = 18.sp
         )
-        Spacer(modifier = Modifier.size(16.dp))
+        Spacer(modifier = Modifier.size(10.dp))
         CommonSpecification(
             initialLabel = "Price",
             valueLabel = "Price",
@@ -648,30 +776,109 @@ fun KeyInfoSection(
                 )
             }
         }
-        Spacer(modifier = Modifier.size(10.dp))
-        CustomDivider()
-        CommonSpecification(
-            initialLabel = "GST (Tax Details)",
-            valueLabel = "GST",
-            value = gst,
-            onClick = {
-
-            }
-        )
     }
 }
 
+@Composable
+fun PickupLocationSection(
+    modifier: Modifier = Modifier,
+    location: String,
+    onClick: () -> Unit
+) {
+    Column(
+        modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.primaryContainer)
+            .padding(top = 16.dp, start = 8.dp, end = 8.dp, bottom = 8.dp)
+    ) {
+        Text(
+            modifier = Modifier.padding(start = 8.dp),
+            text = "Product pickup",
+            fontWeight = FontWeight.Bold,
+            fontSize = 18.sp
+        )
+        Spacer(modifier = Modifier.size(10.dp))
+
+        Row(
+            modifier = modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
+                .clickable { onClick() }
+                .padding(horizontal = 8.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            val isLocation = location.isNotEmpty()
+            if(!isLocation) {
+                Text(text = "Add address")
+            } else {
+                Icon(
+                    imageVector = Icons.Outlined.LocationOn,
+                    contentDescription = "location",
+                )
+            }
+            Text(
+                modifier = Modifier.weight(1f),
+                text =location,
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
+            )
+            Icon(
+                imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                contentDescription = "location",
+                tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
+            )
+        }
+    }
+}
+
+@Composable
+fun AdvancedSellerSettingSection(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .clickable { onClick() }
+            .background(MaterialTheme.colorScheme.primaryContainer)
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(text = "Advanced seller setting")
+        Spacer(modifier = Modifier.weight(1f))
+        Icon(
+            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+            contentDescription = "Choose a category",
+            tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
+        )
+    }
+//
+//    Column(
+//        modifier
+//            .fillMaxWidth()
+//            .clip(RoundedCornerShape(16.dp))
+//            .background(MaterialTheme.colorScheme.primaryContainer)
+//    ) {
+//        CommonSpecification(
+//            initialLabel = "Advanced seller setting",
+//            valueLabel = "Advanced seller setting",
+//            value = "",
+//            onClick = {
+//                onClick()
+//            }
+//        )
+//    }
+}
 
 @Preview(
     showBackground = true
 )
 @Composable
 fun PreviewSellScreen() {
-    FreeUpCopyTheme {
-        KeyInfoSection(
-            price = Price("0.0", "INR"),
-            gst = "18%",
-            onPriceClick = {}
-        )
+    SwapsyTheme {
+        PickupLocationSection(location = "", onClick = {})
     }
 }

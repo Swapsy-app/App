@@ -39,3 +39,8 @@ val NoteContainerDark = Color(0xFF928D6A)
 
 //val TertiaryContainerLight = Color(0xFFE9D4DF)
 //val TertiaryContainerDark = Color(0xFF413239)
+
+val RecommendedContainerColor = Color(0xFFB2F368)
+val RecommendedTextColor = Color(0xFF035303)
+
+val LinkColor = Color(0xFF007AFF)

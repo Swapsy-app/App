@@ -55,7 +55,6 @@ fun SearchTopSection(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface)
     ) {
         SearchRow(
             modifier = Modifier

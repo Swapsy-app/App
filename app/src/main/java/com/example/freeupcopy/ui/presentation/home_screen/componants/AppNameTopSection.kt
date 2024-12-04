@@ -43,7 +43,7 @@ fun AppNameTopSection(
         modifier = modifier
             .fillMaxWidth()
             .offset()
-            .background(MaterialTheme.colorScheme.surface)
+            //.background(MaterialTheme.colorScheme.surface)
             .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 20.dp),
         verticalAlignment = Alignment.Bottom
     ) {

@@ -41,7 +41,7 @@ import kotlin.math.ln
 import kotlin.math.roundToInt
 
 
-@RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+//@RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 @ExperimentalMaterial3Api
 @Composable
 fun FlexibleTopBar(
@@ -114,7 +114,7 @@ fun FlexibleTopBar(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+//@RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 @OptIn(ExperimentalMaterial3Api::class)
 private suspend fun settleAppBar(
     state: TopAppBarState,
