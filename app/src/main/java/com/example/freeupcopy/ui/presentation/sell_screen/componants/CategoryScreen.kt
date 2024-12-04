@@ -48,6 +48,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
@@ -170,21 +171,11 @@ fun ChooseCategory(
                 }
             )
         } else {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Info,
-                    contentDescription = "info",
-                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                )
-                Spacer(modifier = Modifier.size(16.dp))
-                Text(
-                    text = "Please select a category to view subcategories",
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                )
-            }
+
+            NoteSection(
+                text = "Use the dropdown menu above to choose a category." +
+                    " Once a category is selected, its subcategories will appear here for further exploration"
+            )
         }
     }
 }
@@ -356,4 +347,12 @@ fun FinalCategoryItems(
             )
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun CategoryScreenPreview() {
+    CategoryScreen(
+        onCategoryClick = { }
+    )
 }

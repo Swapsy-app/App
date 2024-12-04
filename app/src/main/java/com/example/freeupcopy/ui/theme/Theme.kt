@@ -45,7 +45,7 @@ private val LightColorScheme = lightColorScheme(
 )
 
 @Composable
-fun FreeUpCopyTheme(
+fun SwapsyTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {

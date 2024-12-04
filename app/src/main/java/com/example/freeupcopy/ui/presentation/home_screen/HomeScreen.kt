@@ -1,15 +1,21 @@
 package com.example.freeupcopy.ui.presentation.home_screen
 
+import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -23,12 +29,14 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.freeupcopy.ui.presentation.home_screen.componants.AppNameTopSection
 import com.example.freeupcopy.ui.presentation.home_screen.componants.FlexibleTopBar
 import com.example.freeupcopy.ui.presentation.home_screen.componants.FlexibleTopBarDefaults
 import com.example.freeupcopy.ui.presentation.home_screen.componants.SearchTopSection
 
-@RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
@@ -45,20 +53,28 @@ fun HomeScreen(
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
-            .padding(innerPadding)
+//            .navigationBarsPadding()
+            //.padding(bottom = )
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.surface,
+        contentWindowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
         topBar = {
-            Column(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
+            Column(
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.secondaryContainer)
+            ) {
+                Spacer(modifier = Modifier.statusBarsPadding())
                 Box(
-                    modifier = Modifier.offset(y = 6.dp)
+                    modifier = Modifier
+                        .background(MaterialTheme.colorScheme.secondaryContainer)
+                        //.offset(y = 6.dp)
                 ) {
 
                     FlexibleTopBar(
                         scrollBehavior = scrollBehavior,
                         colors = FlexibleTopBarDefaults.topAppBarColors(
-                            containerColor = MaterialTheme.colorScheme.surface,
-                            scrolledContainerColor = Color.Transparent
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            scrolledContainerColor = MaterialTheme.colorScheme.secondaryContainer
                         )
                     ) {
                         AppNameTopSection(
@@ -80,7 +96,7 @@ fun HomeScreen(
                 Box {
                     FlexibleTopBar(
                         colors = FlexibleTopBarDefaults.topAppBarColors(
-                            containerColor = MaterialTheme.colorScheme.surface,
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
                             scrolledContainerColor = Color.Transparent
                         )
                     ) {
@@ -90,7 +106,7 @@ fun HomeScreen(
                                 .padding(
                                     start = 16.dp,
                                     end = 16.dp,
-                                    //bottom = 12.dp,
+                                    bottom = 12.dp,
                                     top = 8.dp
                                 ),
                             onSearchBarClick = {
@@ -116,15 +132,18 @@ fun HomeScreen(
                 }
             }
         }
-    ) { innerPadding2 ->
+    ) { innerPadding2->
         //if remove offset int the content of the home screen then add the
         // bottom padding that is commented out SearchTopSection
 
         LazyColumn(
             modifier = Modifier
-                .offset(y = 12.dp)
+                //.offset(y = 12.dp)
+                //.navigationBarsPadding()
+                .padding(top = innerPadding2.calculateTopPadding())
                 .fillMaxSize()
-                .padding(innerPadding2)
+                .padding()
+                .padding(bottom = innerPadding.calculateBottomPadding())
         ) {
             items(50) { index ->
                 Text(

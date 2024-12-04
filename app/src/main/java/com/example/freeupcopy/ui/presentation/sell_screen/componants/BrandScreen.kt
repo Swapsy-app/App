@@ -1,10 +1,8 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.example.freeupcopy.ui.presentation.sell_screen.componants
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
@@ -31,15 +28,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.freeupcopy.ui.presentation.home_screen.componants.SearchBar
-import com.example.freeupcopy.ui.theme.FreeUpCopyTheme
+import com.example.freeupcopy.ui.theme.SwapsyTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BrandScreen(
     modifier: Modifier = Modifier,
@@ -85,7 +80,6 @@ fun BrandScreen(
         val isSearchBarFocused = remember { mutableStateOf(false) }
         var searchQuery by remember { mutableStateOf("") }
         //val navigatedBrand by remember { mutableStateOf("") }
-        val lifeCycleOwner = LocalLifecycleOwner.current
 
         Column(
             modifier = modifier
@@ -166,7 +160,7 @@ fun BrandItem(
 @Preview(showBackground = true)
 @Composable
 fun BrandScreenPreview() {
-    FreeUpCopyTheme {
+    SwapsyTheme {
         BrandScreen (
             navigatedBrand = "Apple",
             onBrandClick = {  },

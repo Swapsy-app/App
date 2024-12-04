@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
@@ -61,7 +62,7 @@ fun CustomNavigationBar(
         Box(
             modifier = Modifier
                 .size(80.dp)
-                .offset(y = (-24).dp)
+                .offset(y = (-18).dp)
                 .shadow(6.dp, shape = CircleShape)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.primary)

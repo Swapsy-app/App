@@ -1,24 +1,23 @@
 package com.example.freeupcopy
 
-import android.annotation.SuppressLint
 import android.graphics.Color
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -30,6 +29,7 @@ import com.example.freeupcopy.ui.presentation.cash_screen.CashScreen
 import com.example.freeupcopy.ui.presentation.coin_screen.CoinScreen
 import com.example.freeupcopy.ui.presentation.community_screen.CommunityScreen
 import com.example.freeupcopy.ui.presentation.home_screen.HomeScreen
+import com.example.freeupcopy.ui.presentation.home_screen.componants.CategoryRow
 import com.example.freeupcopy.ui.presentation.home_screen.componants.CustomNavigationBar
 import com.example.freeupcopy.ui.presentation.inbox_screen.InboxScreen
 import com.example.freeupcopy.ui.presentation.profile_screen.ProfileScreen
@@ -38,29 +38,48 @@ import com.example.freeupcopy.ui.presentation.sell_screen.SellScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.componants.BrandScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.componants.CategoryScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.componants.ConditionScreen
+import com.example.freeupcopy.ui.presentation.sell_screen.componants.GstScreen
+import com.example.freeupcopy.ui.presentation.sell_screen.componants.LocationScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.componants.ManufacturingScreen
+import com.example.freeupcopy.ui.presentation.sell_screen.componants.PriceScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.componants.WeightScreen
 import com.example.freeupcopy.ui.presentation.wish_list.WishListScreen
-import com.example.freeupcopy.ui.theme.FreeUpCopyTheme
+import com.example.freeupcopy.ui.theme.SwapsyTheme
 import kotlinx.serialization.Serializable
 
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 class MainActivity : ComponentActivity() {
-    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    @ExperimentalMaterial3Api
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        installSplashScreen()
+
         enableEdgeToEdge(
-            statusBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
+            statusBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
         )
         setContent {
-            FreeUpCopyTheme(darkTheme = false) {
+            SwapsyTheme(darkTheme = false) {
 
                 val navController = rememberNavController()
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination
-
+//                if (currentRoute?.hasRoute(Screen.HomeScreen::class) == true) {
+//                    enableEdgeToEdge(
+//                        statusBarStyle = SystemBarStyle.light(
+//                            scrim = MaterialTheme.colorScheme.secondaryContainer.hashCode(),
+//                            Color.TRANSPARENT
+//                        )
+//                    )
+//                } else {
+//                    enableEdgeToEdge(
+//                        statusBarStyle = SystemBarStyle.light(
+//                            scrim = MaterialTheme.colorScheme.surface.hashCode(),
+//                            Color.TRANSPARENT
+//                        )
+//                    )
+//                }
                 Scaffold(
                     modifier = Modifier
                         .fillMaxSize()
@@ -106,7 +125,6 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 ) { innerPadding ->
-
                     NavHost(
                         navController = navController,
                         startDestination = Screen.HomeScreen,
@@ -174,6 +192,9 @@ class MainActivity : ComponentActivity() {
                             val selectedBrand = it.savedStateHandle.get<String>("selected_brand")
                             val selectedCondition = it.savedStateHandle.get<String>("selected_condition")
                             val selectedCountry = it.savedStateHandle.get<String>("selected_country")
+                            val selectedLocation = it.savedStateHandle.get<String>("selected_location")
+                            val selectedGst = it.savedStateHandle.get<String>("selected_gst")
+
                             SellScreen(
                                 onCategoryClick = {
                                     navController.navigate(Screen.CategoryScreen)
@@ -192,11 +213,26 @@ class MainActivity : ComponentActivity() {
                                 onManufacturingClick = {
                                     navController.navigate(Screen.ManufacturingScreen(selectedCountry = selectedCountry))
                                 },
+                                onLocationClick = {
+                                    navController.navigate(Screen.LocationScreen(selectedLocation = selectedLocation))
+                                },
+                                onAdvanceSettingClick = {
+                                    navController.navigate(Screen.GstScreen(selectedGst = selectedGst))
+                                },
+                                onPriceClick = {
+                                    navController.navigate(Screen.PriceScreen)
+                                },
+                                onClose = {
+                                    navController.popBackStack()
+                                },
                                 selectedWeight = selectedWeight ?: "",
                                 selectedCategory = selectedCategory ?: "",
                                 selectedBrand = selectedBrand ?: "",
                                 selectedCondition = selectedCondition ?: "",
-                                selectedCountry = selectedCountry ?: "India"
+                                selectedCountry = selectedCountry ?: "India",
+                                //selectedLocation = selectedLocation ?: "",
+                                selectedLocation = selectedLocation ?: "the Empire State Building is located at 40.7 degrees north (latitude), 74 degrees west (longitude)",
+                                //selectedGst = selectedGst ?: ""
                             )
                         }
 
@@ -256,14 +292,14 @@ class MainActivity : ComponentActivity() {
                         composable<Screen.BrandScreen> {
                             val args = it.toRoute<Screen.BrandScreen>()
                             BrandScreen(
-                                onClose = {
-                                    navController.popBackStack()
-                                },
                                 navigatedBrand = args.selectedBrand ?: "",
                                 onBrandClick = { s ->
                                     navController.previousBackStackEntry
                                         ?.savedStateHandle
                                         ?.set("selected_brand", s)
+                                    navController.popBackStack()
+                                },
+                                onClose = {
                                     navController.popBackStack()
                                 }
                             )
@@ -300,8 +336,65 @@ class MainActivity : ComponentActivity() {
                                 manufacturingCountry = args.selectedCountry ?: "India"
                             )
                         }
+
+                        composable<Screen.LocationScreen> {
+                            val args = it.toRoute<Screen.LocationScreen>()
+                            LocationScreen(
+                                onLocationClick = { s ->
+                                    navController.previousBackStackEntry
+                                        ?.savedStateHandle
+                                        ?.set("selected_location", s)
+                                    navController.popBackStack()
+                                },
+                                onClose = {
+                                    navController.popBackStack()
+                                },
+                                selectedLocation = args.selectedLocation ?: ""
+                            )
+                        }
+
+                        composable<Screen.GstScreen> {
+                            val args = it.toRoute<Screen.GstScreen>()
+                            GstScreen(
+                                onGstClick = { s ->
+                                    navController.previousBackStackEntry
+                                        ?.savedStateHandle
+                                        ?.set("selected_gst", s)
+                                    navController.popBackStack()
+                                },
+                                onClose = {
+                                    navController.popBackStack()
+                                },
+                                selectedGst = args.selectedGst ?: ""
+                            )
+                        }
+
+                        composable<Screen.PriceScreen> {
+                            PriceScreen(
+                                onClose = {
+                                    navController.popBackStack()
+                                }
+                            )
+                        }
                     }
                 }
+                val imageId = arrayOf(
+                    R.drawable.p1,
+                    R.drawable.p1,
+                    R.drawable.p1,
+                    R.drawable.p1,
+                    R.drawable.p1,
+                    R.drawable.p1
+                )
+                val names = arrayOf(
+                    "Peperoni",
+                    "Vegan",
+                    "FourCheese",
+                    "Margaritta",
+                    "American",
+                    "Mexican"
+                )
+             CategoryRow(imageId, names )
             }
         }
     }
@@ -362,7 +455,20 @@ sealed class Screen {
 
     @Serializable
     data class ConditionScreen(
-        val selectedCondition: String? = ""
+        val selectedCondition: String?
     ) : Screen()
+
+    @Serializable
+    data class LocationScreen(
+        val selectedLocation: String?
+    ) : Screen()
+
+    @Serializable
+    data class GstScreen(
+        val selectedGst: String?
+    ) : Screen()
+
+    @Serializable
+    data object PriceScreen : Screen()
 }
 

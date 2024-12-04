@@ -12,11 +12,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -26,10 +26,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,7 +44,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.freeupcopy.R
 import com.example.freeupcopy.domain.model.Weight
-import com.example.freeupcopy.ui.theme.FreeUpCopyTheme
+import com.example.freeupcopy.ui.theme.SwapsyTheme
 import com.example.freeupcopy.ui.theme.NoteContainerLight
 
 
@@ -114,18 +110,24 @@ fun WeightScreen(
                 "Recommended for heavier products like chair, small microwave or bridal lehengas"
             )
         )
-        LazyColumn(
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(innerPadding)
-        ) {
-            item {
+//        LazyColumn(
+//            modifier = modifier
+//                .fillMaxWidth()
+//                .padding(innerPadding)
+//        ) {
+
                 Column(
                     modifier = modifier
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState())
+                        .padding(innerPadding),
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    NoteSection()
+                    NoteSection(
+                        text = "The examples attached with each weight category are for reference purposes only." +
+                                " Please ensure you check the actual weight, including its packaging," +
+                                " before selecting the appropriate weight category for shipping"
+                    )
                     Spacer(modifier = Modifier.size(8.dp))
 
                     items.forEach {
@@ -195,23 +197,11 @@ fun WeightScreen(
                                 )
                             }
                         }
-
-//                        Text(
-//                            text = "Above 10kg",
-//                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.65f)
-//                        )
-//                        Spacer(modifier = Modifier.size(4.dp))
-//                        Text(
-//                            fontSize = 13.5.sp,
-//                            lineHeight = 18.sp,
-//                            text = "Items over 10 kg are not eligible for shipping.\n",
-//                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.65f)
-//                        )
                         Text(text = annotatedString, lineHeight = 18.sp)
                     }
                 }
-            }
-        }
+
+//        }
     }
 }
 
@@ -278,7 +268,8 @@ fun CustomRadioButton(
 
 @Composable
 fun NoteSection(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    text: String
 ) {
     Row(
         modifier = modifier
@@ -298,9 +289,7 @@ fun NoteSection(
             contentDescription = "notice"
         )
         Text(
-            text = "The examples attached with each weight category are for reference purposes only." +
-                    " Please ensure you check the actual weight, including its packaging," +
-                    " before selecting the appropriate weight category for shipping",
+            text = text,
             fontSize = 13.5.sp,
             lineHeight = 18.sp,
             fontStyle = FontStyle.Italic,
@@ -312,7 +301,7 @@ fun NoteSection(
 @Preview(showBackground = true)
 @Composable
 fun WeightScreenPreview() {
-    FreeUpCopyTheme {
+    SwapsyTheme {
         WeightScreen(
             selectedWeight = "Under 500g",
             onWeightClick = {},
