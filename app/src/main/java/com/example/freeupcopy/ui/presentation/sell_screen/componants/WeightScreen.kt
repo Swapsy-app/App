@@ -1,5 +1,6 @@
 package com.example.freeupcopy.ui.presentation.sell_screen.componants
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -75,8 +76,10 @@ fun WeightScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = {
+                        Log.e("WeightScreen", "onClose")
                         val currentState = lifeCycleOwner.lifecycle.currentState
                         if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+
                             onClose()
                         }
                     }) {

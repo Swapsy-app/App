@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -45,16 +46,17 @@ import com.example.freeupcopy.ui.presentation.sell_screen.componants.PriceScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.componants.WeightScreen
 import com.example.freeupcopy.ui.presentation.wish_list.WishListScreen
 import com.example.freeupcopy.ui.theme.SwapsyTheme
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.serialization.Serializable
 
-
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
     @ExperimentalMaterial3Api
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         installSplashScreen()
-
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
             navigationBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
@@ -65,21 +67,7 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination
-//                if (currentRoute?.hasRoute(Screen.HomeScreen::class) == true) {
-//                    enableEdgeToEdge(
-//                        statusBarStyle = SystemBarStyle.light(
-//                            scrim = MaterialTheme.colorScheme.secondaryContainer.hashCode(),
-//                            Color.TRANSPARENT
-//                        )
-//                    )
-//                } else {
-//                    enableEdgeToEdge(
-//                        statusBarStyle = SystemBarStyle.light(
-//                            scrim = MaterialTheme.colorScheme.surface.hashCode(),
-//                            Color.TRANSPARENT
-//                        )
-//                    )
-//                }
+
                 Scaffold(
                     modifier = Modifier
                         .fillMaxSize()
@@ -378,23 +366,7 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 }
-                val imageId = arrayOf(
-                    R.drawable.p1,
-                    R.drawable.p1,
-                    R.drawable.p1,
-                    R.drawable.p1,
-                    R.drawable.p1,
-                    R.drawable.p1
-                )
-                val names = arrayOf(
-                    "Peperoni",
-                    "Vegan",
-                    "FourCheese",
-                    "Margaritta",
-                    "American",
-                    "Mexican"
-                )
-             CategoryRow(imageId, names )
+
             }
         }
     }
