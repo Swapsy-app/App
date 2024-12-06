@@ -3,6 +3,11 @@ package com.example.freeupcopy.ui.presentation.sell_screen.componants
 import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -84,6 +89,7 @@ import com.example.freeupcopy.R
 import com.example.freeupcopy.ui.presentation.sell_screen.CustomDivider
 import com.example.freeupcopy.ui.theme.SwapsyTheme
 import com.example.freeupcopy.ui.theme.LinkColor
+import com.example.freeupcopy.ui.theme.NoteContainerLight
 import com.example.freeupcopy.ui.theme.RecommendedContainerColor
 import com.example.freeupcopy.ui.theme.RecommendedTextColor
 import com.example.freeupcopy.utils.calculateDeliveryFee
@@ -177,11 +183,11 @@ fun PriceScreen(
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(10.dp))
                             .clickable { }
-                            .background(MaterialTheme.colorScheme.secondaryContainer),
+                            .background(MaterialTheme.colorScheme.secondary),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "Confirm", color = MaterialTheme.colorScheme.primary,
+                            text = "Confirm", color = MaterialTheme.colorScheme.onSecondary,
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp
                         )
@@ -222,7 +228,9 @@ fun PriceScreen(
                 AnimatedVisibility(
                     visible = selectedOptions.isEmpty() || (!selectedOptions.contains(
                         "Coins"
-                    ) && !selectedOptions.contains("Cash\n+\nCoins"))
+                    ) && !selectedOptions.contains("Cash\n+\nCoins")),
+                    enter = fadeIn(animationSpec = tween(600)) + expandVertically(animationSpec = tween(600)),
+                    exit = fadeOut(animationSpec = tween(600)) + shrinkVertically(animationSpec = tween(600))
                 ) {
                     PricingInBox(Modifier.padding(bottom = 10.dp))
                 }
@@ -627,7 +635,7 @@ fun PricingInBox(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(10.dp))
-            .background(MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.6f))
+            .background(NoteContainerLight.copy(alpha = 0.6f))
             .padding(12.dp),
     ) {
         Text(

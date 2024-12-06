@@ -98,7 +98,7 @@ fun CustomBottomBar(
     val items = listOf(
         BottomNavigationItem(
             contentDescription = "Home",
-            selectedIcon = painterResource(id = R.drawable.ic_home_selected),
+            selectedIcon = painterResource(id = R.drawable.ic_home),
             unselectedIcon = painterResource(id = R.drawable.ic_home),
             onClick = onHomeClick
         ),
@@ -171,7 +171,7 @@ fun CustomNavigationBarItem(
         ) {
             Icon(
                 modifier = Modifier.size(30.dp),
-                tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
                 painter = if (selected) selectedIcon else icon,
                 contentDescription = contentDescription
             )
@@ -183,9 +183,9 @@ fun CustomNavigationBarItem(
             fontSize = 13.sp,
             fontWeight = if(selected) FontWeight.Bold else FontWeight.Normal,
             color = if (selected)
-                MaterialTheme.colorScheme.onSurface
+                MaterialTheme.colorScheme.primary
             else
-                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f)
         )
     }
 }

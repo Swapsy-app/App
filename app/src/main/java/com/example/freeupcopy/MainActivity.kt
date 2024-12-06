@@ -6,7 +6,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -30,7 +29,6 @@ import com.example.freeupcopy.ui.presentation.cash_screen.CashScreen
 import com.example.freeupcopy.ui.presentation.coin_screen.CoinScreen
 import com.example.freeupcopy.ui.presentation.community_screen.CommunityScreen
 import com.example.freeupcopy.ui.presentation.home_screen.HomeScreen
-import com.example.freeupcopy.ui.presentation.home_screen.componants.CategoryRow
 import com.example.freeupcopy.ui.presentation.home_screen.componants.CustomNavigationBar
 import com.example.freeupcopy.ui.presentation.inbox_screen.InboxScreen
 import com.example.freeupcopy.ui.presentation.profile_screen.ProfileScreen
@@ -39,7 +37,7 @@ import com.example.freeupcopy.ui.presentation.sell_screen.SellScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.componants.BrandScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.componants.CategoryScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.componants.ConditionScreen
-import com.example.freeupcopy.ui.presentation.sell_screen.componants.GstScreen
+import com.example.freeupcopy.ui.presentation.sell_screen.componants.AdvanceSettingScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.componants.LocationScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.componants.ManufacturingScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.componants.PriceScreen
@@ -257,6 +255,9 @@ class MainActivity : ComponentActivity() {
                                         ?.savedStateHandle
                                         ?.set("selected_category", s)
                                     navController.popBackStack()
+                                },
+                                onClose = {
+                                    navController.popBackStack()
                                 }
                             )
                         }
@@ -343,8 +344,8 @@ class MainActivity : ComponentActivity() {
 
                         composable<Screen.GstScreen> {
                             val args = it.toRoute<Screen.GstScreen>()
-                            GstScreen(
-                                onGstClick = { s ->
+                            AdvanceSettingScreen(
+                                onClick = { s ->
                                     navController.previousBackStackEntry
                                         ?.savedStateHandle
                                         ?.set("selected_gst", s)
@@ -353,7 +354,7 @@ class MainActivity : ComponentActivity() {
                                 onClose = {
                                     navController.popBackStack()
                                 },
-                                selectedGst = args.selectedGst ?: ""
+                                //selectedGst = args.selectedGst ?: ""
                             )
                         }
 

@@ -26,10 +26,9 @@ import com.example.freeupcopy.ui.theme.SwapsyTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GstScreen(
+fun AdvanceSettingScreen(
     modifier: Modifier = Modifier,
-    onGstClick: (String) -> Unit,
-    selectedGst: String,
+    onClick: (String) -> Unit,
     onClose: () -> Unit
 ) {
     val lifeCycleOwner = LocalLifecycleOwner.current
@@ -74,9 +73,8 @@ fun GstScreen(
 @Composable
 fun GstScreenPreview() {
     SwapsyTheme {
-        GstScreen (
-            onGstClick = {  },
-            selectedGst = "",
+        AdvanceSettingScreen (
+            onClick = {  },
             onClose = {  }
         )
     }
