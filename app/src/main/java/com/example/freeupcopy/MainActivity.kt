@@ -24,6 +24,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.example.freeupcopy.ui.presentation.authentication_screen.connect_screen.ConnectScreen
+import com.example.freeupcopy.ui.presentation.authentication_screen.forgot_password_screen.ForgotPasswordScreen
+import com.example.freeupcopy.ui.presentation.authentication_screen.login_screen.LoginScreen
+import com.example.freeupcopy.ui.presentation.authentication_screen.otp_screen.OtpVerificationScreen
+import com.example.freeupcopy.ui.presentation.authentication_screen.signup_screen.SignUpScreen
 import com.example.freeupcopy.ui.presentation.cart_screen.CartScreen
 import com.example.freeupcopy.ui.presentation.cash_screen.CashScreen
 import com.example.freeupcopy.ui.presentation.coin_screen.CoinScreen
@@ -34,10 +39,10 @@ import com.example.freeupcopy.ui.presentation.inbox_screen.InboxScreen
 import com.example.freeupcopy.ui.presentation.profile_screen.ProfileScreen
 import com.example.freeupcopy.ui.presentation.search_screen.SearchScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.SellScreen
+import com.example.freeupcopy.ui.presentation.sell_screen.componants.AdvanceSettingScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.componants.BrandScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.componants.CategoryScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.componants.ConditionScreen
-import com.example.freeupcopy.ui.presentation.sell_screen.componants.AdvanceSettingScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.componants.LocationScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.componants.ManufacturingScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.componants.PriceScreen
@@ -97,9 +102,10 @@ class MainActivity : ComponentActivity() {
                                         }
                                     },
                                     onProfileClick = {
-                                        navController.navigate(Screen.ProfileScreen) {
-                                            popUpTo(Screen.HomeScreen) { inclusive = false }
-                                        }
+//                                        navController.navigate(Screen.ProfileScreen) {
+//                                            popUpTo(Screen.HomeScreen) { inclusive = false }
+//                                        }
+                                        navController.navigate(Screen.ConnectScreen)
                                     },
                                     onSellClick = {
                                         navController.navigate(Screen.SellScreen(null, null)) {
@@ -173,12 +179,16 @@ class MainActivity : ComponentActivity() {
                             enterTransition = { fadeIn(tween(700)) },
                             exitTransition = { fadeOut(tween(700)) }
                         ) {
-                            val selectedCategory = it.savedStateHandle.get<String>("selected_category")
+                            val selectedCategory =
+                                it.savedStateHandle.get<String>("selected_category")
                             val selectedWeight = it.savedStateHandle.get<String>("selected_weight")
                             val selectedBrand = it.savedStateHandle.get<String>("selected_brand")
-                            val selectedCondition = it.savedStateHandle.get<String>("selected_condition")
-                            val selectedCountry = it.savedStateHandle.get<String>("selected_country")
-                            val selectedLocation = it.savedStateHandle.get<String>("selected_location")
+                            val selectedCondition =
+                                it.savedStateHandle.get<String>("selected_condition")
+                            val selectedCountry =
+                                it.savedStateHandle.get<String>("selected_country")
+                            val selectedLocation =
+                                it.savedStateHandle.get<String>("selected_location")
                             val selectedGst = it.savedStateHandle.get<String>("selected_gst")
 
                             SellScreen(
@@ -197,7 +207,11 @@ class MainActivity : ComponentActivity() {
                                     //selectedBrand ?: ""
                                 },
                                 onManufacturingClick = {
-                                    navController.navigate(Screen.ManufacturingScreen(selectedCountry = selectedCountry))
+                                    navController.navigate(
+                                        Screen.ManufacturingScreen(
+                                            selectedCountry = selectedCountry
+                                        )
+                                    )
                                 },
                                 onLocationClick = {
                                     navController.navigate(Screen.LocationScreen(selectedLocation = selectedLocation))
@@ -217,7 +231,8 @@ class MainActivity : ComponentActivity() {
                                 selectedCondition = selectedCondition ?: "",
                                 selectedCountry = selectedCountry ?: "India",
                                 //selectedLocation = selectedLocation ?: "",
-                                selectedLocation = selectedLocation ?: "the Empire State Building is located at 40.7 degrees north (latitude), 74 degrees west (longitude)",
+                                selectedLocation = selectedLocation
+                                    ?: "the Empire State Building is located at 40.7 degrees north (latitude), 74 degrees west (longitude)",
                                 //selectedGst = selectedGst ?: ""
                             )
                         }
@@ -365,9 +380,195 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
+
+                        composable<Screen.SignUpScreen>(
+                            enterTransition = {
+                                slideIntoContainer(
+                                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                                    animationSpec = tween(700)
+                                )
+                            },
+                            exitTransition = {
+                                slideOutOfContainer(
+                                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                                    animationSpec = tween(700)
+                                )
+                            },
+                            popEnterTransition = {
+                                slideIntoContainer(
+                                    towards = AnimatedContentTransitionScope.SlideDirection.Companion.Right,
+                                    animationSpec = tween(700)
+                                )
+                            },
+                            popExitTransition = {
+                                slideOutOfContainer(
+                                    towards = AnimatedContentTransitionScope.SlideDirection.Companion.Right,
+                                    animationSpec = tween(700)
+                                )
+                            }
+
+                        ) {
+                            SignUpScreen(
+                                onBackClick = {
+                                    navController.popBackStack()
+                                },
+                                onCloseClick = {
+                                    navController.navigate(Screen.HomeScreen) {
+                                        popUpTo(Screen.HomeScreen) { inclusive = true }
+                                    }
+                                },
+                                onLoginClick = {
+                                    navController.navigate(Screen.LoginScreen) {
+                                        popUpTo(Screen.ConnectScreen) { inclusive = false }
+                                    }
+                                },
+                                onSuccessfulSignUp = {
+                                    navController.navigate(Screen.HomeScreen) {
+                                        popUpTo(Screen.HomeScreen) { inclusive = true }
+                                    }
+                                }
+                            )
+                        }
+
+                        composable<Screen.LoginScreen>(
+                            enterTransition = {
+                                slideIntoContainer(
+                                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                                    animationSpec = tween(700)
+                                )
+                            },
+                            exitTransition = {
+                                slideOutOfContainer(
+                                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                                    animationSpec = tween(700)
+                                )
+                            },
+                            popEnterTransition = {
+                                slideIntoContainer(
+                                    towards = AnimatedContentTransitionScope.SlideDirection.Companion.Right,
+                                    animationSpec = tween(700)
+                                )
+                            },
+                            popExitTransition = {
+                                slideOutOfContainer(
+                                    towards = AnimatedContentTransitionScope.SlideDirection.Companion.Right,
+                                    animationSpec = tween(700)
+                                )
+                            }
+                        ) {
+                            LoginScreen(
+                                onBackClick = {
+                                    navController.popBackStack()
+                                },
+                                onCloseClick = {
+                                    navController.navigate(Screen.HomeScreen) {
+                                        popUpTo(Screen.HomeScreen) { inclusive = true }
+                                    }
+                                },
+                                onSignUpClick = {
+                                    navController.navigate(Screen.SignUpScreen) {
+                                        popUpTo(Screen.ConnectScreen) { inclusive = false }
+                                    }
+                                },
+                                onForgotPasswordClick = {
+                                    navController.navigate(Screen.ForgotPasswordScreen)
+                                },
+                                onSuccessfulLogin = {
+                                    navController.navigate(Screen.HomeScreen) {
+                                        popUpTo(Screen.HomeScreen) { inclusive = true }
+                                    }
+                                },
+                            )
+                        }
+
+                        composable<Screen.ConnectScreen>(
+                            enterTransition = {
+                                slideIntoContainer(
+                                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                                    animationSpec = tween(700)
+                                )
+                            },
+                            exitTransition = {
+                                slideOutOfContainer(
+                                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                                    animationSpec = tween(700)
+                                )
+                            },
+                            popEnterTransition = {
+                                slideIntoContainer(
+                                    towards = AnimatedContentTransitionScope.SlideDirection.Companion.Right,
+                                    animationSpec = tween(700)
+                                )
+                            },
+                            popExitTransition = {
+                                slideOutOfContainer(
+                                    towards = AnimatedContentTransitionScope.SlideDirection.Companion.Right,
+                                    animationSpec = tween(700)
+                                )
+                            }
+
+                        ) {
+                            ConnectScreen(
+                                onBackClick = {
+                                    navController.popBackStack()
+                                },
+                                onLoginClick = {
+                                    navController.navigate(Screen.LoginScreen)
+                                },
+                                onSignUpClick = {
+                                    navController.navigate(Screen.SignUpScreen)
+                                }
+                            )
+                        }
+
+                        composable<Screen.ForgotPasswordScreen>(
+                            enterTransition = {
+                                slideIntoContainer(
+                                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                                    animationSpec = tween(700)
+                                )
+                            },
+                            exitTransition = {
+                                slideOutOfContainer(
+                                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                                    animationSpec = tween(700)
+                                )
+                            },
+                            popEnterTransition = {
+                                slideIntoContainer(
+                                    towards = AnimatedContentTransitionScope.SlideDirection.Companion.Right,
+                                    animationSpec = tween(700)
+                                )
+                            },
+                            popExitTransition = {
+                                slideOutOfContainer(
+                                    towards = AnimatedContentTransitionScope.SlideDirection.Companion.Right,
+                                    animationSpec = tween(700)
+                                )
+                            }
+                        ) {
+                            ForgotPasswordScreen(
+                                onBackClick = { navController.popBackStack() },
+                                onSuccessfulOptSent = {
+                                    navController.navigate(Screen.OtpScreen)
+                                }
+                            )
+                        }
+
+                        composable<Screen.OtpScreen> {
+                            OtpVerificationScreen(
+                                onBackClick = {
+
+                                },
+                                onSuccessfulVerification = {
+                                    navController.navigate(Screen.HomeScreen) {
+                                        popUpTo(Screen.HomeScreen) { inclusive = true }
+                                    }
+                                }
+                            )
+                        }
                     }
                 }
-
             }
         }
     }
@@ -443,5 +644,20 @@ sealed class Screen {
 
     @Serializable
     data object PriceScreen : Screen()
+
+    @Serializable
+    data object SignUpScreen : Screen()
+
+    @Serializable
+    data object LoginScreen : Screen()
+
+    @Serializable
+    data object ConnectScreen : Screen()
+
+    @Serializable
+    data object ForgotPasswordScreen : Screen()
+
+    @Serializable
+    data object OtpScreen : Screen()
 }
 

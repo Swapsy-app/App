@@ -77,7 +77,6 @@ fun WeightScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = {
-                        Log.e("WeightScreen", "onClose")
                         val currentState = lifeCycleOwner.lifecycle.currentState
                         if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
 
