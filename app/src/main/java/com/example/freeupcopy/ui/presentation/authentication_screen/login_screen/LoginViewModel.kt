@@ -1,8 +1,8 @@
-package com.example.freeupcopy.ui.viewmodel
+package com.example.freeupcopy.ui.presentation.authentication_screen.login_screen
 
 import androidx.lifecycle.ViewModel
-import com.example.freeupcopy.ui.presentation.authentication_screen.login_screen.LoginUiEvent
-import com.example.freeupcopy.ui.presentation.authentication_screen.login_screen.LoginUiState
+import com.example.freeupcopy.utils.ValidationResult
+import com.example.freeupcopy.utils.Validator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -30,4 +30,15 @@ class LoginViewModel @Inject constructor() : ViewModel() {
             }
         }
     }
+
+    fun validateAll(): ValidationResult {
+        val emailResult = Validator.validateEmail(state.value.email)
+        if (!emailResult.isValid) return emailResult
+
+        val passwordResult = Validator.validatePassword(state.value.password)
+        if (!passwordResult.isValid) return passwordResult
+
+        return ValidationResult(true) // All validations passed
+    }
 }
+

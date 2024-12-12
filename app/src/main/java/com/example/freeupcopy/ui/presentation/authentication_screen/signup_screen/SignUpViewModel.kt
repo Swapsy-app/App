@@ -1,11 +1,6 @@
-package com.example.freeupcopy.ui.viewmodel
+package com.example.freeupcopy.ui.presentation.authentication_screen.signup_screen
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import com.example.freeupcopy.ui.presentation.authentication_screen.signup_screen.SignUpUiEvent
-import com.example.freeupcopy.ui.presentation.authentication_screen.signup_screen.SignUpUiState
 import com.example.freeupcopy.utils.ValidationResult
 import com.example.freeupcopy.utils.Validator
 import dagger.hilt.android.lifecycle.HiltViewModel

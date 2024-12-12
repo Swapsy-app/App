@@ -1,5 +1,6 @@
 package com.example.freeupcopy.ui.presentation.authentication_screen.login_screen.componants
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -50,7 +51,8 @@ import com.example.freeupcopy.ui.presentation.authentication_screen.componants.O
 import com.example.freeupcopy.ui.presentation.authentication_screen.login_screen.LoginUiEvent
 import com.example.freeupcopy.ui.presentation.authentication_screen.login_screen.LoginUiState
 import com.example.freeupcopy.ui.theme.LinkColor
-import com.example.freeupcopy.ui.viewmodel.LoginViewModel
+import com.example.freeupcopy.ui.presentation.authentication_screen.login_screen.LoginViewModel
+import com.example.freeupcopy.utils.noRippleClickable
 
 @Composable
 fun LoginSection(
@@ -61,10 +63,8 @@ fun LoginSection(
     onSignUpClick: () -> Unit,
     loginViewModel: LoginViewModel = hiltViewModel()
 ) {
-    val context = LocalContext.current
-    var email by remember { mutableStateOf(state.email) }
-    var password by remember { mutableStateOf(state.password) }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
+    val context = LocalContext.current
 
     Column(
         modifier
@@ -77,10 +77,9 @@ fun LoginSection(
     ) {
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
-            value = email,
+            value = state.email,
             singleLine = true,
             onValueChange = {
-                email = it
                 loginViewModel.onEvent(LoginUiEvent.EmailChange(it))
             },
             label = { Text(text = "Email") },
@@ -98,9 +97,8 @@ fun LoginSection(
 
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
-            value = password,
+            value = state.password,
             onValueChange = {
-                password = it
                 loginViewModel.onEvent(LoginUiEvent.PasswordChange(it))
             },
             label = { Text(text = "Password") },
@@ -143,8 +141,18 @@ fun LoginSection(
 
         Button(
             onClick = {
-                if (!state.isLoading) {
-                    onSuccessfulLogin()
+                if(!state.isLoading) {
+                    val validate = loginViewModel.validateAll()
+                    if (validate.isValid) {
+                        Toast.makeText(context, "Login Successful", Toast.LENGTH_SHORT).show()
+                        onSuccessfulLogin()
+                    } else {
+                        Toast.makeText(
+                            context,
+                            validate.errorMessage.orEmpty(),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                 }
             },
             modifier = Modifier.width(200.dp),
@@ -173,7 +181,7 @@ fun LoginSection(
                 fontSize = 15.sp
             )
             Text(
-                modifier = Modifier.clickable { onSignUpClick() },
+                modifier = Modifier.noRippleClickable { onSignUpClick() },
                 text = "Sign Up",
                 color = LinkColor,
                 fontSize = 16.sp,

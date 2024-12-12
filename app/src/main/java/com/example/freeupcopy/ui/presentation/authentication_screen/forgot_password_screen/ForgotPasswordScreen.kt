@@ -2,6 +2,7 @@ package com.example.freeupcopy.ui.presentation.authentication_screen.forgot_pass
 
 import android.annotation.SuppressLint
 import android.util.Patterns
+import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -34,6 +35,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,9 +54,11 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.freeupcopy.R
+import com.example.freeupcopy.ui.presentation.authentication_screen.forgot_password_screen.componants.ForgotPasswordSection
 import com.example.freeupcopy.ui.theme.SwapsyTheme
 import com.example.freeupcopy.utils.clearFocusOnKeyboardDismiss
 
@@ -65,8 +69,10 @@ fun ForgotPasswordScreen(
     modifier: Modifier = Modifier,
     onBackClick: () -> Unit,
     onSuccessfulOptSent: () -> Unit,
+    forgotViewModel: ForgotViewModel = hiltViewModel()
 ) {
     val lifeCycleOwner = LocalLifecycleOwner.current
+    val state by forgotViewModel.state.collectAsState()
 
     Scaffold(
         modifier = modifier
@@ -142,6 +148,16 @@ fun ForgotPasswordScreen(
                 Spacer(modifier = Modifier.height(20.dp))
 
                 ForgotPasswordSection(
+                    state = state,
+                    onEmailChange = { email ->
+                        forgotViewModel.onEvent(ForgotUiEvent.EmailChange(email))
+                    },
+                    onPasswordChange = { password ->
+                        forgotViewModel.onEvent(ForgotUiEvent.PasswordChange(password))
+                    },
+                    onConfirmPasswordChange = { confirmPassword ->
+                        forgotViewModel.onEvent(ForgotUiEvent.ConfirmPasswordChange(confirmPassword))
+                    },
                     onSuccessfulOptSent = {
                         val currentState = lifeCycleOwner.lifecycle.currentState
                         if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
@@ -149,147 +165,7 @@ fun ForgotPasswordScreen(
                         }
                     }
                 )
-
             }
-        }
-    }
-}
-
-@Composable
-fun ForgotPasswordSection(
-    modifier: Modifier = Modifier,
-    onSuccessfulOptSent: () -> Unit
-) {
-    val context = LocalContext.current
-
-    val email = remember { mutableStateOf("") }
-    val password = remember { mutableStateOf("") }
-    val confirmPassword = remember { mutableStateOf("") }
-    val passwordVisible = remember { mutableStateOf(false) }
-    val isEmailValid = remember(email.value) {
-        Patterns.EMAIL_ADDRESS.matcher(email.value).matches()
-    }
-    val doPasswordsMatch = remember(password.value, confirmPassword.value) {
-        password.value == confirmPassword.value
-    }
-
-    Column(
-        modifier
-            .fillMaxSize()
-            .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(horizontal = 16.dp, vertical = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // Email Field
-        OutlinedTextField(
-            modifier = Modifier.fillMaxWidth(),
-            value = email.value,
-            singleLine = true,
-            onValueChange = {
-                email.value = it
-            },
-            label = { Text(text = "Enter registered email") },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Outlined.Email,
-                    contentDescription = "email"
-                )
-            },
-            maxLines = 1,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-            shape = RoundedCornerShape(12.dp)
-        )
-        if (!isEmailValid && email.value.isNotEmpty()) {
-            Text(
-                text = "Invalid email address",
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall,
-            )
-        } else {
-            Spacer(modifier = Modifier.size(16.dp))
-        }
-
-        // Password Field
-        OutlinedTextField(
-            modifier = Modifier.fillMaxWidth(),
-            value = password.value,
-            onValueChange = {
-                password.value = it
-            },
-            label = { Text(text = "New Password") },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Outlined.Lock,
-                    contentDescription = "password"
-                )
-            },
-            maxLines = 1,
-            singleLine = true,
-            trailingIcon = {
-                IconButton(onClick = { passwordVisible.value = !passwordVisible.value }) {
-                    val icon = if (passwordVisible.value) R.drawable.ic_password_visibility
-                    else R.drawable.ic_password_visibility_off
-                    Icon(painter = painterResource(id = icon), contentDescription = null)
-                }
-            },
-            visualTransformation = if (passwordVisible.value) VisualTransformation.None else PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            shape = RoundedCornerShape(12.dp)
-        )
-
-        Spacer(modifier = Modifier.size(16.dp))
-
-        // Confirm Password Field
-        OutlinedTextField(
-            modifier = Modifier.fillMaxWidth(),
-            value = confirmPassword.value,
-            onValueChange = {
-                confirmPassword.value = it
-            },
-            label = { Text(text = "Confirm password") },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Outlined.Lock,
-                    contentDescription = "confirm password"
-                )
-            },
-            maxLines = 1,
-            singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            shape = RoundedCornerShape(12.dp),
-        )
-
-        if (!doPasswordsMatch && confirmPassword.value.isNotEmpty()) {
-            Text(
-                text = "Passwords do not match",
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall,
-            )
-        }
-
-        Spacer(modifier = Modifier.size(30.dp))
-
-        // Submit Button
-        Button(
-            onClick = {
-                // Handle password reset logic
-                onSuccessfulOptSent()
-            },
-            enabled = isEmailValid && doPasswordsMatch,
-            modifier = Modifier.widthIn(200.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.tertiary,
-                contentColor = MaterialTheme.colorScheme.onTertiary
-            )
-        ) {
-            Text(
-                text = "Send email otp",
-                fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.onTertiary
-            )
         }
     }
 }

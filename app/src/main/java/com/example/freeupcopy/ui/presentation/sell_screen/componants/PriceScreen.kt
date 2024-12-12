@@ -96,6 +96,7 @@ import com.example.freeupcopy.utils.calculateDeliveryFee
 import com.example.freeupcopy.utils.calculatePlatformFee
 import com.example.freeupcopy.utils.calculateTotalEarnings
 import com.example.freeupcopy.utils.clearFocusOnKeyboardDismiss
+import com.example.freeupcopy.utils.dashedLine
 import com.example.freeupcopy.utils.validateCash
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -1080,7 +1081,7 @@ fun YourEarning(
             }
         ) {
             // Measure the Text width dynamically
-            val textWidth = remember { mutableStateOf(0) }
+//            val textWidth = remember { mutableStateOf(0) }
 
             Text(
                 text = earnings,
@@ -1090,33 +1091,39 @@ fun YourEarning(
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier
                     .padding(bottom = 2.dp)
-                    .onGloballyPositioned { coordinates ->
-                        textWidth.value = coordinates.size.width
-                    }
+                    .dashedLine(
+                        color = LinkColor,
+                        strokeWidth = 2.dp,
+                        dashWidth = 5.dp,
+                        dashGap = 4.dp
+                    )
+//                    .onGloballyPositioned { coordinates ->
+//                        textWidth.value = coordinates.size.width
+//                    }
             )
 
-            Canvas(
-                modifier = Modifier
-                    .width(with(LocalDensity.current) { textWidth.value.toDp() }) // Use text's width
-                    .height(1.dp)
-                    .padding(top = 11.dp) // Adjust padding to align with text
-            ) {
-                val dashWidth = 4.dp.toPx()
-                val dashGap = 4.dp.toPx()
-                val startX = 0f
-                val endX = size.width
-
-                var currentX = startX
-                while (currentX < endX) {
-                    drawLine(
-                        color = LinkColor,
-                        start = Offset(x = currentX, y = 0f),
-                        end = Offset(x = (currentX + dashWidth).coerceAtMost(endX), y = 0f),
-                        strokeWidth = 1.dp.toPx()
-                    )
-                    currentX += dashWidth + dashGap
-                }
-            }
+//            Canvas(
+//                modifier = Modifier
+//                    .width(with(LocalDensity.current) { textWidth.value.toDp() }) // Use text's width
+//                    .height(1.dp)
+//                    .padding(top = 11.dp) // Adjust padding to align with text
+//            ) {
+//                val dashWidth = 4.dp.toPx()
+//                val dashGap = 4.dp.toPx()
+//                val startX = 0f
+//                val endX = size.width
+//
+//                var currentX = startX
+//                while (currentX < endX) {
+//                    drawLine(
+//                        color = LinkColor,
+//                        start = Offset(x = currentX, y = 0f),
+//                        end = Offset(x = (currentX + dashWidth).coerceAtMost(endX), y = 0f),
+//                        strokeWidth = 1.dp.toPx()
+//                    )
+//                    currentX += dashWidth + dashGap
+//                }
+//            }
         }
     }
 }

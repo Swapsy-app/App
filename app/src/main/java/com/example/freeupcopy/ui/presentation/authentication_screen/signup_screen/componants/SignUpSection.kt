@@ -48,7 +48,7 @@ import com.example.freeupcopy.ui.presentation.authentication_screen.componants.G
 import com.example.freeupcopy.ui.presentation.authentication_screen.componants.OrText
 import com.example.freeupcopy.ui.presentation.authentication_screen.signup_screen.SignUpUiEvent
 import com.example.freeupcopy.ui.presentation.authentication_screen.signup_screen.SignUpUiState
-import com.example.freeupcopy.ui.viewmodel.SignUpViewModel
+import com.example.freeupcopy.ui.presentation.authentication_screen.signup_screen.SignUpViewModel
 
 @Composable
 fun SignUpSection(
@@ -59,14 +59,6 @@ fun SignUpSection(
     signUpViewModel: SignUpViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    var name by remember { mutableStateOf(state.name) }
-    var mobile by remember { mutableStateOf(state.mobile) }
-    var email by remember { mutableStateOf(state.email) }
-    var password by remember { mutableStateOf(state.password) }
-    var confirmPassword by remember { mutableStateOf(state.confirmPassword) }
-    val scope = rememberCoroutineScope()
-    val isButtonEnabled = remember { mutableStateOf(true) }
-    val error by remember { mutableStateOf(state.error) }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
 
     Column(
@@ -80,11 +72,9 @@ fun SignUpSection(
     ) {
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
-            value = name,
+            value = state.name,
             singleLine = true,
             onValueChange = {
-                name = it
-                if (it.isEmpty()) isButtonEnabled.value = false
                 signUpViewModel.onEvent(SignUpUiEvent.NameChange(it))
             },
             label = { Text(text = "Name") },
@@ -103,11 +93,9 @@ fun SignUpSection(
 
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
-            value = email,
+            value = state.email,
             singleLine = true,
             onValueChange = {
-                email = it
-                if (it.isEmpty()) isButtonEnabled.value = false
                 signUpViewModel.onEvent(SignUpUiEvent.EmailChange(it))
             },
             label = { Text(text = "Email") },
@@ -125,11 +113,9 @@ fun SignUpSection(
 
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
-            value = mobile,
+            value = state.mobile,
             singleLine = true,
             onValueChange = {
-                mobile = it
-                if (it.isEmpty()) isButtonEnabled.value = false
                 signUpViewModel.onEvent(SignUpUiEvent.MobileChange(it))
             },
             label = { Text(text = "Mobile No.") },
@@ -148,16 +134,15 @@ fun SignUpSection(
 
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
-            value = password,
+            value = state.password,
             onValueChange = {
-                password = it
                 signUpViewModel.onEvent(SignUpUiEvent.PasswordChange(it))
             },
             label = { Text(text = "Password") },
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Outlined.Lock,
-                    contentDescription = password
+                    contentDescription = "password"
                 )
             },
             maxLines = 1,
@@ -180,9 +165,8 @@ fun SignUpSection(
 
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
-            value = confirmPassword,
+            value = state.confirmPassword,
             onValueChange = {
-                confirmPassword = it
                 signUpViewModel.onEvent(SignUpUiEvent.ConfirmPasswordChange(it))
             },
             label = { Text(text = "Confirm password") },

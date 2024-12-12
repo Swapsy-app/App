@@ -23,7 +23,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
 import androidx.compose.material3.Button
@@ -63,7 +62,7 @@ import com.example.freeupcopy.ui.presentation.authentication_screen.componants.G
 import com.example.freeupcopy.ui.presentation.authentication_screen.componants.OrText
 import com.example.freeupcopy.ui.theme.Lobster
 import com.example.freeupcopy.ui.theme.SwapsyTheme
-import com.example.freeupcopy.ui.viewmodel.LoginViewModel
+import com.example.freeupcopy.ui.presentation.authentication_screen.login_screen.LoginViewModel
 import com.example.freeupcopy.utils.clearFocusOnKeyboardDismiss
 
 @OptIn(ExperimentalMaterial3Api::class)

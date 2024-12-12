@@ -3,6 +3,8 @@ package com.example.freeupcopy.utils
 import android.graphics.Rect
 import android.view.View
 import android.view.ViewTreeObserver
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -13,8 +15,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.onFocusEvent
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
@@ -26,8 +30,12 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
+
+// for dashed border
 fun Modifier.dashedBorder(
     color: Color,
     shape: Shape,
@@ -65,6 +73,8 @@ fun Modifier.dashedBorder(
     )
 }
 
+
+//for clearing focus on keyboard dismiss
 fun Modifier.clearFocusOnKeyboardDismiss(): Modifier = composed {
 
     var isFocused by remember { mutableStateOf(false) }
@@ -112,3 +122,39 @@ fun View.isKeyboardOpen(): Boolean {
     val keypadHeight = screenHeight - rect.bottom;
     return keypadHeight > screenHeight * 0.15
 }
+
+//dashed underline
+fun Modifier.dashedLine(
+    color: Color,
+    strokeWidth: Dp = 1.dp,
+    dashWidth: Dp = 8.dp,
+    dashGap: Dp = 4.dp,
+    verticalOffset: TextUnit = 2.sp
+): Modifier = this.drawBehind {
+    val strokeWidthPx = strokeWidth.toPx()
+    val dashWidthPx = dashWidth.toPx()
+    val dashGapPx = dashGap.toPx()
+    val verticalOffsetPx = size.height - verticalOffset.toPx()
+
+    val pathEffect = PathEffect.dashPathEffect(floatArrayOf(dashWidthPx, dashGapPx), 0f)
+
+    drawLine(
+        color = color,
+        strokeWidth = strokeWidthPx,
+        start = Offset(0f, verticalOffsetPx),
+        end = Offset(size.width, verticalOffsetPx),
+        pathEffect = pathEffect
+    )
+}
+
+//modifier for no ripple clickable
+fun Modifier.noRippleClickable(
+    onClick: () -> Unit
+): Modifier = composed {
+    clickable(
+        indication = null,
+        interactionSource = remember { MutableInteractionSource() },
+        onClick = onClick
+    )
+}
+
