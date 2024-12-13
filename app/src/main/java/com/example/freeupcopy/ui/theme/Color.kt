@@ -16,8 +16,24 @@ val SurfaceDark = Color(0xFF1C1B1F)
 val PrimaryContainerLight = Color(0xFFFFFFFF)
 val PrimaryContainerDark = Color(0xFF29282C)
 
-val PrimaryLight = Color(0xFF362A6F)
+//val PrimaryLight = Color(0xFF362A6F)
 val PrimaryDark = Color(0xFF896FFF)
+
+val PrimaryLight = Color(0xFF0C356A)
+val SecondaryLight = Color(0xFF0174BE)
+val TertiaryLight = Color(0xFFFFC436)
+
+val PrimaryContainer = Color(0xFF345A8D)
+val OnPrimary = Color(0xFFFFFFFF)
+
+val SecondaryContainer = Color(0xFFD5EDFD)
+val OnSecondary = Color(0xFFFFFFFF)
+
+val TertiaryContainer = Color(0xFFFFE6A0)
+val OnTertiary = Color(0xFF3B2400)
+
+//val Error = Color(0xFFB00020)
+//val OnError = Color(0xFFFFFFFF)
 
 val OnPrimaryContainerDark = Color(0xFFFFFFFF)
 val OnPrimaryContainerLight = Color(0xFF000000)
@@ -31,16 +47,18 @@ val CashColor2 = Color(0xFF00B800)
 val BadgeLight = Color(0xFFFF3B30)
 val BadgeDark = Color(0xFFFF4F38)
 
-val TertiaryContainerLight = Color(0xFFD1E7DF)
+//val TertiaryContainerLight = Color(0xFFD1E7DF)
 val TertiaryContainerDark = Color(0xFF566660)
 
-val NoteContainerLight = Color(0xFFF5EDB7)
-val NoteContainerDark = Color(0xFF928D6A)
+val NoteContainerLight = Color(0xFFD1E7DF)
+val NoteContainerDark = Color(0xFF566660)
 
-//val TertiaryContainerLight = Color(0xFFE9D4DF)
-//val TertiaryContainerDark = Color(0xFF413239)
 
 val RecommendedContainerColor = Color(0xFFB2F368)
 val RecommendedTextColor = Color(0xFF035303)
 
 val LinkColor = Color(0xFF007AFF)
+
+val PrimaryLight1 = Color(0xFF0D274B)
+val PrimaryLight2 = Color(0xFF0E2B52)
+val PrimaryLight3 = Color(0xFF12335F)

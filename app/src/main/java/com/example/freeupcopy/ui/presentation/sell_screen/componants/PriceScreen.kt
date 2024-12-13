@@ -3,6 +3,11 @@ package com.example.freeupcopy.ui.presentation.sell_screen.componants
 import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -84,12 +89,14 @@ import com.example.freeupcopy.R
 import com.example.freeupcopy.ui.presentation.sell_screen.CustomDivider
 import com.example.freeupcopy.ui.theme.SwapsyTheme
 import com.example.freeupcopy.ui.theme.LinkColor
+import com.example.freeupcopy.ui.theme.NoteContainerLight
 import com.example.freeupcopy.ui.theme.RecommendedContainerColor
 import com.example.freeupcopy.ui.theme.RecommendedTextColor
 import com.example.freeupcopy.utils.calculateDeliveryFee
 import com.example.freeupcopy.utils.calculatePlatformFee
 import com.example.freeupcopy.utils.calculateTotalEarnings
 import com.example.freeupcopy.utils.clearFocusOnKeyboardDismiss
+import com.example.freeupcopy.utils.dashedLine
 import com.example.freeupcopy.utils.validateCash
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -177,11 +184,11 @@ fun PriceScreen(
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(10.dp))
                             .clickable { }
-                            .background(MaterialTheme.colorScheme.secondaryContainer),
+                            .background(MaterialTheme.colorScheme.secondary),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "Confirm", color = MaterialTheme.colorScheme.primary,
+                            text = "Confirm", color = MaterialTheme.colorScheme.onSecondary,
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp
                         )
@@ -222,7 +229,9 @@ fun PriceScreen(
                 AnimatedVisibility(
                     visible = selectedOptions.isEmpty() || (!selectedOptions.contains(
                         "Coins"
-                    ) && !selectedOptions.contains("Cash\n+\nCoins"))
+                    ) && !selectedOptions.contains("Cash\n+\nCoins")),
+                    enter = fadeIn(animationSpec = tween(600)) + expandVertically(animationSpec = tween(600)),
+                    exit = fadeOut(animationSpec = tween(600)) + shrinkVertically(animationSpec = tween(600))
                 ) {
                     PricingInBox(Modifier.padding(bottom = 10.dp))
                 }
@@ -627,7 +636,7 @@ fun PricingInBox(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(10.dp))
-            .background(MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.6f))
+            .background(NoteContainerLight.copy(alpha = 0.6f))
             .padding(12.dp),
     ) {
         Text(
@@ -1072,7 +1081,7 @@ fun YourEarning(
             }
         ) {
             // Measure the Text width dynamically
-            val textWidth = remember { mutableStateOf(0) }
+//            val textWidth = remember { mutableStateOf(0) }
 
             Text(
                 text = earnings,
@@ -1082,33 +1091,39 @@ fun YourEarning(
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier
                     .padding(bottom = 2.dp)
-                    .onGloballyPositioned { coordinates ->
-                        textWidth.value = coordinates.size.width
-                    }
+                    .dashedLine(
+                        color = LinkColor,
+                        strokeWidth = 2.dp,
+                        dashWidth = 5.dp,
+                        dashGap = 4.dp
+                    )
+//                    .onGloballyPositioned { coordinates ->
+//                        textWidth.value = coordinates.size.width
+//                    }
             )
 
-            Canvas(
-                modifier = Modifier
-                    .width(with(LocalDensity.current) { textWidth.value.toDp() }) // Use text's width
-                    .height(1.dp)
-                    .padding(top = 11.dp) // Adjust padding to align with text
-            ) {
-                val dashWidth = 4.dp.toPx()
-                val dashGap = 4.dp.toPx()
-                val startX = 0f
-                val endX = size.width
-
-                var currentX = startX
-                while (currentX < endX) {
-                    drawLine(
-                        color = LinkColor,
-                        start = Offset(x = currentX, y = 0f),
-                        end = Offset(x = (currentX + dashWidth).coerceAtMost(endX), y = 0f),
-                        strokeWidth = 1.dp.toPx()
-                    )
-                    currentX += dashWidth + dashGap
-                }
-            }
+//            Canvas(
+//                modifier = Modifier
+//                    .width(with(LocalDensity.current) { textWidth.value.toDp() }) // Use text's width
+//                    .height(1.dp)
+//                    .padding(top = 11.dp) // Adjust padding to align with text
+//            ) {
+//                val dashWidth = 4.dp.toPx()
+//                val dashGap = 4.dp.toPx()
+//                val startX = 0f
+//                val endX = size.width
+//
+//                var currentX = startX
+//                while (currentX < endX) {
+//                    drawLine(
+//                        color = LinkColor,
+//                        start = Offset(x = currentX, y = 0f),
+//                        end = Offset(x = (currentX + dashWidth).coerceAtMost(endX), y = 0f),
+//                        strokeWidth = 1.dp.toPx()
+//                    )
+//                    currentX += dashWidth + dashGap
+//                }
+//            }
         }
     }
 }

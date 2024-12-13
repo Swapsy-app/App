@@ -24,15 +24,18 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,6 +48,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -52,23 +56,52 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.freeupcopy.R
 import com.example.freeupcopy.domain.model.Category
 import com.example.freeupcopy.ui.presentation.home_screen.componants.SearchBar
 import com.example.freeupcopy.ui.presentation.sell_screen.CustomDivider
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryScreen(
     modifier: Modifier = Modifier,
-    onCategoryClick: (String) -> Unit
+    onCategoryClick: (String) -> Unit,
+    onClose: () -> Unit
 ) {
     val lifeCycleOwner = LocalLifecycleOwner.current
     Scaffold(
         modifier = modifier
             .fillMaxSize()
             .padding(start = 16.dp, end = 16.dp, top = 16.dp),
-        containerColor = MaterialTheme.colorScheme.surface
+        containerColor = MaterialTheme.colorScheme.surface,
+        topBar = {
+            TopAppBar(
+                title = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Spacer(modifier = Modifier.size(8.dp))
+                        Text(text = "Category")
+                    }
+                },
+                navigationIcon = {
+                    IconButton(onClick = {
+                        val currentState = lifeCycleOwner.lifecycle.currentState
+                        if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                            onClose()
+                        }
+                    }) {
+                        Icon(
+                            imageVector = Icons.Rounded.Close,
+                            contentDescription = "close"
+                        )
+                    }
+                }
+            )
+        }
     ) { innerPadding ->
 
         ChooseCategory(
@@ -107,6 +140,14 @@ fun ChooseCategory(
     Column(
         modifier = modifier.fillMaxWidth()
     ) {
+        if(selectedCategory == null) {
+            NoteSection(
+                text = stringResource(id = R.string.category_announcement)
+            )
+        }
+
+        Spacer(modifier = Modifier.size(6.dp))
+
         Box {
             OutlinedTextField(
                 value = mSelectedText,
@@ -169,12 +210,6 @@ fun ChooseCategory(
                 onCategoryClick = { s ->
                     onCategoryClick(s)
                 }
-            )
-        } else {
-
-            NoteSection(
-                text = "Use the dropdown menu above to choose a category." +
-                    " Once a category is selected, its subcategories will appear here for further exploration"
             )
         }
     }
@@ -353,6 +388,7 @@ fun FinalCategoryItems(
 @Composable
 fun CategoryScreenPreview() {
     CategoryScreen(
-        onCategoryClick = { }
+        onCategoryClick = { },
+        onClose = {}
     )
 }

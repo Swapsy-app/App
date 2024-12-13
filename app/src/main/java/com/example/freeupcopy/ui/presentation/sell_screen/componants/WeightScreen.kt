@@ -33,6 +33,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
@@ -76,7 +77,6 @@ fun WeightScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = {
-                        Log.e("WeightScreen", "onClose")
                         val currentState = lifeCycleOwner.lifecycle.currentState
                         if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
 
@@ -127,9 +127,7 @@ fun WeightScreen(
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     NoteSection(
-                        text = "The examples attached with each weight category are for reference purposes only." +
-                                " Please ensure you check the actual weight, including its packaging," +
-                                " before selecting the appropriate weight category for shipping"
+                        text = stringResource(id = R.string.weight_announcement)
                     )
                     Spacer(modifier = Modifier.size(8.dp))
 
@@ -173,7 +171,7 @@ fun WeightScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(10.dp))
-                            .background(MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.6f))
+                            .background(NoteContainerLight.copy(alpha = 0.6f))
                             .padding(16.dp),
                     ) {
                         val annotatedString = buildAnnotatedString {
@@ -191,13 +189,7 @@ fun WeightScreen(
                                     color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f)
                                 )
                             ) {
-                                append(
-                                    " If the weight of the product is greater than what was declared by the seller," +
-                                            " as reported by the courier partner, the seller will bear the extra courier" +
-                                            " charges along with penalty. This amount will be deducted from the" +
-                                            " seller's earnings. Continuous violations of this policy may result" +
-                                            " in the suspension of the seller's account."
-                                )
+                                append(stringResource(id = R.string.weight_note))
                             }
                         }
                         Text(text = annotatedString, lineHeight = 18.sp)
@@ -278,7 +270,7 @@ fun NoteSection(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(10.dp))
-            .background(NoteContainerLight.copy(alpha = 0.75f))
+            .background(MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.75f))
             .padding(top = 16.dp, bottom = 16.dp, end = 16.dp),
     ) {
         Icon(

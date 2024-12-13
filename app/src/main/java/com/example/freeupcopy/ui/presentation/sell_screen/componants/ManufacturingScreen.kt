@@ -30,16 +30,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.freeupcopy.R
-import com.example.freeupcopy.ui.theme.NoteContainerLight
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -93,6 +93,24 @@ fun ManufacturingScreen(
             Spacer(modifier = Modifier.size(8.dp))
 
             Row(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.75f))
+                    .padding(16.dp),
+            ) {
+                Text(
+                    text = stringResource(id = R.string.manufacturing_announcement),
+                    fontSize = 13.5.sp,
+                    lineHeight = 18.sp,
+                    fontStyle = FontStyle.Italic,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
+                )
+            }
+
+            Spacer(modifier = Modifier.size(16.dp))
+
+            Row(
                 Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -129,24 +147,6 @@ fun ManufacturingScreen(
                         contentDescription = "Others",
                     )
                 }
-            }
-
-            Spacer(modifier = Modifier.size(16.dp))
-
-            Row(
-                modifier = modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(NoteContainerLight.copy(alpha = 0.75f))
-                    .padding(16.dp),
-            ) {
-                Text(
-                    text = "Products are manufactured in various regions worldwide. Please select 'India' for locally manufactured products or 'Others' for products made elsewhere to continue.",
-                    fontSize = 13.5.sp,
-                    lineHeight = 18.sp,
-                    fontStyle = FontStyle.Italic,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
-                )
             }
         }
     }
@@ -197,4 +197,14 @@ fun ManufacturingCountryButton(
             )
         }
     }
+}
+
+@Preview
+@Composable
+fun ManufacturingScreenPreview() {
+    ManufacturingScreen(
+        onManufacturingClick = {},
+        onClose = {},
+        manufacturingCountry = "India"
+    )
 }

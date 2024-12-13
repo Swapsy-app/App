@@ -47,6 +47,7 @@ fun AppNameTopSection(
             .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 20.dp),
         verticalAlignment = Alignment.Bottom
     ) {
+        Spacer(modifier = Modifier.size(8.dp))
         Text(
             text = stringResource(id = R.string.app_name),
             color = MaterialTheme.colorScheme.onSurface,
