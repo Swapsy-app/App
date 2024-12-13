@@ -2,6 +2,7 @@ package com.example.freeupcopy.ui.presentation.authentication_screen.connect_scr
 
 import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
@@ -41,15 +42,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -60,10 +59,11 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.freeupcopy.R
 import com.example.freeupcopy.ui.presentation.authentication_screen.componants.GoogleButton
 import com.example.freeupcopy.ui.presentation.authentication_screen.componants.OrText
+import com.example.freeupcopy.ui.presentation.authentication_screen.connect_screen.componants.DescriptionPart
 import com.example.freeupcopy.ui.theme.Lobster
 import com.example.freeupcopy.ui.theme.SwapsyTheme
-import com.example.freeupcopy.ui.presentation.authentication_screen.login_screen.LoginViewModel
 import com.example.freeupcopy.utils.clearFocusOnKeyboardDismiss
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -73,14 +73,25 @@ fun ConnectScreen(
     onBackClick: () -> Unit,
     onLoginClick: () -> Unit,
     onSignUpClick: () -> Unit,
-    loginViewModel: LoginViewModel = hiltViewModel()
+    connectViewModel: ConnectViewModel = hiltViewModel()
 ) {
     val lifeCycleOwner = LocalLifecycleOwner.current
-    val state by loginViewModel.state.collectAsState()
-    val transitionState = remember { mutableStateOf(false) }
+    val state by connectViewModel.state.collectAsState()
 
     LaunchedEffect(Unit) {
-        transitionState.value = true
+        connectViewModel.onEvent(ConnectUiEvent.TransitionChange(true))
+        connectViewModel.smallCircleRadius.animateTo(
+            targetValue = 700f,
+            animationSpec = tween(
+                durationMillis = 500
+            )
+        )
+        connectViewModel.bigCircleRadius.animateTo(
+            targetValue = 1000f,
+            animationSpec = tween(
+                durationMillis = 700
+            )
+        )
     }
 
     Scaffold(
@@ -88,7 +99,6 @@ fun ConnectScreen(
             .clearFocusOnKeyboardDismiss()
             .fillMaxSize()
             .windowInsetsPadding(WindowInsets(0.dp)),
-        //containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             TopAppBar(
                 title = {
@@ -127,12 +137,12 @@ fun ConnectScreen(
 
                 drawCircle(
                     color = color.copy(alpha = 0.2f),
-                    radius = 700f,
+                    radius = connectViewModel.smallCircleRadius.value,
                     center = Offset(0f, -100f)
                 )
                 drawCircle(
                     color = color.copy(alpha = 0.2f),
-                    radius = 1000f,
+                    radius = connectViewModel.bigCircleRadius.value,
                     center = Offset(0f, -100f)
                 )
                 drawCircle(
@@ -153,9 +163,19 @@ fun ConnectScreen(
                 verticalArrangement = Arrangement.Bottom,
             ) {
                 AnimatedVisibility(
-                    visible = transitionState.value,
-                    enter = fadeIn(animationSpec = tween(durationMillis = 1000, delayMillis = 500)) +
-                            slideInVertically(animationSpec = tween(durationMillis = 1000, delayMillis = 500)),
+                    visible = state.transitionAnim,
+                    enter = fadeIn(
+                        animationSpec = tween(
+                            durationMillis = 1000,
+                            delayMillis = 500
+                        )
+                    ) +
+                            slideInVertically(
+                                animationSpec = tween(
+                                    durationMillis = 1000,
+                                    delayMillis = 500
+                                )
+                            ),
                     modifier = Modifier
                         .padding(it)
                         .padding(top = 30.dp)
@@ -170,41 +190,7 @@ fun ConnectScreen(
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 Column {
-                    Column(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(start = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Text(
-                            text = "BUY,",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 40.sp,
-                            color = Color(0xFF24A6FA)
-                        )
-                        Text(
-                            text = "SELL,",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 40.sp,
-                            color = MaterialTheme.colorScheme.tertiary
-                        )
-                        Text(
-                            text = "SWAP.",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 40.sp,
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-
-                        Spacer(modifier = Modifier.size(16.dp))
-
-                        Text(
-                            text = "The Ultimate App for All Your E-commerce Needs – Discover Amazing Deals and Swap Products to Earn!",
-                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
-                            fontStyle = FontStyle.Italic
-                        )
-
-                        Spacer(modifier = Modifier.size(20.dp))
-                    }
+                    DescriptionPart()
 
                     ConnectSection(
                         onLoginClick = {
@@ -232,35 +218,13 @@ fun ConnectSection(
     onLoginClick: () -> Unit,
     onSignUpClick: () -> Unit
 ) {
-    val context = LocalContext.current
-
     Column(
         modifier
             .fillMaxWidth()
-            //.clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-            //.background(MaterialTheme.colorScheme.surface)
             .padding(horizontal = 16.dp, vertical = 24.dp)
             .padding(NavigationBarDefaults.windowInsets.asPaddingValues()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-//        Row(
-//            Modifier.fillMaxWidth(),
-//            verticalAlignment = Alignment.CenterVertically
-//        ) {
-//            Spacer(modifier = Modifier.size(20.dp))
-//            Icon(
-//                imageVector = Icons.Outlined.Email,
-//                contentDescription = "Email",
-//                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
-//            )
-//            Spacer(modifier = Modifier.size(8.dp))
-//            Text(
-//                text = "Continue using email",
-//                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
-//                fontStyle = FontStyle.Italic
-//            )
-//        }
-
         Spacer(modifier = Modifier.size(10.dp))
 
         Row(
@@ -299,12 +263,12 @@ fun ConnectSection(
                 colors = ButtonDefaults.outlinedButtonColors(
                     contentColor = MaterialTheme.colorScheme.onPrimary,
                 )
-                ) {
+            ) {
                 Text(
                     text = "Login",
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
-                    )
+                )
             }
         }
 
