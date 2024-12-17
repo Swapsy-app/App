@@ -60,20 +60,25 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.freeupcopy.R
 import com.example.freeupcopy.domain.model.Category
+import com.example.freeupcopy.domain.model.CategoryUiModel
+import com.example.freeupcopy.domain.model.SubCategory
+import com.example.freeupcopy.domain.model.TertiaryCategory
 import com.example.freeupcopy.ui.presentation.home_screen.componants.SearchBar
-import com.example.freeupcopy.ui.presentation.sell_screen.CustomDivider
+import com.example.freeupcopy.ui.presentation.sell_screen.weight_screen.NoteSection
+import com.example.freeupcopy.utils.clearFocusOnKeyboardDismiss
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryScreen(
     modifier: Modifier = Modifier,
-    onCategoryClick: (String) -> Unit,
+    onCategoryClick: (CategoryUiModel) -> Unit,
     onClose: () -> Unit
 ) {
     val lifeCycleOwner = LocalLifecycleOwner.current
     Scaffold(
         modifier = modifier
             .fillMaxSize()
+            .clearFocusOnKeyboardDismiss()
             .padding(start = 16.dp, end = 16.dp, top = 16.dp),
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
@@ -110,7 +115,13 @@ fun CategoryScreen(
             onCategoryClick = { s ->
                 val currentState = lifeCycleOwner.lifecycle.currentState
                 if (currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)) {
-                    onCategoryClick(s)
+                    onCategoryClick(
+                        CategoryUiModel(
+                            category = s.category,
+                            subCategory = s.subCategory,
+                            tertiaryCategory = s.tertiaryCategory
+                        )
+                    )
                 }
             }
         )
@@ -123,12 +134,15 @@ fun CategoryScreen(
 fun ChooseCategory(
     modifier: Modifier = Modifier,
     categories: List<Category>,
-    onCategoryClick: (String) -> Unit
+    onCategoryClick: (CategoryUiModel) -> Unit
 ) {
     var selectedCategory by remember { mutableStateOf<Category?>(null) }
     var mExpanded by remember { mutableStateOf(false) }
     var mSelectedText by remember { mutableStateOf("") }
     var mTextFieldSize by remember { mutableStateOf(Size.Zero) }
+
+    var searchQuery by remember { mutableStateOf("") }
+    val isSearchBarFocused = remember { mutableStateOf(false) }
 
     val interactionSource = remember { MutableInteractionSource() }
 
@@ -140,7 +154,7 @@ fun ChooseCategory(
     Column(
         modifier = modifier.fillMaxWidth()
     ) {
-        if(selectedCategory == null) {
+        if (selectedCategory == null) {
             NoteSection(
                 text = stringResource(id = R.string.category_announcement)
             )
@@ -204,104 +218,65 @@ fun ChooseCategory(
 
         Spacer(modifier = Modifier.size(16.dp))
 
-        if (selectedCategory != null) {
-            SubCategorySection(
-                category = selectedCategory!!,
-                onCategoryClick = { s ->
-                    onCategoryClick(s)
+        selectedCategory?.let {
+
+            // Filter subcategories and their tertiary categories based on the search query
+            val filteredSubcategories = selectedCategory!!.subcategories.mapNotNull { subCategory ->
+                val matchingTertiaryCategories = subCategory.tertiaryCategories.filter { tertiaryCategory ->
+                    tertiaryCategory.name.contains(searchQuery, ignoreCase = true)
                 }
-            )
-        }
-    }
-}
 
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-fun SubCategorySection(
-    modifier: Modifier = Modifier,
-    category: Category,
-    onCategoryClick: (String) -> Unit
-) {
-    var searchQuery by remember { mutableStateOf("") }
-
-    // Recursive function to gather only the final subcategories (those with no subcategories inside them)
-    fun gatherFinalSubcategories(category: Category): List<Category> {
-        return category.subcategories.filter { it.subcategories.isEmpty() } +
-                category.subcategories.flatMap { gatherFinalSubcategories(it) }
-    }
-
-    // Gather all final subcategories (last-level subcategories)
-    val finalSubcategories = gatherFinalSubcategories(category)
-
-    // Filtered list of subcategories based on the search query
-    val filteredSubcategories = if (searchQuery.isEmpty()) {
-        category.subcategories
-    } else {
-        finalSubcategories.filter { it.name.contains(searchQuery, ignoreCase = true) }
-    }
-
-    val isSearchBarFocused = remember { mutableStateOf(false) }
-
-    Column(modifier = modifier) {
-        SearchBar(
-            value = searchQuery,
-            isFocused = isSearchBarFocused,
-            onFocusChange = {
-                isSearchBarFocused.value = it
-            },
-            onValueChange = {
-                searchQuery = it
-            },
-            onSearch = {
-                isSearchBarFocused.value = false
-            },
-            onCancel = {
-                searchQuery = ""
+                // Include the subcategory only if there are matching tertiary categories
+                if (matchingTertiaryCategories.isNotEmpty()) {
+                    subCategory.copy(tertiaryCategories = matchingTertiaryCategories)
+                } else {
+                    null
+                }
             }
-        )
 
-        Spacer(modifier = Modifier.size(16.dp))
-
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            if (filteredSubcategories.firstOrNull()?.subcategories?.isNotEmpty() == true) {
-                items(filteredSubcategories) { subCategory ->
-                    if (subCategory != filteredSubcategories.first()) {
-                        CustomDivider()
-                        Spacer(modifier = Modifier.size(16.dp))
+            Column {
+                SearchBar(
+                    value = searchQuery,
+                    isFocused = isSearchBarFocused,
+                    onFocusChange = {
+                        isSearchBarFocused.value = it
+                    },
+                    onValueChange = {
+                        searchQuery = it
+                    },
+                    onSearch = {
+                        isSearchBarFocused.value = false
+                    },
+                    onCancel = {
+                        searchQuery = ""
                     }
-                    SubCategoryHeadingWithCategory(
-                        category = subCategory,
-                        onCategoryClick = { s ->
-                            onCategoryClick(s)
-                        }
+                )
+
+                Spacer(modifier = Modifier.size(16.dp))
+
+                if (filteredSubcategories.isEmpty()) {
+                    // Show message when no subcategories match the query
+                    Text(
+                        text = "No matching subcategories found.",
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                        modifier = Modifier.padding(16.dp),
+                        textAlign = TextAlign.Center
                     )
-                }
-            } else {
-                item {
-                    if (filteredSubcategories.isEmpty()) {
-                        Text(
-                            text = "No matching subcategories found.",
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                            modifier = Modifier.padding(16.dp),
-                            textAlign = TextAlign.Center
-                        )
-                    } else {
-                        FlowRow(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(12.dp),
-                            horizontalArrangement = Arrangement.spacedBy(16.dp),
-                            maxLines = 4
-                        ) {
-                            filteredSubcategories.forEach { category ->
-                                FinalCategoryItems(
-                                    category = category,
-                                    onClick = {
-                                        onCategoryClick(category.name)
-                                    }
-                                )
-                            }
+                } else {
+                    LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        items(filteredSubcategories) { subCategory ->
+                            SubCategoryRow(
+                                subCategory = subCategory,
+                                onSubCategoryClick = { subCat, terCat ->
+                                    onCategoryClick(
+                                        CategoryUiModel(
+                                            category = selectedCategory!!.name,
+                                            subCategory = subCat,
+                                            tertiaryCategory = terCat
+                                        )
+                                    )
+                                }
+                            )
                         }
                     }
                 }
@@ -310,36 +285,133 @@ fun SubCategorySection(
     }
 }
 
+//@OptIn(ExperimentalLayoutApi::class)
+//@Composable
+//fun SubCategorySection(
+//    modifier: Modifier = Modifier,
+//    category: Category,
+//    onCategoryClick: (String) -> Unit
+//) {
+//    var searchQuery by remember { mutableStateOf("") }
+//
+//    // Recursive function to gather only the final subcategories (those with no subcategories inside them)
+////    fun gatherFinalSubcategories(category: Category): List<Category> {
+////        return category.subcategories.filter { it.subcategories.isEmpty() } +
+////                category.subcategories.flatMap { gatherFinalSubcategories(it) }
+////    }
+////
+////    // Gather all final subcategories (last-level subcategories)
+////    val finalSubcategories = gatherFinalSubcategories(category)
+////
+////    // Filtered list of subcategories based on the search query
+////    val filteredSubcategories = if (searchQuery.isEmpty()) {
+////        category.subcategories
+////    } else {
+////        finalSubcategories.filter { it.name.contains(searchQuery, ignoreCase = true) }
+////    }
+//
+//    val isSearchBarFocused = remember { mutableStateOf(false) }
+//
+//    Column(modifier = modifier) {
+//        SearchBar(
+//            value = searchQuery,
+//            isFocused = isSearchBarFocused,
+//            onFocusChange = {
+//                isSearchBarFocused.value = it
+//            },
+//            onValueChange = {
+//                searchQuery = it
+//            },
+//            onSearch = {
+//                isSearchBarFocused.value = false
+//            },
+//            onCancel = {
+//                searchQuery = ""
+//            }
+//        )
+//
+//        Spacer(modifier = Modifier.size(16.dp))
+//
+//        LazyColumn(
+//            verticalArrangement = Arrangement.spacedBy(16.dp)
+//        ) {
+//            if (filteredSubcategories.firstOrNull()?.subcategories?.isNotEmpty() == true) {
+//                items(filteredSubcategories) { subCategory ->
+//                    if (subCategory != filteredSubcategories.first()) {
+//                        CustomDivider()
+//                        Spacer(modifier = Modifier.size(16.dp))
+//                    }
+//                    SubCategoryHeadingWithCategory(
+//                        category = subCategory,
+//                        onCategoryClick = { s ->
+//                            onCategoryClick(s)
+//                        }
+//                    )
+//                }
+//            } else {
+//                item {
+//                    if (filteredSubcategories.isEmpty()) {
+//                        Text(
+//                            text = "No matching subcategories found.",
+//                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+//                            modifier = Modifier.padding(16.dp),
+//                            textAlign = TextAlign.Center
+//                        )
+//                    } else {
+//                        FlowRow(
+//                            modifier = Modifier.fillMaxWidth(),
+//                            verticalArrangement = Arrangement.spacedBy(12.dp),
+//                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+//                            maxLines = 4
+//                        ) {
+//                            filteredSubcategories.forEach { category ->
+//                                FinalCategoryItems(
+//                                    category = category,
+//                                    onClick = {
+//                                        onCategoryClick(category.name)
+//                                    }
+//                                )
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}
+
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun SubCategoryHeadingWithCategory(
+fun SubCategoryRow(
     modifier: Modifier = Modifier,
-    category: Category,
-    onCategoryClick: (String) -> Unit
+    subCategory: SubCategory,
+    onSubCategoryClick: (String, String) -> Unit
 ) {
     Column(
         modifier = modifier
             .padding(vertical = 8.dp)
     ) {
-        Text(
-            text = category.name,
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
-            //modifier = Modifier.padding(16.dp)
-        )
-        Spacer(modifier = Modifier.size(16.dp))
+        if (subCategory.name != "Primary") {
+            Text(
+                text = subCategory.name,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                //modifier = Modifier.padding(16.dp)
+            )
+            Spacer(modifier = Modifier.size(16.dp))
+        }
         FlowRow(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(12.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             maxLines = 4
         ) {
-            category.subcategories.forEach { category ->
+            subCategory.tertiaryCategories.forEach { tertiaryCategory ->
                 FinalCategoryItems(
-                    category = category,
+                    tertiaryCategory = tertiaryCategory,
                     onClick = { s ->
-                        onCategoryClick(category.name)
+                        onSubCategoryClick(subCategory.name, tertiaryCategory.name)
                     }
                 )
             }
@@ -350,7 +422,7 @@ fun SubCategoryHeadingWithCategory(
 @Composable
 fun FinalCategoryItems(
     modifier: Modifier = Modifier,
-    category: Category,
+    tertiaryCategory: TertiaryCategory,
     onClick: (String) -> Unit
 ) {
     Box(
@@ -366,9 +438,9 @@ fun FinalCategoryItems(
                 modifier = Modifier
                     //.size(75.dp)
                     .clip(CircleShape)
-                    .clickable { onClick(category.name) },
-                painter = painterResource(id = R.drawable.kurta_men),
-                contentDescription = category.name
+                    .clickable { onClick(tertiaryCategory.name) },
+                painter = painterResource(id = tertiaryCategory.imageId ?: R.drawable.kurta_men),
+                contentDescription = tertiaryCategory.name
             )
             Spacer(modifier = Modifier.size(8.dp))
             Text(
@@ -378,7 +450,7 @@ fun FinalCategoryItems(
                 lineHeight = 16.sp,
                 overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center,
-                text = category.name
+                text = tertiaryCategory.name
             )
         }
     }
@@ -388,7 +460,7 @@ fun FinalCategoryItems(
 @Composable
 fun CategoryScreenPreview() {
     CategoryScreen(
-        onCategoryClick = { },
+        onCategoryClick = {},
         onClose = {}
     )
 }
