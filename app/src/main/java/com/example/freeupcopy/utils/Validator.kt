@@ -2,6 +2,7 @@ package com.example.freeupcopy.utils
 
 
 private const val ERR_LEN = "Minimum 8 character required."
+private const val OUR_CURRENCY = "Coin"
 
 data class ValidationResult(
     val isValid: Boolean = false,
@@ -45,6 +46,36 @@ object Validator {
 //            password.none { it.isLowerCase() } -> ValidationResult(false, "Password must contain at least one lowercase letter.")
 //            password.none { !it.isLetterOrDigit() } -> ValidationResult(false, "Password must contain at least one special character.")
             else -> ValidationResult(true)
+        }
+    }
+
+    fun validateMrp(amount: String?): ValidationResult {
+        return when {
+            amount.isNullOrEmpty() -> ValidationResult(false, "Mrp cannot be empty")
+            amount.toLongOrNull() == null || amount.toLong() <= 0 -> ValidationResult(false, "Mrp must be greater than zero")
+            else -> ValidationResult(true)
+        }
+    }
+
+    fun validateCashAmount(amount: String?, minEarnings: Long = 10): ValidationResult {
+        return when {
+            amount.isNullOrEmpty() -> ValidationResult(false, "Cash cannot be empty")
+            amount.toLongOrNull() == null || amount.toLong() <= 0 -> ValidationResult(false, "Cash must be greater than zero")
+            calculateTotalEarnings(amount.toLong(), "cat0") < minEarnings -> ValidationResult(false, "Cash is too low, you can sell using coins")
+            else -> ValidationResult(true)
+        }
+    }
+
+    fun validateCoinAmount(amount: String?, minCoins: Long = 10): ValidationResult {
+        return when {
+            amount.isNullOrEmpty() -> ValidationResult(false, "$OUR_CURRENCY cannot be empty")
+            amount.toLongOrNull() == null || amount.toLong() < minCoins -> ValidationResult(
+                false,
+                "$OUR_CURRENCY must be greater than $minCoins"
+            )
+
+            else -> ValidationResult(true)
+
         }
     }
 }

@@ -1,6 +1,5 @@
-package com.example.freeupcopy.ui.presentation.sell_screen.componants
+package com.example.freeupcopy.ui.presentation.sell_screen.weight_screen
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -46,19 +45,25 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.freeupcopy.R
 import com.example.freeupcopy.domain.model.Weight
-import com.example.freeupcopy.ui.theme.SwapsyTheme
+import com.example.freeupcopy.ui.presentation.sell_screen.SellUiEvent
+import com.example.freeupcopy.ui.presentation.sell_screen.SellViewModel
 import com.example.freeupcopy.ui.theme.NoteContainerLight
+import com.example.freeupcopy.ui.theme.SwapsyTheme
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WeightScreen(
     modifier: Modifier = Modifier,
-    selectedWeight: String,
-    onWeightClick: (String) -> Unit,
-    onClose: () -> Unit
+    selectedWeightType: String,
+    onWeightClick: () -> Unit,
+    onClose: () -> Unit,
+    sellViewModel: SellViewModel
+    //weightViewModel: WeightViewModel = hiltViewModel()
 ) {
     val lifeCycleOwner = LocalLifecycleOwner.current
+    //val state by weightViewModel.state.collectAsState()
+
     Scaffold(
         modifier = modifier
             .fillMaxSize()
@@ -97,18 +102,22 @@ fun WeightScreen(
         //var selectedWeight by remember { mutableStateOf(Weight.predefinedWeight) }
         val items = listOf(
             Weight(
+                type = "cat0",
                 "Under 500g",
                 "Ideal for lighter items like watch, phone, book, jewelry or notebook"
             ),
             Weight(
+                type = "cat1",
                 "500g - 1kg",
                 "Suitable for items like dress, shirt, tablet, shoes or hairdryer"
             ),
             Weight(
+                type = "cat2",
                 "1 - 5kg",
                 "Perfect for bulkier items such as blender, suit or cookware Set"
             ),
             Weight(
+                type = "cat3",
                 "5 - 10kg",
                 "Recommended for heavier products like chair, small microwave or bridal lehengas"
             )
@@ -134,12 +143,14 @@ fun WeightScreen(
                     items.forEach {
                         WeightComposable(
                             weight = it,
-                            isSelected = it.range == selectedWeight,
-                            onClick = {
+                            isSelected = it.type == selectedWeightType,
+                            onClick = { weight ->
                                 val currentState = lifeCycleOwner.lifecycle.currentState
-                                if (currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)) {
+                                if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
                                     //selectedWeight = it
-                                    onWeightClick(it.range)
+                                    //onWeightClick(weight)
+                                    sellViewModel.onEvent(SellUiEvent.WeightChange(weight))
+                                    onWeightClick()
                                 }
                             }
                         )
@@ -298,9 +309,10 @@ fun NoteSection(
 fun WeightScreenPreview() {
     SwapsyTheme {
         WeightScreen(
-            selectedWeight = "Under 500g",
+            selectedWeightType = "cat2",
             onWeightClick = {},
-            onClose = {}
+            onClose = {},
+            sellViewModel = SellViewModel()
         )
     }
 }
