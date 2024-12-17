@@ -11,11 +11,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -33,6 +35,7 @@ import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.OutlinedTextField
@@ -40,7 +43,9 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -64,6 +69,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.freeupcopy.R
 import com.example.freeupcopy.domain.model.Price
+import com.example.freeupcopy.domain.model.PriceUiModel
+import com.example.freeupcopy.domain.model.toUiModel
 import com.example.freeupcopy.ui.theme.SwapsyTheme
 import com.example.freeupcopy.utils.clearFocusOnKeyboardDismiss
 import com.example.freeupcopy.utils.dashedBorder
@@ -73,23 +80,22 @@ import com.example.freeupcopy.utils.dashedBorder
 fun SellScreen(
     modifier: Modifier = Modifier,
     onCategoryClick: () -> String,
-    selectedWeight: String,
     selectedCategory: String,
     selectedBrand: String,
-    selectedCondition: String,
-    selectedCountry: String,
     selectedLocation: String,
     //selectedGst: String,
     onBrandClick: () -> Unit,
-    onConditionClick: () -> Unit,
-    onWeightClick: () -> Unit,
-    onManufacturingClick: () -> Unit,
-    onPriceClick: () -> Unit,
+    onConditionClick: (String) -> Unit,
+    onWeightClick: (String) -> Unit,
+    onManufacturingClick: (String) -> Unit,
+    onPriceClick: (Price?) -> Unit,
     onLocationClick: () -> Unit,
     onAdvanceSettingClick: () -> Unit,
-    onClose: () -> Unit
+    onClose: () -> Unit,
+    sellViewModel: SellViewModel
 ) {
     val lifeCycleOwner = LocalLifecycleOwner.current
+    val state by sellViewModel.state.collectAsState()
     //var chosenCategory by remember { mutableStateOf("") }
     //var selectedWeight by remember { mutableStateOf(selectedWeight1) }
     //var selectedBrand by remember { mutableStateOf(selectedBrand1) }
@@ -216,14 +222,14 @@ fun SellScreen(
 
             item {
                 SpecificationSection(
-                    selectedWeight = selectedWeight,
+                    selectedWeight = state.weight?.range ?: "",
                     selectedBrand = selectedBrand,
-                    selectedCondition = selectedCondition,
-                    selectedCountry = selectedCountry,
+                    selectedCondition = state.condition ?: "",
+                    selectedCountry = state.manufacturingCountry ?: "India",
                     onManufacturingClick = {
                         val currentState = lifeCycleOwner.lifecycle.currentState
                         if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                            onManufacturingClick()
+                            onManufacturingClick(state.manufacturingCountry ?: "India")
                         }
                     },
                     onBrandClick = {
@@ -235,13 +241,14 @@ fun SellScreen(
                     onConditionClick = {
                         val currentState = lifeCycleOwner.lifecycle.currentState
                         if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                            onConditionClick()
+                            onConditionClick(state.condition ?: "")
                         }
                     },
                     onWeightClick = {
                         val currentState = lifeCycleOwner.lifecycle.currentState
                         if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                            onWeightClick()
+                            //Log.e("WeightScreen Sell on click", "weight: ${state.weight?.type}")
+                            onWeightClick(state.weight?.type ?: "")
                         }
                     },
                     selectedTertiaryCategory = selectedCategory
@@ -249,12 +256,12 @@ fun SellScreen(
             }
 
             item {
-                KeyInfoSection(
-                    price = Price("0.0", "INR"),
+                PriceAndQuantitySection(
+                    priceUiModel = state.price?.toUiModel(),
                     onPriceClick = {
                         val currentState = lifeCycleOwner.lifecycle.currentState
                         if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                            onPriceClick()
+                            onPriceClick(state.price)
                         }
                     }
                 )
@@ -700,9 +707,9 @@ fun CommonSpecification(
 }
 
 @Composable
-fun KeyInfoSection(
+fun PriceAndQuantitySection(
     modifier: Modifier = Modifier,
-    price: Price,
+    priceUiModel: PriceUiModel?,
     onPriceClick: () -> Unit
 ) {
     var quantity by remember { mutableIntStateOf(1) }
@@ -721,14 +728,34 @@ fun KeyInfoSection(
             fontSize = 18.sp
         )
         Spacer(modifier = Modifier.size(10.dp))
-        CommonSpecification(
-            initialLabel = "Price",
-            valueLabel = "Price",
-            value = "",
-            onClick = {
-                onPriceClick()
+
+        Column(
+            modifier = modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
+                .clickable { onPriceClick() }
+                .padding(horizontal = 8.dp, vertical = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            //horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Row {
+                Text(
+                    text = if(priceUiModel == null) "Price" else "You will be earning",
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                Icon(
+                    imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                    contentDescription = "price",
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
+                )
             }
-        )
+            if(priceUiModel != null) {
+                Spacer(modifier = Modifier.size(10.dp))
+                PriceRow(priceUiModel = priceUiModel, modifier = Modifier.align(Alignment.End))
+            }
+        }
+
         CustomDivider()
         Spacer(modifier = Modifier.size(10.dp))
         Column {
@@ -737,7 +764,11 @@ fun KeyInfoSection(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
-                Text(text = "Quantity", modifier = Modifier.padding(bottom = 4.dp))
+                Text(
+                    text = "Quantity",
+                    modifier = Modifier.padding(bottom = 4.dp),
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
+                )
                 Spacer(modifier = Modifier.weight(1f))
                 OutlinedTextField(
                     value = quantity.toString(),
@@ -837,7 +868,6 @@ fun AdvancedSellerSettingSection(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -855,22 +885,95 @@ fun AdvancedSellerSettingSection(
             tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
         )
     }
-//
-//    Column(
-//        modifier
-//            .fillMaxWidth()
-//            .clip(RoundedCornerShape(16.dp))
-//            .background(MaterialTheme.colorScheme.primaryContainer)
-//    ) {
-//        CommonSpecification(
-//            initialLabel = "Advanced seller setting",
-//            valueLabel = "Advanced seller setting",
-//            value = "",
-//            onClick = {
-//                onClick()
-//            }
-//        )
-//    }
+}
+
+@Composable
+fun PriceRow(
+    modifier: Modifier = Modifier,
+    priceUiModel: PriceUiModel
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(IntrinsicSize.Min)
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.secondaryContainer),
+        horizontalArrangement = Arrangement.End,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        var shouldShowDivider = false
+
+        if (priceUiModel.earningCash?.isNotEmpty() == true) {
+            Column(
+                modifier = modifier.padding(16.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Cash",
+                    fontSize = 14.sp
+                )
+                Text(
+                    text = "₹${priceUiModel.earningCash}",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            shouldShowDivider = true
+        }
+        if (priceUiModel.earningCoin?.isNotEmpty() == true) {
+            if (shouldShowDivider) {
+                VerticalDivider(
+                    thickness = 1.5.dp,
+                    modifier = Modifier.padding(vertical = 20.dp),
+                    color = LocalContentColor.current.copy(alpha = 0.15f)
+                )
+            }
+            Column(
+                modifier = modifier.padding(16.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Coin",
+                    fontSize = 14.sp
+                )
+                Text(
+                    text = "${priceUiModel.earningCoin} C(s)",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            shouldShowDivider = true
+        }
+
+        if (priceUiModel.earningCashCoin?.first?.isNotEmpty() == true && priceUiModel.earningCashCoin.second?.isNotEmpty() == true) {
+            if (shouldShowDivider) {
+                VerticalDivider(
+                    thickness = 1.5.dp,
+                    modifier = Modifier.padding(vertical = 20.dp),
+                    color = LocalContentColor.current.copy(alpha = 0.15f)
+                )
+            }
+            Column(
+                modifier = modifier.padding(16.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Cash+Coin",
+                    fontSize = 14.sp
+                )
+
+                Text(
+                    text = "₹${priceUiModel.earningCashCoin.first} + ${priceUiModel.earningCashCoin.second} C(s)",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+            shouldShowDivider = true
+        }
+    }
 }
 
 @Preview(
@@ -879,6 +982,10 @@ fun AdvancedSellerSettingSection(
 @Composable
 fun PreviewSellScreen() {
     SwapsyTheme {
-        PickupLocationSection(location = "", onClick = {})
+        PriceAndQuantitySection(
+            priceUiModel = PriceUiModel(emptyList(), "1000", "1000", Pair("100", "100")),
+        ) {
+
+        }
     }
 }

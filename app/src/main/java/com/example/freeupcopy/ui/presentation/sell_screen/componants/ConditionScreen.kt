@@ -32,15 +32,19 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.freeupcopy.domain.model.Condition
+import com.example.freeupcopy.ui.presentation.sell_screen.SellUiEvent
+import com.example.freeupcopy.ui.presentation.sell_screen.SellViewModel
+import com.example.freeupcopy.ui.presentation.sell_screen.weight_screen.NoteSection
 import com.example.freeupcopy.ui.theme.SwapsyTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConditionScreen(
     modifier: Modifier = Modifier,
-    onConditionClick: (String) -> Unit,
+    onConditionClick: () -> Unit,
     onClose: () -> Unit,
-    selectedCondition: String
+    selectedCondition: String,
+    sellViewModel: SellViewModel
 ) {
 
     val lifeCycleOwner = LocalLifecycleOwner.current
@@ -112,7 +116,11 @@ fun ConditionScreen(
             conditionList.forEach { condition ->
                 ConditionItem(
                     onClick = {
-                        onConditionClick(condition.tag)
+                        val currentState = lifeCycleOwner.lifecycle.currentState
+                        if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                            sellViewModel.onEvent(SellUiEvent.ConditionChange(condition.tag))
+                            onConditionClick()
+                        }
                     },
                     tag = condition.tag,
                     description = condition.description,
@@ -179,7 +187,8 @@ fun PreviewConditionScreen() {
         ConditionScreen(
             onConditionClick = {},
             onClose = {},
-            selectedCondition = "India"
+            selectedCondition = "New with Price Tag",
+            sellViewModel = SellViewModel()
         )
     }
 }
