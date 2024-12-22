@@ -93,6 +93,7 @@ fun LoginSection(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             shape = RoundedCornerShape(12.dp)
         )
+
         Spacer(modifier = Modifier.size(8.dp))
 
         OutlinedTextField(

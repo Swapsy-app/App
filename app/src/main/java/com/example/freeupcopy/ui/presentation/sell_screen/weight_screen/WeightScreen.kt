@@ -224,7 +224,7 @@ fun WeightComposable(
             .clip(RoundedCornerShape(16.dp))
             .clickable { onClick(weight) }
             .border(
-                width = 2.dp,
+                width = 1.dp,
                 color = if (isSelected) MaterialTheme.colorScheme.primary else
                     MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.2f),
                 shape = RoundedCornerShape(16.dp)
@@ -304,15 +304,15 @@ fun NoteSection(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun WeightScreenPreview() {
-    SwapsyTheme {
-        WeightScreen(
-            selectedWeightType = "cat2",
-            onWeightClick = {},
-            onClose = {},
-            sellViewModel = SellViewModel()
-        )
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun WeightScreenPreview() {
+//    SwapsyTheme {
+//        WeightScreen(
+//            selectedWeightType = "cat2",
+//            onWeightClick = {},
+//            onClose = {},
+//            sellViewModel = SellViewModel()
+//        )
+//    }
+//}

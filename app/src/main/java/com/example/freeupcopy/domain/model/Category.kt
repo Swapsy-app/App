@@ -1,222 +1,15 @@
 package com.example.freeupcopy.domain.model
 
-//open class Category(
-//    val name: String,
-//    val subcategories: List<Category> = emptyList(),
-//    val imageId: Int? = null
-//) {
-//
-//    companion object {
-//        val predefinedCategories = listOf(
-//            Category(
-//                name = "Women",
-//                subcategories = listOf(
-//                    Category("Ethnic", listOf(
-//                        Category("Kurtas"),
-//                        Category("Blouses"),
-//                        Category("Kurta Sets & Suits"),
-//                        Category("Sarees"),
-//                        Category("Dupattas"),
-//                        Category("Ethnic Skirts"),
-//                        Category("Lehenga Choli"),
-//                        Category("Ethnic Gowns"),
-//                        Category("Bridal Lehenga"),
-//                        Category("Palazzos & Salwars"),
-//                        Category("Dress Material")
-//                    )),
-//                    Category("Western", listOf(
-//                        Category("Dresses"),
-//                        Category("Tops & Tunics"),
-//                        Category("T-Shirts"),
-//                        Category("Jumpsuits & Co-ords"),
-//                        Category("Jeans & Trousers"),
-//                        Category("Sweaters & Sweatshirts"),
-//                        Category("Shorts & Skirts"),
-//                        Category("Jackets & Overcoats"),
-//                        Category("Blazers"),
-//                        Category("Active Wear")
-//                    )),
-//                    Category("Jewellery", listOf(
-//                        Category("Jewellery Sets"),
-//                        Category("Earrings & Studs"),
-//                        Category("Mangalsutras"),
-//                        Category("Bangles & Bracelets"),
-//                        Category("Necklaces & Chains"),
-//                        Category("Kamarbandh & Maangtika"),
-//                        Category("Rings"),
-//                        Category("Anklets & Nosepins")
-//                    )),
-//                    Category("Accessories", listOf(
-//                        Category("Sunglasses"),
-//                        Category("Watches"),
-//                        Category("Caps & Hats"),
-//                        Category("Hair Accessories"),
-//                        Category("Belts"),
-//                        Category("Scarfs & Stoles"),
-//                    )),
-//                    Category("Bags", listOf(
-//                        Category("Handbags"),
-//                        Category("Clutches"),
-//                        Category("Wallets"),
-//                        Category("Backpacks"),
-//                        Category("Slingbags")
-//                    )),
-//                    Category("Footwear", listOf(
-//                        Category("Flats & Sandals"),
-//                        Category("Heels & Wedges"),
-//                        Category("Boots"),
-//                        Category("Flipflops & Slippers"),
-//                        Category("Bellies & Ballerinas"),
-//                        Category("Sports Shoes"),
-//                        Category("Casual Shoes")
-//                    )),
-//                    Category("Innerwear & Sleepwear", listOf(
-//                        Category("Bra"),
-//                        Category("Briefs"),
-//                        Category("Camisoles & Slips"),
-//                        Category("Nightsuits & Pyjamas"),
-//                        Category("Maternity")
-//                    )),
-//                ),
-//            ),
-//            Category(
-//                name = "Men",
-//                subcategories = listOf(
-//                    Category("T-Shirts & Shirts"),
-//                    Category("Sweats & Hoodies"),
-//                    Category("Sweaters"),
-//                    Category("Jeans & Pants"),
-//                    Category("Shorts"),
-//                    Category("Coats & Jackets"),
-//                    Category("Suits & Blazers"),
-//                    Category("Ethnic Wear"),
-//                    Category("Footwear"),
-//                    Category("Bags & Backpacks"),
-//                    Category("Accessories"),
-//                    Category("Athletic Wear"),
-//                )
-//            ),
-//            Category("Baby & Kids", listOf(
-//                Category("Boys Clothing"),
-//                Category("Girls Clothing"),
-//                Category("Boys Footwear"),
-//                Category("Girls Footwear"),
-//                Category("Bath & Skin Care"),
-//                Category("Accessories"),
-//                Category("Toys & Games"),
-//            )),
-//            Category("Beauty & Care",
-//                listOf(
-//                    Category("Skin Care", listOf(
-//                        Category("Face Wash"),
-//                        Category("Face Toner"),
-//                        Category("Face Serum"),
-//                        Category("Masks & Peels"),
-//                        Category("Face Moisturiser"),
-//                        Category("Sunscreen"),
-//                        Category("Eye Care"),
-//                        Category("Night Care"),
-//                        Category("Skincare Kit"),
-//                    )),
-//                    Category("Hair Care", listOf(
-//                        Category("Hair Oil"),
-//                        Category("Hair Serum"),
-//                        Category("Hair Gels & Masks"),
-//                        Category("Shampoo & Conditioner"),
-//                        Category("Hair Colour"),
-//                        Category("Hair Spray"),
-//                        Category("Combs & Hair Brushes"),
-//                        Category("Hair Appliances"),
-//                    )),
-//                    Category("Make-Up & Nails", listOf(
-//                        Category("Foundation"),
-//                        Category("Compact"),
-//                        Category("Concealer"),
-//                        Category("Face Primer"),
-//                        Category("Blushes & Highlighter"),
-//                        Category("Eye Shadows"),
-//                        Category("Kajal & Eyeliner"),
-//                        Category("Eyebrow Pencil"),
-//                        Category("Mascara"),
-//                        Category("Lipstick"),
-//                        Category("Nail Polish"),
-//                        Category("Makeup Removers"),
-//                        Category("Tools & Accessories"),
-//                    )),
-//                    Category("Bath & Body", listOf(
-//                        Category("Body Washes & Scrubs"),
-//                        Category("Soaps"),
-//                        Category("Body Lotions"),
-//                        Category("Hair Removal"),
-//                        Category("Hand & Feet Cream"),
-//                        Category("Body Oil"),
-//                        Category("Intimate Hygiene"),
-//                        Category("Period Care")
-//                    )),
-//                    Category("Fragrances", listOf(
-//                        Category("Perfume"),
-//                        Category("Deodorant & Roll-Ons"),
-//                        Category("Body Mist")
-//                    )),
-//                    Category("Men's Grooming", listOf(
-//                        Category("Beard Care"),
-//                        Category("Grooming Kits")
-//                    )),
-//                    Category("Oral Care", listOf(
-//                        Category("Toothpaste & Brush"),
-//                        Category("Teeth Whitening"),
-//                        Category("Mouth Washes & Floss")
-//                    )),
-//            )),
-//            Category("Books", listOf(
-//                Category("Fiction"),
-//                Category("Textbooks"),
-//                Category("Children's Books"),
-//                Category("Indian Language Books")
-//            )),
-//            Category("Home & Kitchen", listOf(
-//                Category("Home Decor", listOf(
-//                    Category("Showpieces & Idols"),
-//                    Category("Wall Decor & Clocks"),
-//                    Category("Lamps & Lights"),
-//                    Category("Candles & Candle Holders"),
-//                    Category("Sewing & Craft"),
-//                    Category("Wallpapers & Stickers"),
-//                    Category("Pooja Needs"),
-//                    Category("Artwork"),
-//                    Category("Artificial Plants")
-//                )),
-//                Category("Kitchen & Dining", listOf(
-//                    Category("Cooking Utensils"),
-//                    Category("Baking Utensils"),
-//                    Category("Kitchen Tools & Cutlery"),
-//                    Category("Glasses, Cups & Barware"),
-//                    Category("Containers & Tiffins"),
-//                    Category("Water Bottles"),
-//                    Category("Dinnerware")
-//                )),
-//            )),
-//            Category("Gadgets", listOf(
-//                Category("Mobile Phones"),
-//                Category("Mobile Accessories"),
-//                Category("Tablets"),
-//                Category("Computers & Laptops"),
-//                Category("Cases & Covers"),
-//                Category("Drives & Storage"),
-//                Category("Headphones & Earphones"),
-//                Category("Camera & Photography"),
-//                Category("E-Books"),
-//                Category("Office Supplies & Stationery"),
-//                Category("Fitness Gadgets")
-//            ))
-//        )
-//    }
-//}
+import com.example.freeupcopy.domain.enums.SpecialOption
+
+private const val DEFAULT = "Primary"
 
 data class Category(
     val name: String,
     val subcategories: List<SubCategory> = emptyList()
 ) {
+
+
     companion object {
         val predefinedCategories = listOf(
             Category(
@@ -224,33 +17,39 @@ data class Category(
                 subcategories = listOf(
                     SubCategory(
                         name = "Ethnic",
+                        specialSubCatOption = listOf(
+                            SpecialOption.FABRIC, SpecialOption.COLOUR, SpecialOption.OCCASION
+                        ),
                         tertiaryCategories = listOf(
-                            TertiaryCategory("Kurtas"),
-                            TertiaryCategory("Blouses"),
-                            TertiaryCategory("Kurta Sets & Suits"),
                             TertiaryCategory("Sarees"),
+                            TertiaryCategory("Blouses", specialOption = listOf(SpecialOption.SIZE, SpecialOption.SHAPE)),
+                            TertiaryCategory("Kurtas", specialOption = listOf(SpecialOption.SIZE, SpecialOption.SHAPE)),
+                            TertiaryCategory("Kurta Sets & Suits", specialOption = listOf(SpecialOption.SIZE, SpecialOption.SHAPE)),
                             TertiaryCategory("Dupattas"),
-                            TertiaryCategory("Ethnic Skirts"),
-                            TertiaryCategory("Lehenga Choli"),
-                            TertiaryCategory("Ethnic Gowns"),
-                            TertiaryCategory("Bridal Lehenga"),
-                            TertiaryCategory("Palazzos & Salwars"),
+                            TertiaryCategory("Lehenga Choli", specialOption = listOf(SpecialOption.SIZE)),
+                            TertiaryCategory("Ethnic Skirts", specialOption = listOf(SpecialOption.SIZE)),
+                            TertiaryCategory("Bridal Lehenga", specialOption = listOf(SpecialOption.SIZE)),
+                            TertiaryCategory("Ethnic Gowns", specialOption = listOf(SpecialOption.SIZE)),
+                            TertiaryCategory("Palazzos & Salwars", specialOption = listOf(SpecialOption.SIZE)),
                             TertiaryCategory("Dress Material")
                         )
                     ),
                     SubCategory(
                         name = "Western",
+                        specialSubCatOption = listOf(
+                            SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.COLOUR, SpecialOption.OCCASION
+                        ),
                         tertiaryCategories = listOf(
-                            TertiaryCategory("Dresses"),
-                            TertiaryCategory("Tops & Tunics"),
-                            TertiaryCategory("T-Shirts"),
-                            TertiaryCategory("Jumpsuits & Co-ords"),
-                            TertiaryCategory("Jeans & Trousers"),
+                            TertiaryCategory("Dresses", specialOption = listOf(SpecialOption.SHAPE, SpecialOption.LENGTH)),
+                            TertiaryCategory("Tops & Tunics", specialOption = listOf(SpecialOption.SHAPE)),
+                            TertiaryCategory("T-Shirts", specialOption = listOf(SpecialOption.SHAPE)),
+                            TertiaryCategory("Jumpsuits & Co-ords", specialOption = listOf(SpecialOption.SHAPE)),
+                            TertiaryCategory("Jeans & Trousers", specialOption = listOf(SpecialOption.SHAPE)),
                             TertiaryCategory("Sweaters & Sweatshirts"),
                             TertiaryCategory("Shorts & Skirts"),
                             TertiaryCategory("Jackets & Overcoats"),
                             TertiaryCategory("Blazers"),
-                            TertiaryCategory("Active Wear")
+                            TertiaryCategory("Active Wear"),
                         )
                     ),
                     SubCategory(
@@ -279,6 +78,9 @@ data class Category(
                     ),
                     SubCategory(
                         name = "Bags",
+                        specialSubCatOption = listOf(
+                            SpecialOption.COLOUR
+                        ),
                         tertiaryCategories = listOf(
                             TertiaryCategory("Handbags"),
                             TertiaryCategory("Clutches"),
@@ -289,6 +91,9 @@ data class Category(
                     ),
                     SubCategory(
                         name = "Footwear",
+                        specialSubCatOption = listOf(
+                            SpecialOption.COLOUR
+                        ),
                         tertiaryCategories = listOf(
                             TertiaryCategory("Flats & Sandals"),
                             TertiaryCategory("Heels & Wedges"),
@@ -301,6 +106,9 @@ data class Category(
                     ),
                     SubCategory(
                         name = "Innerwear & Sleepwear",
+                        specialSubCatOption = listOf(
+                            SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.COLOUR
+                        ),
                         tertiaryCategories = listOf(
                             TertiaryCategory("Bra"),
                             TertiaryCategory("Briefs"),
@@ -315,72 +123,20 @@ data class Category(
                 name = "Men",
                 subcategories = listOf(
                     SubCategory(
-                        name = "T-Shirts & Shirts",
+                        name = DEFAULT,
                         tertiaryCategories = listOf(
-                            TertiaryCategory("T-Shirts"),
-                            TertiaryCategory("Shirts"),
-                            TertiaryCategory("Polos"),
-                            TertiaryCategory("Henleys"),
-                            TertiaryCategory("Sweatshirts"),
-                            TertiaryCategory("Hoodies"),
-                            TertiaryCategory("Sweaters"),
-                            TertiaryCategory("Jackets"),
-                            TertiaryCategory("Blazers"),
-                            TertiaryCategory("Suits")
-                        )
-                    ),
-                    SubCategory(
-                        name = "Jeans & Pants",
-                        tertiaryCategories = listOf(
-                            TertiaryCategory("Jeans"),
-                            TertiaryCategory("Trousers"),
-                            TertiaryCategory("Chinos"),
-                            TertiaryCategory("Joggers"),
-                            TertiaryCategory("Track Pants"),
-                            TertiaryCategory("Shorts"),
-                            TertiaryCategory("3/4ths"),
-                            TertiaryCategory("Cargos"),
-                            TertiaryCategory("Pyjamas")
-                        )
-                    ),
-                    SubCategory(
-                        name = "Footwear",
-                        tertiaryCategories = listOf(
-                            TertiaryCategory("Casual Shoes"),
-                            TertiaryCategory("Formal Shoes"),
-                            TertiaryCategory("Sneakers"),
-                            TertiaryCategory("Loafers"),
-                            TertiaryCategory("Boots"),
-                            TertiaryCategory("Sandals & Floaters"),
-                            TertiaryCategory("Flip Flops"),
-                            TertiaryCategory("Slippers"),
-                            TertiaryCategory("Sports Shoes"),
-                            TertiaryCategory("Running Shoes")
-                        )
-                    ),
-                    SubCategory(
-                        name = "Accessories",
-                        tertiaryCategories = listOf(
-                            TertiaryCategory("Watches"),
-                            TertiaryCategory("Sunglasses"),
-                            TertiaryCategory("Belts"),
-                            TertiaryCategory("Wallets"),
-                            TertiaryCategory("Caps & Hats"),
-                            TertiaryCategory("Ties, Cufflinks & Pocket Squares"),
-                            TertiaryCategory("Scarves"),
-                            TertiaryCategory("Mufflers"),
-                            TertiaryCategory("Phone Cases"),
-                            TertiaryCategory("Rings & Wristwear")
-                        )
-                    ),
-                    SubCategory(
-                        name = "Bags & Backpacks",
-                        tertiaryCategories = listOf(
-                            TertiaryCategory("Backpacks"),
-                            TertiaryCategory("Laptop Bags"),
-                            TertiaryCategory("Messenger Bags"),
-                            TertiaryCategory("Duffle Bags"),
-                            TertiaryCategory("Trolley")
+                            TertiaryCategory("T-Shirts & Shirts", specialOption = listOf(SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.OCCASION, SpecialOption.COLOUR)),
+                            TertiaryCategory("Sweats & Hoodies", specialOption = listOf(SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.OCCASION, SpecialOption.COLOUR)),
+                            TertiaryCategory("Sweaters", specialOption = listOf(SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.OCCASION, SpecialOption.COLOUR)),
+                            TertiaryCategory("Jeans & Pants", specialOption = listOf(SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.OCCASION, SpecialOption.COLOUR)),
+                            TertiaryCategory("Shorts", specialOption = listOf(SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.OCCASION, SpecialOption.COLOUR)),
+                            TertiaryCategory("Coats & Jackets", specialOption = listOf(SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.OCCASION, SpecialOption.COLOUR)),
+                            TertiaryCategory("Suits & Blazers", specialOption = listOf(SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.OCCASION, SpecialOption.COLOUR)),
+                            TertiaryCategory("EthnicWear", specialOption = listOf(SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.OCCASION, SpecialOption.COLOUR)),
+                            TertiaryCategory("Footwear", specialOption = listOf(SpecialOption.SIZE, SpecialOption.COLOUR)),
+                            TertiaryCategory("Bags & Backpacks", specialOption = listOf(SpecialOption.COLOUR)),
+                            TertiaryCategory("Accessories"),
+                            TertiaryCategory("Athletic Wear", specialOption = listOf(SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.COLOUR)),
                         )
                     )
                 )
@@ -388,42 +144,113 @@ data class Category(
             Category(
                 "Baby & Kids", listOf(
                     SubCategory(
-                        name = "Boys Clothing",
+                        name = DEFAULT,
                         tertiaryCategories = listOf(
-                            TertiaryCategory("T-Shirts"),
-                            TertiaryCategory("Shirts"),
-                            TertiaryCategory("Shorts"),
-                            TertiaryCategory("Jeans"),
-                            TertiaryCategory("Trousers"),
-                            TertiaryCategory("Track Pants"),
-                            TertiaryCategory("Jackets"),
-                            TertiaryCategory("Sweaters"),
-                            TertiaryCategory("Sweatshirts"),
-                            TertiaryCategory("Hoodies")
+                            TertiaryCategory("Boys Clothing", specialOption = listOf(SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.COLOUR)),
+                            TertiaryCategory("Girls Clothing", specialOption = listOf(SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.COLOUR)),
+                            TertiaryCategory("Boys Footwear", specialOption = listOf(SpecialOption.SIZE)),
+                            TertiaryCategory("Girls Footwear", specialOption = listOf(SpecialOption.SIZE)),
+                            TertiaryCategory("Bath & Skin Care", specialOption = listOf(SpecialOption.EXPIRATION_DATE)),
+                            TertiaryCategory("Accessories"),
+                            TertiaryCategory("Toys & Games")
+                        )
+                    )
+                )
+            ),
+            Category(
+                name = "Beauty & Care",
+                subcategories = listOf(
+                    SubCategory(
+                        name = "Skin Care",
+                        specialSubCatOption = listOf(
+                            SpecialOption.EXPIRATION_DATE
+                        ),
+                        tertiaryCategories = listOf(
+                            TertiaryCategory("Face Wash"),
+                            TertiaryCategory("Face Toner"),
+                            TertiaryCategory("Face Serum"),
+                            TertiaryCategory("Masks & Peels"),
+                            TertiaryCategory("Face Moisturiser"),
+                            TertiaryCategory("Sunscreen"),
+                            TertiaryCategory("Eye Care"),
+                            TertiaryCategory("Night Care"),
+                            TertiaryCategory("Skincare Kit"),
                         )
                     ),
                     SubCategory(
-                        name = "Girls Clothing",
+                        name = "Hair Care",
                         tertiaryCategories = listOf(
-                            TertiaryCategory("Tops"),
-                            TertiaryCategory("Dresses"),
-                            TertiaryCategory("Skirts"),
-                            TertiaryCategory("Shorts"),
-                            TertiaryCategory("Jeans"),
-                            TertiaryCategory("Trousers"),
-                            TertiaryCategory("Leggings"),
-                            TertiaryCategory("Jackets"),
-                            TertiaryCategory("Sweaters"),
-                            TertiaryCategory("Sweatshirts")
+                            TertiaryCategory("Hair Oil"),
+                            TertiaryCategory("Hair Serum"),
+                            TertiaryCategory("Hair Gels & Masks"),
+                            TertiaryCategory("Shampoo & Conditioner"),
+                            TertiaryCategory("Hair Colour"),
+                            TertiaryCategory("Hair Spray"),
+                            TertiaryCategory("Combs & Hair Brushes"),
+                            TertiaryCategory("Hair Appliances"),
                         )
-                    )
+                    ),
+                    SubCategory(
+                        name = "Make-Up & Nails",
+                        tertiaryCategories = listOf(
+                            TertiaryCategory("Foundation"),
+                            TertiaryCategory("Compact"),
+                            TertiaryCategory("Concealer"),
+                            TertiaryCategory("Face Primer"),
+                            TertiaryCategory("Blushes & Highlighter"),
+                            TertiaryCategory("Eye Shadows"),
+                            TertiaryCategory("Kajal & Eyeliner"),
+                            TertiaryCategory("Eyebrow Pencil"),
+                            TertiaryCategory("Mascara"),
+                            TertiaryCategory("Lipstick"),
+                            TertiaryCategory("Nail Polish"),
+                            TertiaryCategory("Makeup Removers"),
+                            TertiaryCategory("Tools & Accessories"),
+                        )
+                    ),
+                    SubCategory(
+                        name = "Bath & Body",
+                        tertiaryCategories = listOf(
+                            TertiaryCategory("Body Washes & Scrubs"),
+                            TertiaryCategory("Soaps"),
+                            TertiaryCategory("Body Lotions"),
+                            TertiaryCategory("Hair Removal"),
+                            TertiaryCategory("Hand & Feet Cream"),
+                            TertiaryCategory("Body Oil"),
+                            TertiaryCategory("Intimate Hygiene"),
+                            TertiaryCategory("Period Care")
+                        )
+                    ),
+                    SubCategory(
+                        name = "Fragrances",
+                        tertiaryCategories = listOf(
+                            TertiaryCategory("Perfume"),
+                            TertiaryCategory("Deodorant & Roll-Ons"),
+                            TertiaryCategory("Body Mist")
+                        )
+                    ),
+                    SubCategory(
+                        name = "Men's Grooming",
+                        tertiaryCategories = listOf(
+                            TertiaryCategory("Beard Care"),
+                            TertiaryCategory("Grooming Kits")
+                        )
+                    ),
+                    SubCategory(
+                        name = "Oral Care",
+                        tertiaryCategories = listOf(
+                            TertiaryCategory("Toothpaste & Brush"),
+                            TertiaryCategory("Teeth Whitening"),
+                            TertiaryCategory("Mouth Washes & Floss")
+                        )
+                    ),
                 )
             ),
             Category(
                 name = "Books",
                 subcategories = listOf(
                     SubCategory(
-                        name = "Primary",
+                        name = DEFAULT,
                         tertiaryCategories = listOf(
                             TertiaryCategory("Fiction"),
                             TertiaryCategory("Textbooks"),
@@ -468,7 +295,7 @@ data class Category(
                 name = "Gadgets",
                 subcategories = listOf(
                     SubCategory(
-                        name = "Primary",
+                        name = DEFAULT,
                         tertiaryCategories = listOf(
                             TertiaryCategory("Mobile Phones"),
                             TertiaryCategory("Mobile Accessories"),
@@ -491,12 +318,14 @@ data class Category(
 
 data class SubCategory(
     val name: String,
-    val tertiaryCategories: List<TertiaryCategory>
+    val tertiaryCategories: List<TertiaryCategory>,
+    val specialSubCatOption: List<SpecialOption> = emptyList()
 )
 
 data class TertiaryCategory(
     val name: String,
-    val imageId: Int? = null
+    val imageUrl: Int? = null,
+    val specialOption: List<SpecialOption> = emptyList()
 )
 
 data class CategoryUiModel(

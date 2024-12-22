@@ -32,6 +32,7 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -71,7 +72,10 @@ import com.example.freeupcopy.R
 import com.example.freeupcopy.domain.model.Price
 import com.example.freeupcopy.domain.model.PriceUiModel
 import com.example.freeupcopy.domain.model.toUiModel
+import com.example.freeupcopy.ui.presentation.sell_screen.components.CustomDivider
+import com.example.freeupcopy.ui.theme.CardShape
 import com.example.freeupcopy.ui.theme.SwapsyTheme
+import com.example.freeupcopy.ui.theme.TextFieldShape
 import com.example.freeupcopy.utils.clearFocusOnKeyboardDismiss
 import com.example.freeupcopy.utils.dashedBorder
 
@@ -82,24 +86,18 @@ fun SellScreen(
     onCategoryClick: () -> String,
     selectedCategory: String,
     selectedBrand: String,
-    selectedLocation: String,
-    //selectedGst: String,
     onBrandClick: () -> Unit,
     onConditionClick: (String) -> Unit,
     onWeightClick: (String) -> Unit,
     onManufacturingClick: (String) -> Unit,
     onPriceClick: (Price?) -> Unit,
-    onLocationClick: () -> Unit,
+    onLocationClick: (Int?) -> Unit,
     onAdvanceSettingClick: () -> Unit,
     onClose: () -> Unit,
     sellViewModel: SellViewModel
 ) {
     val lifeCycleOwner = LocalLifecycleOwner.current
     val state by sellViewModel.state.collectAsState()
-    //var chosenCategory by remember { mutableStateOf("") }
-    //var selectedWeight by remember { mutableStateOf(selectedWeight1) }
-    //var selectedBrand by remember { mutableStateOf(selectedBrand1) }
-    //var selectedCondition by remember { mutableStateOf("") }
 
     Scaffold(
         modifier = modifier
@@ -114,6 +112,12 @@ fun SellScreen(
                     ) {
                         Spacer(modifier = Modifier.size(8.dp))
                         Text(text = "Selling Details")
+                        if (state.isLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
                     }
                 },
                 navigationIcon = {
@@ -205,16 +209,25 @@ fun SellScreen(
                 )
             }
             item {
-                DetailsSection()
+                DetailsSection(
+                    title = state.title,
+                    description = state.description,
+                    onTitleValueChange = { title ->
+                        sellViewModel.onEvent(SellUiEvent.TitleChange(title))
+                    },
+                    onDescriptionValueChange = { description ->
+                        sellViewModel.onEvent(SellUiEvent.DescriptionChange(description))
+                    }
+                )
             }
 
             item {
-                PickupLocationSection(
-                    location = selectedLocation,
+                LocationSection(
+                    location = state.address?.address ?: "",
                     onClick = {
                         val currentState = lifeCycleOwner.lifecycle.currentState
                         if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                            onLocationClick()
+                            onLocationClick(state.address?.id ?: 0)
                         }
                     }
                 )
@@ -247,7 +260,6 @@ fun SellScreen(
                     onWeightClick = {
                         val currentState = lifeCycleOwner.lifecycle.currentState
                         if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                            //Log.e("WeightScreen Sell on click", "weight: ${state.weight?.type}")
                             onWeightClick(state.weight?.type ?: "")
                         }
                     },
@@ -316,11 +328,12 @@ fun CategorySection(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun DetailsSection(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    title: String,
+    description: String,
+    onTitleValueChange: (String) -> Unit,
+    onDescriptionValueChange: (String) -> Unit
 ) {
-    var title by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-
     val items = listOf(7,)
 
     Box(
@@ -346,7 +359,6 @@ fun DetailsSection(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 items.forEachIndexed { index, i ->
-
                     AddPhotoBox()
                 }
                 if (items.size != 11) {
@@ -383,7 +395,7 @@ fun DetailsSection(
             OutlinedTextField(
                 value = title,
                 onValueChange = {
-                    title = it
+                    onTitleValueChange(it)
                 },
                 modifier = Modifier
                     .fillMaxWidth(),
@@ -398,7 +410,7 @@ fun DetailsSection(
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedBorderColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.4f),
                 ),
-                shape = RoundedCornerShape(16.dp)
+                shape = TextFieldShape
             )
 
             Spacer(modifier = Modifier.size(8.dp))
@@ -407,13 +419,13 @@ fun DetailsSection(
                 value = description,
                 minLines = 3,
                 onValueChange = {
-                    description = it
+                    onDescriptionValueChange(it)
                 },
                 modifier = Modifier
                     .fillMaxWidth(),
                 placeholder = {
                     Text(
-                        "Enter Title",
+                        "Enter Description",
                         fontStyle = FontStyle.Italic,
                         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f)
                     )
@@ -422,7 +434,7 @@ fun DetailsSection(
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedBorderColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.4f),
                 ),
-                shape = RoundedCornerShape(16.dp)
+                shape = TextFieldShape
             )
         }
     }
@@ -718,7 +730,7 @@ fun PriceAndQuantitySection(
         modifier
             .fillMaxWidth()
             .clearFocusOnKeyboardDismiss()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(CardShape.medium)
             .background(MaterialTheme.colorScheme.primaryContainer)
             .padding(16.dp)
     ) {
@@ -811,7 +823,7 @@ fun PriceAndQuantitySection(
 }
 
 @Composable
-fun PickupLocationSection(
+fun LocationSection(
     modifier: Modifier = Modifier,
     location: String,
     onClick: () -> Unit
@@ -819,7 +831,8 @@ fun PickupLocationSection(
     Column(
         modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(CardShape.medium)
+            .clickable { onClick() }
             .background(MaterialTheme.colorScheme.primaryContainer)
             .padding(top = 16.dp, start = 8.dp, end = 8.dp, bottom = 8.dp)
     ) {
@@ -835,7 +848,6 @@ fun PickupLocationSection(
             modifier = modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(16.dp))
-                .clickable { onClick() }
                 .padding(horizontal = 8.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -868,22 +880,32 @@ fun AdvancedSellerSettingSection(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    Row(
-        modifier = modifier
+    Column(
+        modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(CardShape.medium)
             .clickable { onClick() }
             .background(MaterialTheme.colorScheme.primaryContainer)
             .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "Advanced seller setting")
-        Spacer(modifier = Modifier.weight(1f))
-        Icon(
-            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-            contentDescription = "Choose a category",
-            tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
+        Text(
+            modifier = Modifier,
+            text = "For businesses",
+            fontWeight = FontWeight.Bold,
+            fontSize = 18.sp
         )
+        Spacer(modifier = Modifier.size(16.dp))
+
+        Row{
+            Text(text = "Advanced seller setting")
+            Spacer(modifier = Modifier.weight(1f))
+            Icon(
+                imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                contentDescription = "Choose a category",
+                tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
+            )
+        }
     }
 }
 

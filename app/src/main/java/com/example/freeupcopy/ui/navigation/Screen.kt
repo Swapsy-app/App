@@ -1,5 +1,6 @@
 package com.example.freeupcopy.ui.navigation
 
+import com.example.freeupcopy.data.local.Address
 import com.example.freeupcopy.domain.model.Price
 import kotlinx.serialization.Serializable
 
@@ -50,9 +51,11 @@ sealed class Screen {
     @Serializable
     data class ConditionScreen(val selectedCondition: String?) : Screen()
     @Serializable
-    data class LocationScreen(val selectedLocation: String?) : Screen()
+    data class LocationScreen(val selectedLocation: Int?) : Screen()
     @Serializable
-    data class GstScreen(val selectedGst: String?) : Screen()
+    data object AddLocationScreen : Screen()
+    @Serializable
+    data object GstScreen : Screen()
     @Serializable
     data class PriceScreen(val price: Price?) : Screen()
 

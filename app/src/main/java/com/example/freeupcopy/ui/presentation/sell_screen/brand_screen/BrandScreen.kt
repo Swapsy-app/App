@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package com.example.freeupcopy.ui.presentation.sell_screen.componants
+package com.example.freeupcopy.ui.presentation.sell_screen.brand_screen
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column

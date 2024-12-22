@@ -44,12 +44,13 @@ import com.example.freeupcopy.ui.presentation.profile_screen.ProfileScreen
 import com.example.freeupcopy.ui.presentation.search_screen.SearchScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.SellScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.SellViewModel
-import com.example.freeupcopy.ui.presentation.sell_screen.componants.AdvanceSettingScreen
-import com.example.freeupcopy.ui.presentation.sell_screen.componants.BrandScreen
-import com.example.freeupcopy.ui.presentation.sell_screen.componants.CategoryScreen
-import com.example.freeupcopy.ui.presentation.sell_screen.componants.ConditionScreen
-import com.example.freeupcopy.ui.presentation.sell_screen.componants.LocationScreen
-import com.example.freeupcopy.ui.presentation.sell_screen.componants.ManufacturingScreen
+import com.example.freeupcopy.ui.presentation.sell_screen.advance_setting_screen.AdvanceSettingScreen
+import com.example.freeupcopy.ui.presentation.sell_screen.brand_screen.BrandScreen
+import com.example.freeupcopy.ui.presentation.sell_screen.components.CategoryScreen
+import com.example.freeupcopy.ui.presentation.sell_screen.condition_screen.ConditionScreen
+import com.example.freeupcopy.ui.presentation.sell_screen.location_screen.add_location_screen.AddLocationScreen
+import com.example.freeupcopy.ui.presentation.sell_screen.location_screen.location_screen.LocationScreen
+import com.example.freeupcopy.ui.presentation.sell_screen.manufacturing_screen.ManufacturingScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.price_screen.PriceScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.weight_screen.WeightScreen
 import com.example.freeupcopy.ui.presentation.wish_list.WishListScreen
@@ -153,9 +154,6 @@ class MainActivity : ComponentActivity() {
                                 val selectedCategory =
                                     it.savedStateHandle.get<String>("selected_category")
                                 val selectedBrand = it.savedStateHandle.get<String>("selected_brand")
-                                val selectedLocation =
-                                    it.savedStateHandle.get<String>("selected_location")
-                                val selectedGst = it.savedStateHandle.get<String>("selected_gst")
 
                                 SellScreen(
                                     sellViewModel = sellViewModel,
@@ -175,11 +173,11 @@ class MainActivity : ComponentActivity() {
                                     onManufacturingClick = { manufacturingCountry ->
                                         navController.navigate(Screen.ManufacturingScreen(selectedCountry = manufacturingCountry))
                                     },
-                                    onLocationClick = {
+                                    onLocationClick = { selectedLocation ->
                                         navController.navigate(Screen.LocationScreen(selectedLocation = selectedLocation))
                                     },
                                     onAdvanceSettingClick = {
-                                        navController.navigate(Screen.GstScreen(selectedGst = selectedGst))
+                                        navController.navigate(Screen.GstScreen)
                                     },
                                     onPriceClick = { price ->
                                         navController.navigate(Screen.PriceScreen(price))
@@ -189,9 +187,6 @@ class MainActivity : ComponentActivity() {
                                     },
                                     selectedCategory = selectedCategory ?: "",
                                     selectedBrand = selectedBrand ?: "",
-                                    selectedLocation = selectedLocation
-                                        ?: "the Empire State Building is located at 40.7 degrees north (latitude), 74 degrees west (longitude)",
-                                    //selectedGst = selectedGst ?: ""
                                 )
                             }
 
@@ -262,34 +257,40 @@ class MainActivity : ComponentActivity() {
                             }
 
                             composable<Screen.LocationScreen> {
+                                val sellViewModel = it.sharedViewModel<SellViewModel>(navController = navController)
                                 val args = it.toRoute<Screen.LocationScreen>()
+
                                 LocationScreen(
-                                    onLocationClick = { s ->
-                                        navController.previousBackStackEntry
-                                            ?.savedStateHandle
-                                            ?.set("selected_location", s)
-                                        navController.popBackStack()
+                                    sellViewModel = sellViewModel,
+                                    onNewLocationClick = {
+                                        navController.navigate(Screen.AddLocationScreen)
                                     },
                                     onClose = {
                                         navController.popBackStack()
                                     },
-                                    selectedLocation = args.selectedLocation ?: ""
+                                    selectedLocation = args.selectedLocation ?: 0,
+                                    onLocationClick = {
+                                        navController.popBackStack()
+                                    },
+                                )
+                            }
+
+                            composable<Screen.AddLocationScreen> {
+                                AddLocationScreen(
+                                    onLocationAdded = {
+                                        navController.popBackStack()
+                                    },
+                                    onClose = {
+                                        navController.popBackStack()
+                                    }
                                 )
                             }
 
                             composable<Screen.GstScreen> {
-                                val args = it.toRoute<Screen.GstScreen>()
                                 AdvanceSettingScreen(
-                                    onClick = { s ->
-                                        navController.previousBackStackEntry
-                                            ?.savedStateHandle
-                                            ?.set("selected_gst", s)
-                                        navController.popBackStack()
-                                    },
                                     onClose = {
                                         navController.popBackStack()
-                                    },
-                                    //selectedGst = args.selectedGst ?: ""
+                                    }
                                 )
                             }
 

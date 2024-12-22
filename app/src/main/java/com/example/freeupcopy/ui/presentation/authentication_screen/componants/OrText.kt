@@ -36,7 +36,7 @@ fun OrText(
             )
             Text(
                 text = text,
-                modifier = Modifier.padding(start = 10.dp, end = 10.dp),
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp),
                 color = color,
                 textAlign = TextAlign.Center
             )

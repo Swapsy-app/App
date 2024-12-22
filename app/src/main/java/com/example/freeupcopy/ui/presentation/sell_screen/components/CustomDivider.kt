@@ -1,4 +1,4 @@
-package com.example.freeupcopy.ui.presentation.sell_screen
+package com.example.freeupcopy.ui.presentation.sell_screen.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box

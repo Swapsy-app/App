@@ -1,4 +1,4 @@
-package com.example.freeupcopy.ui.presentation.sell_screen.componants
+package com.example.freeupcopy.ui.presentation.sell_screen.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -439,7 +439,7 @@ fun FinalCategoryItems(
                     //.size(75.dp)
                     .clip(CircleShape)
                     .clickable { onClick(tertiaryCategory.name) },
-                painter = painterResource(id = tertiaryCategory.imageId ?: R.drawable.kurta_men),
+                painter = painterResource(id = tertiaryCategory.imageUrl ?: R.drawable.kurta_men),
                 contentDescription = tertiaryCategory.name
             )
             Spacer(modifier = Modifier.size(8.dp))

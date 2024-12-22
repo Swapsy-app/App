@@ -1,4 +1,4 @@
-package com.example.freeupcopy.ui.presentation.sell_screen.componants
+package com.example.freeupcopy.ui.presentation.sell_screen.manufacturing_screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -210,14 +210,14 @@ fun ManufacturingCountryButton(
     }
 }
 
-@Preview
-@Composable
-fun ManufacturingScreenPreview() {
-    ManufacturingScreen(
-        modifier = Modifier,
-        onManufacturingClick = {},
-        onClose = {},
-        manufacturingCountry = "India",
-        sellViewModel = SellViewModel()
-    )
-}
+//@Preview
+//@Composable
+//fun ManufacturingScreenPreview() {
+//    ManufacturingScreen(
+//        modifier = Modifier,
+//        onManufacturingClick = {},
+//        onClose = {},
+//        manufacturingCountry = "India",
+//        sellViewModel = SellViewModel()
+//    )
+//}
