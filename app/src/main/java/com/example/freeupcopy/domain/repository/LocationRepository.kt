@@ -10,15 +10,17 @@ import kotlinx.coroutines.flow.Flow
 
 interface LocationRepository {
 
-    fun insertAddress(address: Address): Flow<Resource<Unit>>
-
     fun getAddresses(): Flow<Resource<List<Address>>>
+
+    fun getAddressById(id: Int): Flow<Resource<Address?>>
+
+    fun insertAddress(address: Address): Flow<Resource<Unit>>
 
     fun setDefaultAddress(addressId: Int): Flow<Resource<Unit>>
 
     fun deleteAddress(address: Address): Flow<Resource<Unit>>
 
-    fun getDefaultAddress(): Flow<Int?>
+    fun getDefaultAddressId(): Flow<Int?>
 
     suspend fun fetchLocationAndAddress(context: Context, fusedLocationClient: FusedLocationProviderClient): Flow<Resource<AddressData>>
 

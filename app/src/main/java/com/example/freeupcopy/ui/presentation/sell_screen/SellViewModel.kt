@@ -2,26 +2,28 @@ package com.example.freeupcopy.ui.presentation.sell_screen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.freeupcopy.data.local.AddressDao
-import com.example.freeupcopy.data.pref.SellPref
+import com.example.freeupcopy.common.Resource
+import com.example.freeupcopy.domain.enums.SpecialOption
+import com.example.freeupcopy.domain.model.CategoryUiModel
+import com.example.freeupcopy.domain.repository.LocationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class SellViewModel @Inject constructor(
-    private val sellPref: SellPref,
-    private val addressDao: AddressDao
+    private val repository: LocationRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SellUiState())
-    val state: StateFlow<SellUiState> = _state
+    val state = _state.asStateFlow()
 
     init {
         loadDefaultAddress()
@@ -56,29 +58,69 @@ class SellViewModel @Inject constructor(
             is SellUiEvent.AddressChange -> {
                 _state.update { it.copy(address = event.address) }
             }
+
+            is SellUiEvent.CategoryChanged -> {
+                _state.update { it.copy(leafCategory = event.category) }
+            }
+
+            is SellUiEvent.BrandChange -> {
+                _state.update { it.copy(brand = event.brand) }
+            }
+
+            is SellUiEvent.SizeChange -> {
+                _state.update { it.copy(size = event.size) }
+            }
+
+            is SellUiEvent.SpecialOptionsChanged -> {
+                val category = CategoryUiModel.predefinedCategories
+                    .find { it.name == event.category }
+
+                val subCategory = category?.subcategories
+                    ?.find { it.name == event.subCategory }
+
+                val tertiaryCategory = subCategory?.tertiaryCategories
+                    ?.find { it.name == event.tertiary }
+
+                val specialOptions = buildSet {
+                    subCategory?.specialSubCatOption?.let { addAll(it) }
+                    tertiaryCategory?.specialOption?.let { addAll(it) }
+                }
+
+                _state.update { it.copy(specialOptions = specialOptions.toList()) }
+            }
         }
     }
 
-    fun loadDefaultAddress() {
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun loadDefaultAddress() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = "") }
-            try {
-                val defaultAddressId = sellPref.getDefaultAddress().first()
-                val address = addressDao.getAddressById(defaultAddressId ?: 0)
-                _state.update {
-                    it.copy(
-                        address = address,
-                        isLoading = false
-                    )
+            repository.getDefaultAddressId()
+                .take(1)
+                .flatMapLatest { defaultAddressId ->
+                    defaultAddressId?.let {
+                        repository.getAddressById(it)
+                    } ?: flow { emit(Resource.Success(null)) }
                 }
-            } catch (e: Exception) {
-                _state.update {
-                    it.copy(
-                        isLoading = false,
-                        error = e.message ?: "An error occurred"
-                    )
+                .collect { result ->
+                    when (result) {
+                        is Resource.Success -> {
+                            _state.update {
+                                it.copy(address = result.data, isLoading = false)
+                            }
+                        }
+                        is Resource.Error -> {
+                            _state.update {
+                                it.copy(isLoading = false, error = result.message ?: "An error occurred")
+                            }
+                        }
+                        is Resource.Loading -> {
+                            _state.update {
+                                it.copy(isLoading = true)
+                            }
+                        }
+                    }
                 }
-            }
         }
     }
 }

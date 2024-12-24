@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,7 +26,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -39,7 +37,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -91,7 +88,7 @@ import com.example.freeupcopy.domain.model.Price
 import com.example.freeupcopy.ui.presentation.sell_screen.components.CustomDivider
 import com.example.freeupcopy.ui.presentation.sell_screen.SellUiEvent
 import com.example.freeupcopy.ui.presentation.sell_screen.SellViewModel
-import com.example.freeupcopy.ui.presentation.sell_screen.weight_screen.NoteSection
+import com.example.freeupcopy.ui.presentation.sell_screen.weight_screen.AnnouncementComposable
 import com.example.freeupcopy.ui.theme.ButtonShape
 import com.example.freeupcopy.ui.theme.LinkColor
 import com.example.freeupcopy.ui.theme.NoteContainerLight
@@ -279,7 +276,7 @@ fun PriceScreen(
                 }
 
                 if (state.pricingModel.isNotEmpty()) {
-                    NoteSection(
+                    AnnouncementComposable(
                         text = "Your product will be sold in " + when {
                             state.pricingModel.containsAll(PricingModel.entries) ->
                                 "cash, coins, and cash+coins"
@@ -318,7 +315,8 @@ fun PriceScreen(
                                 "coins only"
 
                             else -> ""
-                        }
+                        },
+                        painter = painterResource(id = R.drawable.ic_campaign),
                     )
                 }
             }

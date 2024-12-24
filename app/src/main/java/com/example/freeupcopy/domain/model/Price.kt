@@ -6,7 +6,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Price(
     val mrp: String,
-    //val pricingModels: List<String>,
     val pricingModel: List<PricingModel>,
     val sellingCoin: String? = null,
     val sellingCash: String? = null,
@@ -15,22 +14,10 @@ data class Price(
     val earningCoin: String? = null,
     val earningCashCoin: Pair<String?, String?>? = null
 )
-//{
-//    fun toUiModel(): PriceUiModel {
-//        return PriceUiModel(
-//            pricingModels = pricingModels,
-//            //mrp = mrp,
-//            sellingCoin = sellingCoin,
-//            sellingCash = sellingCash,
-//            combinedCashCoin = sellingCashCoin
-//        )
-//    }
-//}
 
 fun Price.toUiModel(): PriceUiModel {
     return PriceUiModel(
         pricingModels = pricingModel,
-        //mrp = mrp,
         earningCoin = earningCoin,
         earningCash = earningCash,
         earningCashCoin = earningCashCoin

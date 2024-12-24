@@ -4,21 +4,19 @@ import com.example.freeupcopy.domain.enums.SpecialOption
 
 private const val DEFAULT = "Primary"
 
-data class Category(
+data class CategoryUiModel(
     val name: String,
     val subcategories: List<SubCategory> = emptyList()
 ) {
-
-
     companion object {
         val predefinedCategories = listOf(
-            Category(
+            CategoryUiModel(
                 name = "Women",
                 subcategories = listOf(
                     SubCategory(
                         name = "Ethnic",
                         specialSubCatOption = listOf(
-                            SpecialOption.FABRIC, SpecialOption.COLOUR, SpecialOption.OCCASION
+                            SpecialOption.BRAND, SpecialOption.FABRIC, SpecialOption.COLOUR, SpecialOption.OCCASION
                         ),
                         tertiaryCategories = listOf(
                             TertiaryCategory("Sarees"),
@@ -37,7 +35,7 @@ data class Category(
                     SubCategory(
                         name = "Western",
                         specialSubCatOption = listOf(
-                            SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.COLOUR, SpecialOption.OCCASION
+                            SpecialOption.BRAND, SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.COLOUR, SpecialOption.OCCASION
                         ),
                         tertiaryCategories = listOf(
                             TertiaryCategory("Dresses", specialOption = listOf(SpecialOption.SHAPE, SpecialOption.LENGTH)),
@@ -67,6 +65,9 @@ data class Category(
                     ),
                     SubCategory(
                         name = "Accessories",
+                        specialSubCatOption = listOf(
+                            SpecialOption.BRAND
+                        ),
                         tertiaryCategories = listOf(
                             TertiaryCategory("Sunglasses"),
                             TertiaryCategory("Watches"),
@@ -79,7 +80,7 @@ data class Category(
                     SubCategory(
                         name = "Bags",
                         specialSubCatOption = listOf(
-                            SpecialOption.COLOUR
+                            SpecialOption.BRAND, SpecialOption.COLOUR
                         ),
                         tertiaryCategories = listOf(
                             TertiaryCategory("Handbags"),
@@ -92,7 +93,7 @@ data class Category(
                     SubCategory(
                         name = "Footwear",
                         specialSubCatOption = listOf(
-                            SpecialOption.COLOUR
+                            SpecialOption.BRAND, SpecialOption.COLOUR
                         ),
                         tertiaryCategories = listOf(
                             TertiaryCategory("Flats & Sandals"),
@@ -107,7 +108,7 @@ data class Category(
                     SubCategory(
                         name = "Innerwear & Sleepwear",
                         specialSubCatOption = listOf(
-                            SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.COLOUR
+                            SpecialOption.BRAND, SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.COLOUR
                         ),
                         tertiaryCategories = listOf(
                             TertiaryCategory("Bra"),
@@ -119,11 +120,14 @@ data class Category(
                     )
                 ),
             ),
-            Category(
+            CategoryUiModel(
                 name = "Men",
                 subcategories = listOf(
                     SubCategory(
                         name = DEFAULT,
+                        specialSubCatOption = listOf(
+                            SpecialOption.BRAND
+                        ),
                         tertiaryCategories = listOf(
                             TertiaryCategory("T-Shirts & Shirts", specialOption = listOf(SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.OCCASION, SpecialOption.COLOUR)),
                             TertiaryCategory("Sweats & Hoodies", specialOption = listOf(SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.OCCASION, SpecialOption.COLOUR)),
@@ -141,29 +145,29 @@ data class Category(
                     )
                 )
             ),
-            Category(
+            CategoryUiModel(
                 "Baby & Kids", listOf(
                     SubCategory(
                         name = DEFAULT,
                         tertiaryCategories = listOf(
-                            TertiaryCategory("Boys Clothing", specialOption = listOf(SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.COLOUR)),
-                            TertiaryCategory("Girls Clothing", specialOption = listOf(SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.COLOUR)),
-                            TertiaryCategory("Boys Footwear", specialOption = listOf(SpecialOption.SIZE)),
-                            TertiaryCategory("Girls Footwear", specialOption = listOf(SpecialOption.SIZE)),
-                            TertiaryCategory("Bath & Skin Care", specialOption = listOf(SpecialOption.EXPIRATION_DATE)),
+                            TertiaryCategory("Boys Clothing", specialOption = listOf(SpecialOption.BRAND, SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.COLOUR)),
+                            TertiaryCategory("Girls Clothing", specialOption = listOf(SpecialOption.BRAND, SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.COLOUR)),
+                            TertiaryCategory("Boys Footwear", specialOption = listOf(SpecialOption.BRAND, SpecialOption.SIZE)),
+                            TertiaryCategory("Girls Footwear", specialOption = listOf(SpecialOption.BRAND, SpecialOption.SIZE)),
+                            TertiaryCategory("Bath & Skin Care", specialOption = listOf(SpecialOption.BRAND, SpecialOption.EXPIRATION_DATE)),
                             TertiaryCategory("Accessories"),
                             TertiaryCategory("Toys & Games")
                         )
                     )
                 )
             ),
-            Category(
+            CategoryUiModel(
                 name = "Beauty & Care",
                 subcategories = listOf(
                     SubCategory(
                         name = "Skin Care",
                         specialSubCatOption = listOf(
-                            SpecialOption.EXPIRATION_DATE
+                            SpecialOption.BRAND, SpecialOption.EXPIRATION_DATE
                         ),
                         tertiaryCategories = listOf(
                             TertiaryCategory("Face Wash"),
@@ -179,37 +183,46 @@ data class Category(
                     ),
                     SubCategory(
                         name = "Hair Care",
+                        specialSubCatOption = listOf(
+                            SpecialOption.BRAND
+                        ),
                         tertiaryCategories = listOf(
-                            TertiaryCategory("Hair Oil"),
-                            TertiaryCategory("Hair Serum"),
-                            TertiaryCategory("Hair Gels & Masks"),
-                            TertiaryCategory("Shampoo & Conditioner"),
-                            TertiaryCategory("Hair Colour"),
-                            TertiaryCategory("Hair Spray"),
+                            TertiaryCategory("Hair Oil", specialOption = listOf(SpecialOption.EXPIRATION_DATE)),
+                            TertiaryCategory("Hair Serum", specialOption = listOf(SpecialOption.EXPIRATION_DATE)),
+                            TertiaryCategory("Hair Gels & Masks", specialOption = listOf(SpecialOption.EXPIRATION_DATE)),
+                            TertiaryCategory("Shampoo & Conditioner", specialOption = listOf(SpecialOption.EXPIRATION_DATE)),
+                            TertiaryCategory("Hair Colour", specialOption = listOf(SpecialOption.EXPIRATION_DATE)),
+                            TertiaryCategory("Hair Spray", specialOption = listOf(SpecialOption.EXPIRATION_DATE)),
                             TertiaryCategory("Combs & Hair Brushes"),
                             TertiaryCategory("Hair Appliances"),
                         )
                     ),
                     SubCategory(
                         name = "Make-Up & Nails",
+                        specialSubCatOption = listOf(
+                            SpecialOption.BRAND
+                        ),
                         tertiaryCategories = listOf(
-                            TertiaryCategory("Foundation"),
-                            TertiaryCategory("Compact"),
-                            TertiaryCategory("Concealer"),
-                            TertiaryCategory("Face Primer"),
-                            TertiaryCategory("Blushes & Highlighter"),
-                            TertiaryCategory("Eye Shadows"),
-                            TertiaryCategory("Kajal & Eyeliner"),
-                            TertiaryCategory("Eyebrow Pencil"),
-                            TertiaryCategory("Mascara"),
-                            TertiaryCategory("Lipstick"),
-                            TertiaryCategory("Nail Polish"),
-                            TertiaryCategory("Makeup Removers"),
+                            TertiaryCategory("Foundation", specialOption = listOf(SpecialOption.EXPIRATION_DATE)),
+                            TertiaryCategory("Compact", specialOption = listOf(SpecialOption.EXPIRATION_DATE)),
+                            TertiaryCategory("Concealer", specialOption = listOf(SpecialOption.EXPIRATION_DATE)),
+                            TertiaryCategory("Face Primer", specialOption = listOf(SpecialOption.EXPIRATION_DATE)),
+                            TertiaryCategory("Blushes & Highlighter", specialOption = listOf(SpecialOption.EXPIRATION_DATE)),
+                            TertiaryCategory("Eye Shadows", specialOption = listOf(SpecialOption.EXPIRATION_DATE)),
+                            TertiaryCategory("Kajal & Eyeliner", specialOption = listOf(SpecialOption.EXPIRATION_DATE)),
+                            TertiaryCategory("Eyebrow Pencil", specialOption = listOf(SpecialOption.EXPIRATION_DATE)),
+                            TertiaryCategory("Mascara", specialOption = listOf(SpecialOption.EXPIRATION_DATE)),
+                            TertiaryCategory("Lipstick", specialOption = listOf(SpecialOption.COLOUR)),
+                            TertiaryCategory("Nail Polish", specialOption = listOf(SpecialOption.COLOUR)),
+                            TertiaryCategory("Makeup Removers", specialOption = listOf(SpecialOption.EXPIRATION_DATE)),
                             TertiaryCategory("Tools & Accessories"),
                         )
                     ),
                     SubCategory(
                         name = "Bath & Body",
+                        specialSubCatOption = listOf(
+                            SpecialOption.BRAND, SpecialOption.EXPIRATION_DATE
+                        ),
                         tertiaryCategories = listOf(
                             TertiaryCategory("Body Washes & Scrubs"),
                             TertiaryCategory("Soaps"),
@@ -223,6 +236,9 @@ data class Category(
                     ),
                     SubCategory(
                         name = "Fragrances",
+                        specialSubCatOption = listOf(
+                            SpecialOption.BRAND, SpecialOption.EXPIRATION_DATE
+                        ),
                         tertiaryCategories = listOf(
                             TertiaryCategory("Perfume"),
                             TertiaryCategory("Deodorant & Roll-Ons"),
@@ -231,6 +247,9 @@ data class Category(
                     ),
                     SubCategory(
                         name = "Men's Grooming",
+                        specialSubCatOption = listOf(
+                            SpecialOption.BRAND, SpecialOption.EXPIRATION_DATE
+                        ),
                         tertiaryCategories = listOf(
                             TertiaryCategory("Beard Care"),
                             TertiaryCategory("Grooming Kits")
@@ -238,6 +257,9 @@ data class Category(
                     ),
                     SubCategory(
                         name = "Oral Care",
+                        specialSubCatOption = listOf(
+                            SpecialOption.BRAND, SpecialOption.EXPIRATION_DATE
+                        ),
                         tertiaryCategories = listOf(
                             TertiaryCategory("Toothpaste & Brush"),
                             TertiaryCategory("Teeth Whitening"),
@@ -246,7 +268,7 @@ data class Category(
                     ),
                 )
             ),
-            Category(
+            CategoryUiModel(
                 name = "Books",
                 subcategories = listOf(
                     SubCategory(
@@ -260,7 +282,7 @@ data class Category(
                     )
                 )
             ),
-            Category(
+            CategoryUiModel(
                 name = "Home & Kitchen",
                 subcategories = listOf(
                     SubCategory(
@@ -279,6 +301,9 @@ data class Category(
                     ),
                     SubCategory(
                         name = "Kitchen & Dining",
+                        specialSubCatOption = listOf(
+                            SpecialOption.BRAND
+                        ),
                         tertiaryCategories = listOf(
                             TertiaryCategory("Cooking Utensils"),
                             TertiaryCategory("Baking Utensils"),
@@ -288,16 +313,42 @@ data class Category(
                             TertiaryCategory("Water Bottles"),
                             TertiaryCategory("Dinnerware")
                         )
-                    )
+                    ),
+                    SubCategory(
+                        name = "Bedding & Furnishing",
+                        specialSubCatOption = listOf(
+                            SpecialOption.BRAND, SpecialOption.COLOUR
+                        ),
+                        tertiaryCategories = listOf(
+                            TertiaryCategory("Bedsheets & Curtains"),
+                            TertiaryCategory("Pillow Covers & Cushion Covers"),
+                        )
+                    ),
+                    SubCategory(
+                        name = "Bath & Storage",
+                        specialSubCatOption = listOf(
+                            SpecialOption.BRAND
+                        ),
+                        tertiaryCategories = listOf(
+                            TertiaryCategory("Organisers & Storage"),
+                            TertiaryCategory("Bathroom Accessories"),
+                        )
+                    ),
+                    SubCategory(
+                        name = "Pet Supplies",
+                        tertiaryCategories = listOf(
+                            TertiaryCategory("Pet Accessories")
+                        )
+                    ),
                 )
             ),
-            Category(
+            CategoryUiModel(
                 name = "Gadgets",
                 subcategories = listOf(
                     SubCategory(
                         name = DEFAULT,
                         tertiaryCategories = listOf(
-                            TertiaryCategory("Mobile Phones"),
+                            TertiaryCategory("Mobile Phones", specialOption = listOf(SpecialOption.BRAND, SpecialOption.MODEL_NUMBER, SpecialOption.INCLUDES, SpecialOption.STORAGE_CAPACITY, SpecialOption.RAM, SpecialOption.BATTERY_CAPACITY, SpecialOption.MOBILE_NETWORK, SpecialOption.SCREEN_SIZE, SpecialOption.SIM_TYPE, SpecialOption.WARRANTY)),
                             TertiaryCategory("Mobile Accessories"),
                             TertiaryCategory("Tablets"),
                             TertiaryCategory("Computers & Laptops"),
@@ -326,10 +377,4 @@ data class TertiaryCategory(
     val name: String,
     val imageUrl: Int? = null,
     val specialOption: List<SpecialOption> = emptyList()
-)
-
-data class CategoryUiModel(
-    val category: String,
-    val subCategory: String,
-    val tertiaryCategory: String
 )

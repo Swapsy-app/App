@@ -1,4 +1,4 @@
-package com.example.freeupcopy.ui.presentation.sell_screen.components
+package com.example.freeupcopy.ui.presentation.sell_screen.category_screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -37,6 +37,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,29 +53,34 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.freeupcopy.R
-import com.example.freeupcopy.domain.model.Category
 import com.example.freeupcopy.domain.model.CategoryUiModel
 import com.example.freeupcopy.domain.model.SubCategory
 import com.example.freeupcopy.domain.model.TertiaryCategory
 import com.example.freeupcopy.ui.presentation.home_screen.componants.SearchBar
-import com.example.freeupcopy.ui.presentation.sell_screen.weight_screen.NoteSection
+import com.example.freeupcopy.ui.presentation.sell_screen.SellUiEvent
+import com.example.freeupcopy.ui.presentation.sell_screen.SellViewModel
+import com.example.freeupcopy.ui.presentation.sell_screen.weight_screen.AnnouncementComposable
 import com.example.freeupcopy.utils.clearFocusOnKeyboardDismiss
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryScreen(
     modifier: Modifier = Modifier,
-    onCategoryClick: (CategoryUiModel) -> Unit,
-    onClose: () -> Unit
+    onCategoryClick: () -> Unit,
+    onClose: () -> Unit,
+    categoryViewModel: CategoryViewModel = hiltViewModel(),
+    sellViewModel: SellViewModel
 ) {
     val lifeCycleOwner = LocalLifecycleOwner.current
+    val state by categoryViewModel.state.collectAsState()
+
     Scaffold(
         modifier = modifier
             .fillMaxSize()
@@ -111,19 +117,24 @@ fun CategoryScreen(
 
         ChooseCategory(
             modifier = Modifier.padding(innerPadding),
-            categories = Category.predefinedCategories,
-            onCategoryClick = { s ->
+            categories = CategoryUiModel.predefinedCategories,
+            onCategoryClick = {
+                    categoryViewModel.onEvent(CategoryUiEvent.CategorySelected(it))
+            },
+            onTertiaryCategory = { subCategory, tertiaryCategory ->
                 val currentState = lifeCycleOwner.lifecycle.currentState
-                if (currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)) {
-                    onCategoryClick(
-                        CategoryUiModel(
-                            category = s.category,
-                            subCategory = s.subCategory,
-                            tertiaryCategory = s.tertiaryCategory
-                        )
-                    )
+                if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                    sellViewModel.onEvent(SellUiEvent.CategoryChanged(tertiaryCategory))
+                    sellViewModel.onEvent(SellUiEvent.SpecialOptionsChanged(state.selectedCategory!!.name, subCategory, tertiaryCategory))
+                    onCategoryClick()
                 }
-            }
+            },
+            selectedCategoryUiModel = state.selectedCategory,
+            isExpanded = state.isExpanded,
+            onExpandChange = {
+                categoryViewModel.onEvent(CategoryUiEvent.ExpandChange)
+            },
+            selectedCategory = state.selectedCategory?.name ?: ""
         )
 
     }
@@ -133,12 +144,14 @@ fun CategoryScreen(
 @Composable
 fun ChooseCategory(
     modifier: Modifier = Modifier,
-    categories: List<Category>,
-    onCategoryClick: (CategoryUiModel) -> Unit
+    selectedCategory: String,
+    categories: List<CategoryUiModel>,
+    onCategoryClick: (CategoryUiModel) -> Unit,
+    onTertiaryCategory: (String, String) -> Unit,
+    selectedCategoryUiModel: CategoryUiModel?,
+    isExpanded: Boolean,
+    onExpandChange: () -> Unit
 ) {
-    var selectedCategory by remember { mutableStateOf<Category?>(null) }
-    var mExpanded by remember { mutableStateOf(false) }
-    var mSelectedText by remember { mutableStateOf("") }
     var mTextFieldSize by remember { mutableStateOf(Size.Zero) }
 
     var searchQuery by remember { mutableStateOf("") }
@@ -146,7 +159,7 @@ fun ChooseCategory(
 
     val interactionSource = remember { MutableInteractionSource() }
 
-    val icon = if (mExpanded)
+    val icon = if (isExpanded)
         Icons.Filled.KeyboardArrowUp
     else
         Icons.Filled.KeyboardArrowDown
@@ -154,9 +167,10 @@ fun ChooseCategory(
     Column(
         modifier = modifier.fillMaxWidth()
     ) {
-        if (selectedCategory == null) {
-            NoteSection(
-                text = stringResource(id = R.string.category_announcement)
+        if (selectedCategoryUiModel == null) {
+            AnnouncementComposable(
+                text = stringResource(id = R.string.category_announcement),
+                painter = painterResource(id = R.drawable.ic_campaign),
             )
         }
 
@@ -164,7 +178,7 @@ fun ChooseCategory(
 
         Box {
             OutlinedTextField(
-                value = mSelectedText,
+                value = selectedCategory,
                 onValueChange = {},
                 enabled = false,
                 readOnly = true,
@@ -173,7 +187,7 @@ fun ChooseCategory(
                         interactionSource = interactionSource,
                         indication = null
                     ) {
-                        mExpanded = !mExpanded
+                        onExpandChange()
                     }
                     .fillMaxWidth()
                     .onGloballyPositioned { coordinates ->
@@ -187,7 +201,7 @@ fun ChooseCategory(
                 },
                 colors = OutlinedTextFieldDefaults.colors(
                     disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                    disabledBorderColor = if (mExpanded) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                    disabledBorderColor = if (isExpanded) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                     disabledLabelColor = MaterialTheme.colorScheme.onSurface,
                     disabledLeadingIconColor = MaterialTheme.colorScheme.onSurface,
                     disabledTrailingIconColor = MaterialTheme.colorScheme.onSurface
@@ -195,8 +209,10 @@ fun ChooseCategory(
                 shape = RoundedCornerShape(16.dp)
             )
             DropdownMenu(
-                expanded = mExpanded,
-                onDismissRequest = { mExpanded = false },
+                expanded = isExpanded,
+                onDismissRequest = {
+                    onExpandChange()
+                                   },
                 modifier = Modifier
                     .background(MaterialTheme.colorScheme.surface)
                     .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f))
@@ -206,10 +222,7 @@ fun ChooseCategory(
                     DropdownMenuItem(
                         text = { Text(text = it.name) },
                         onClick = {
-                            selectedCategory =
-                                categories.find { category -> category.name == it.name }
-                            mSelectedText = it.name
-                            mExpanded = false
+                            onCategoryClick(it)
                         }
                     )
                 }
@@ -218,21 +231,23 @@ fun ChooseCategory(
 
         Spacer(modifier = Modifier.size(16.dp))
 
-        selectedCategory?.let {
+        selectedCategoryUiModel?.let {
 
             // Filter subcategories and their tertiary categories based on the search query
-            val filteredSubcategories = selectedCategory!!.subcategories.mapNotNull { subCategory ->
-                val matchingTertiaryCategories = subCategory.tertiaryCategories.filter { tertiaryCategory ->
-                    tertiaryCategory.name.contains(searchQuery, ignoreCase = true)
-                }
+            val filteredSubcategories =
+                selectedCategoryUiModel.subcategories.mapNotNull { subCategory ->
+                    val matchingTertiaryCategories =
+                        subCategory.tertiaryCategories.filter { tertiaryCategory ->
+                            tertiaryCategory.name.contains(searchQuery, ignoreCase = true)
+                        }
 
-                // Include the subcategory only if there are matching tertiary categories
-                if (matchingTertiaryCategories.isNotEmpty()) {
-                    subCategory.copy(tertiaryCategories = matchingTertiaryCategories)
-                } else {
-                    null
+                    // Include the subcategory only if there are matching tertiary categories
+                    if (matchingTertiaryCategories.isNotEmpty()) {
+                        subCategory.copy(tertiaryCategories = matchingTertiaryCategories)
+                    } else {
+                        null
+                    }
                 }
-            }
 
             Column {
                 SearchBar(
@@ -267,14 +282,8 @@ fun ChooseCategory(
                         items(filteredSubcategories) { subCategory ->
                             SubCategoryRow(
                                 subCategory = subCategory,
-                                onSubCategoryClick = { subCat, terCat ->
-                                    onCategoryClick(
-                                        CategoryUiModel(
-                                            category = selectedCategory!!.name,
-                                            subCategory = subCat,
-                                            tertiaryCategory = terCat
-                                        )
-                                    )
+                                onClick = { leafCategory ->
+                                    onTertiaryCategory(subCategory.name, leafCategory)
                                 }
                             )
                         }
@@ -285,108 +294,12 @@ fun ChooseCategory(
     }
 }
 
-//@OptIn(ExperimentalLayoutApi::class)
-//@Composable
-//fun SubCategorySection(
-//    modifier: Modifier = Modifier,
-//    category: Category,
-//    onCategoryClick: (String) -> Unit
-//) {
-//    var searchQuery by remember { mutableStateOf("") }
-//
-//    // Recursive function to gather only the final subcategories (those with no subcategories inside them)
-////    fun gatherFinalSubcategories(category: Category): List<Category> {
-////        return category.subcategories.filter { it.subcategories.isEmpty() } +
-////                category.subcategories.flatMap { gatherFinalSubcategories(it) }
-////    }
-////
-////    // Gather all final subcategories (last-level subcategories)
-////    val finalSubcategories = gatherFinalSubcategories(category)
-////
-////    // Filtered list of subcategories based on the search query
-////    val filteredSubcategories = if (searchQuery.isEmpty()) {
-////        category.subcategories
-////    } else {
-////        finalSubcategories.filter { it.name.contains(searchQuery, ignoreCase = true) }
-////    }
-//
-//    val isSearchBarFocused = remember { mutableStateOf(false) }
-//
-//    Column(modifier = modifier) {
-//        SearchBar(
-//            value = searchQuery,
-//            isFocused = isSearchBarFocused,
-//            onFocusChange = {
-//                isSearchBarFocused.value = it
-//            },
-//            onValueChange = {
-//                searchQuery = it
-//            },
-//            onSearch = {
-//                isSearchBarFocused.value = false
-//            },
-//            onCancel = {
-//                searchQuery = ""
-//            }
-//        )
-//
-//        Spacer(modifier = Modifier.size(16.dp))
-//
-//        LazyColumn(
-//            verticalArrangement = Arrangement.spacedBy(16.dp)
-//        ) {
-//            if (filteredSubcategories.firstOrNull()?.subcategories?.isNotEmpty() == true) {
-//                items(filteredSubcategories) { subCategory ->
-//                    if (subCategory != filteredSubcategories.first()) {
-//                        CustomDivider()
-//                        Spacer(modifier = Modifier.size(16.dp))
-//                    }
-//                    SubCategoryHeadingWithCategory(
-//                        category = subCategory,
-//                        onCategoryClick = { s ->
-//                            onCategoryClick(s)
-//                        }
-//                    )
-//                }
-//            } else {
-//                item {
-//                    if (filteredSubcategories.isEmpty()) {
-//                        Text(
-//                            text = "No matching subcategories found.",
-//                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-//                            modifier = Modifier.padding(16.dp),
-//                            textAlign = TextAlign.Center
-//                        )
-//                    } else {
-//                        FlowRow(
-//                            modifier = Modifier.fillMaxWidth(),
-//                            verticalArrangement = Arrangement.spacedBy(12.dp),
-//                            horizontalArrangement = Arrangement.spacedBy(16.dp),
-//                            maxLines = 4
-//                        ) {
-//                            filteredSubcategories.forEach { category ->
-//                                FinalCategoryItems(
-//                                    category = category,
-//                                    onClick = {
-//                                        onCategoryClick(category.name)
-//                                    }
-//                                )
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}
-
-
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SubCategoryRow(
     modifier: Modifier = Modifier,
     subCategory: SubCategory,
-    onSubCategoryClick: (String, String) -> Unit
+    onClick: (String) -> Unit
 ) {
     Column(
         modifier = modifier
@@ -411,7 +324,7 @@ fun SubCategoryRow(
                 FinalCategoryItems(
                     tertiaryCategory = tertiaryCategory,
                     onClick = { s ->
-                        onSubCategoryClick(subCategory.name, tertiaryCategory.name)
+                        onClick(s)
                     }
                 )
             }
@@ -439,7 +352,7 @@ fun FinalCategoryItems(
                     //.size(75.dp)
                     .clip(CircleShape)
                     .clickable { onClick(tertiaryCategory.name) },
-                painter = painterResource(id = tertiaryCategory.imageUrl ?: R.drawable.kurta_men),
+                painter = painterResource(id = tertiaryCategory.imageUrl ?: R.drawable.img_kurta_men),
                 contentDescription = tertiaryCategory.name
             )
             Spacer(modifier = Modifier.size(8.dp))
@@ -456,11 +369,11 @@ fun FinalCategoryItems(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun CategoryScreenPreview() {
-    CategoryScreen(
-        onCategoryClick = {},
-        onClose = {}
-    )
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun CategoryScreenPreview() {
+//    CategoryScreen(
+//        onCategoryClick = {},
+//        onClose = {}
+//    )
+//}

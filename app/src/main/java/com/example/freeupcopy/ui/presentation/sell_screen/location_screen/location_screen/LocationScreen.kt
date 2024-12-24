@@ -9,16 +9,20 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -27,6 +31,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -52,8 +57,10 @@ import com.example.freeupcopy.R
 import com.example.freeupcopy.data.local.Address
 import com.example.freeupcopy.ui.presentation.sell_screen.SellUiEvent
 import com.example.freeupcopy.ui.presentation.sell_screen.SellViewModel
+import com.example.freeupcopy.ui.presentation.sell_screen.weight_screen.AnnouncementComposable
 import com.example.freeupcopy.ui.presentation.sell_screen.weight_screen.CustomRadioButton
-import com.example.freeupcopy.ui.presentation.sell_screen.weight_screen.NoteSection
+import com.example.freeupcopy.ui.theme.AnnouncementIconColor
+import com.example.freeupcopy.ui.theme.AnnouncementTextColor
 import com.example.freeupcopy.ui.theme.ButtonShape
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -111,35 +118,57 @@ fun LocationScreen(
                             contentDescription = "close"
                         )
                     }
-                },
-
-                actions = {
-                    Row(
-                        modifier = Modifier
-                            .clip(ButtonShape)
-                            .clickable { onNewLocationClick() }
-                            .background(MaterialTheme.colorScheme.primary)
-                            .padding(horizontal = 16.dp, vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_add_location),
-                            contentDescription = "add location",
-                            tint = MaterialTheme.colorScheme.onPrimary
-                        )
-                        Spacer(modifier = Modifier.size(13.dp))
-                        Text(
-                            text = "Location",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp,
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                    }
-                    Spacer(modifier = Modifier.size(12.dp))
                 }
             )
         },
+
+        bottomBar = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .windowInsetsPadding(NavigationBarDefaults.windowInsets)
+                    .defaultMinSize(minHeight = 70.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .heightIn(min = 50.dp)
+                            .fillMaxWidth()
+                            .clip(ButtonShape)
+                            .clickable {
+                                val currentState = lifeCycleOwner.lifecycle.currentState
+                                if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                                    onNewLocationClick()
+                                }
+                            }
+                            .background(MaterialTheme.colorScheme.primary),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Row {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_add_location),
+                                contentDescription = "add location",
+                                tint = MaterialTheme.colorScheme.onPrimary
+                            )
+
+                            Spacer(modifier = Modifier.size(13.dp))
+
+                            Text(
+                                text = "Add New Location", color = MaterialTheme.colorScheme.onPrimary,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 18.sp
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
 //        floatingActionButton = {
 //            FloatingActionButton(
 //                onClick = { onNewLocationClick() },
@@ -173,8 +202,17 @@ fun LocationScreen(
                 .padding(innerPadding)
                 .padding(start = 16.dp, end = 16.dp)
         ) {
-            Spacer(modifier = Modifier.size(2.dp))
-            NoteSection(text = stringResource(id = if (state.addresses.isEmpty()) R.string.no_location_announcement else R.string.location_announcement))
+            if (state.addresses.isNotEmpty()) {
+                AnnouncementComposable(
+                    text = stringResource(
+                        id = R.string.no_location_announcement
+                    ),
+                    imageVector = Icons.Outlined.LocationOn,
+                    rotation = 0f,
+                    iconColor = AnnouncementIconColor,
+                    textColor = AnnouncementTextColor
+                )
+            }
 
             Spacer(modifier = Modifier.size(16.dp))
 
@@ -274,7 +312,7 @@ fun AddressItem(
         }
         Spacer(modifier = Modifier.weight(1f))
         Column(
-            horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             CustomRadioButton(
                 isSelected = isSelected

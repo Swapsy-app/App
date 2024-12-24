@@ -10,7 +10,7 @@ val Purple40 = Color(0xFF6650a4)
 val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
 
-val SurfaceLight = Color(0xFFF4F3F0)
+val SurfaceLight = Color(0xFFF6F5F4)
 val SurfaceDark = Color(0xFF1C1B1F)
 
 val PrimaryContainerLight = Color(0xFFFFFFFF)
@@ -30,7 +30,7 @@ val OnPrimary = Color(0xFFFFFFFF)
 val SecondaryContainer = Color(0xFFD5EDFD)
 val OnSecondary = Color(0xFFFFFFFF)
 
-val TertiaryContainer = Color(0xFFFFE6A0)
+val TertiaryContainer = Color(0xFFFFEBC9)
 val OnTertiary = Color(0xFF3B2400)
 
 //val Error = Color(0xFFB00020)
@@ -53,6 +53,12 @@ val TertiaryContainerDark = Color(0xFF566660)
 
 val NoteContainerLight = Color(0xFFD1E7DF)
 val NoteContainerDark = Color(0xFF566660)
+
+
+val AnnouncementContainerColor = Color(0xFFFFF5AD)
+val AnnouncementTextColor = Color(0xFF92400e)
+val AnnouncementIconColor = Color(0xFFd97706)
+
 
 
 val RecommendedContainerColor = Color(0xFFB2F368)

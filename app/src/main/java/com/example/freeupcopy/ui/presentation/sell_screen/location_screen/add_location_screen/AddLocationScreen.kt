@@ -1,7 +1,6 @@
 package com.example.freeupcopy.ui.presentation.sell_screen.location_screen.add_location_screen
 
 
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -429,7 +428,7 @@ fun ConfirmLocation(
             .fillMaxWidth(),
     ) {
         Image(
-            painter = painterResource(id = R.drawable.map),
+            painter = painterResource(id = R.drawable.ic_map),
             contentDescription = "Location",
             modifier = Modifier
                 .size(80.dp)

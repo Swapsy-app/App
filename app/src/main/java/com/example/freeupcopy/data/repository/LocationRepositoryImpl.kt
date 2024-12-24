@@ -40,7 +40,7 @@ class LocationRepositoryImpl(
             }.collect { sortedAddresses ->
                 if (sortedAddresses.isNotEmpty()) {
                     val currentDefault = sellPref.getDefaultAddress().first()
-                    if (currentDefault == 0) {
+                    if (currentDefault == null || currentDefault == 0) {
                         val firstAddress = sortedAddresses.first()
                         sellPref.saveDefaultAddress(firstAddress.id)
                     }
@@ -51,6 +51,17 @@ class LocationRepositoryImpl(
             send(Resource.Error("Failed to load addresses: ${e.message}"))
         }
     }.flowOn(Dispatchers.IO)
+
+
+    override fun getAddressById(id: Int): Flow<Resource<Address?>> = channelFlow {
+        send(Resource.Loading())
+        try {
+            val address = addressDao.getAddressById(id)
+            send(Resource.Success(address))
+        } catch (e: Exception) {
+            send(Resource.Error("Failed to load address: ${e.message}"))
+        }
+    }
 
 
     override fun insertAddress(address: Address): Flow<Resource<Unit>> = channelFlow {
@@ -85,7 +96,7 @@ class LocationRepositoryImpl(
     }.flowOn(Dispatchers.IO)
 
 
-    override fun getDefaultAddress(): Flow<Int?> =
+    override fun getDefaultAddressId(): Flow<Int?> =
         sellPref.getDefaultAddress().flowOn(Dispatchers.IO)
 
 

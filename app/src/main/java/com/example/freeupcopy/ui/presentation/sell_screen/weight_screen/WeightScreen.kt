@@ -31,6 +31,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -47,6 +49,7 @@ import com.example.freeupcopy.R
 import com.example.freeupcopy.domain.model.Weight
 import com.example.freeupcopy.ui.presentation.sell_screen.SellUiEvent
 import com.example.freeupcopy.ui.presentation.sell_screen.SellViewModel
+import com.example.freeupcopy.ui.theme.CardShape
 import com.example.freeupcopy.ui.theme.NoteContainerLight
 import com.example.freeupcopy.ui.theme.SwapsyTheme
 
@@ -84,7 +87,6 @@ fun WeightScreen(
                     IconButton(onClick = {
                         val currentState = lifeCycleOwner.lifecycle.currentState
                         if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-
                             onClose()
                         }
                     }) {
@@ -135,8 +137,9 @@ fun WeightScreen(
                         .padding(innerPadding),
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    NoteSection(
-                        text = stringResource(id = R.string.weight_announcement)
+                    AnnouncementComposable(
+                        text = stringResource(id = R.string.weight_announcement),
+                        painter = painterResource(id = R.drawable.ic_campaign)
                     )
                     Spacer(modifier = Modifier.size(8.dp))
 
@@ -257,7 +260,8 @@ fun WeightComposable(
 @Composable
 fun CustomRadioButton(
     modifier: Modifier = Modifier,
-    isSelected: Boolean
+    isSelected: Boolean,
+    color: Color = MaterialTheme.colorScheme.primary
 ) {
     Box(
         modifier = modifier
@@ -265,7 +269,7 @@ fun CustomRadioButton(
             .clip(CircleShape)
             .border(
                 width = if (isSelected) 6.dp else 2.dp,
-                color = if (isSelected) MaterialTheme.colorScheme.primary else
+                color = if (isSelected) color else
                     MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.2f),
                 shape = CircleShape
             )
@@ -273,33 +277,73 @@ fun CustomRadioButton(
 }
 
 @Composable
-fun NoteSection(
+fun AnnouncementComposable(
     modifier: Modifier = Modifier,
-    text: String
+    text: String,
+    rotation: Float = -36f,
+    painter: Painter,
+    iconColor: Color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f),
+    textColor: Color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(10.dp))
-            .background(MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.75f))
+            .clip(CardShape.medium)
+            .background(MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.85f))
             .padding(top = 16.dp, bottom = 16.dp, end = 16.dp),
     ) {
         Icon(
             modifier = Modifier
                 .graphicsLayer {
-                    rotationZ = -36f
+                    rotationZ = rotation
                 }
                 .padding(horizontal = 8.dp),
-            tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f),
-            painter = painterResource(id = R.drawable.ic_campaign),
-            contentDescription = "notice"
+            tint = iconColor,
+            painter = painter,
+            contentDescription = "announcement"
         )
         Text(
             text = text,
             fontSize = 13.5.sp,
             lineHeight = 18.sp,
             fontStyle = FontStyle.Italic,
-            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
+            color = textColor
+        )
+    }
+}
+
+@Composable
+fun AnnouncementComposable(
+    modifier: Modifier = Modifier,
+    text: String,
+    rotation: Float = -36f,
+    imageVector: ImageVector,
+    iconColor: Color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f),
+    textColor: Color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(CardShape.medium)
+            .background(MaterialTheme.colorScheme.tertiaryContainer)
+            .padding(top = 16.dp, bottom = 16.dp, end = 16.dp),
+    ) {
+        Icon(
+            modifier = Modifier
+                .graphicsLayer {
+                    rotationZ = rotation
+                }
+                .padding(horizontal = 8.dp),
+            tint = iconColor,
+            imageVector = imageVector,
+            contentDescription = "announcement"
+        )
+        Text(
+            text = text,
+            fontSize = 13.5.sp,
+            lineHeight = 18.sp,
+            fontStyle = FontStyle.Italic,
+            color = textColor
         )
     }
 }
@@ -308,11 +352,8 @@ fun NoteSection(
 //@Composable
 //fun WeightScreenPreview() {
 //    SwapsyTheme {
-//        WeightScreen(
-//            selectedWeightType = "cat2",
-//            onWeightClick = {},
-//            onClose = {},
-//            sellViewModel = SellViewModel()
+//        AnnouncementComposable(
+//            text = "Using courier bags can significantly reduce weight compared to boxes, saving on shipping costs."
 //        )
 //    }
 //}

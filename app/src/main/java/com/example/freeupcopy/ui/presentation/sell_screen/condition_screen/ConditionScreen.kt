@@ -26,14 +26,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.example.freeupcopy.R
 import com.example.freeupcopy.domain.model.Condition
 import com.example.freeupcopy.ui.presentation.sell_screen.SellUiEvent
 import com.example.freeupcopy.ui.presentation.sell_screen.SellViewModel
-import com.example.freeupcopy.ui.presentation.sell_screen.weight_screen.NoteSection
+import com.example.freeupcopy.ui.presentation.sell_screen.weight_screen.AnnouncementComposable
 import com.example.freeupcopy.ui.theme.CardShape
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -107,8 +109,9 @@ fun ConditionScreen(
         ) {
             Spacer(modifier = Modifier.size(8.dp))
 
-            NoteSection(
-                text = "Please choose the option that best describes the current state of the product you are selling"
+            AnnouncementComposable(
+                text = "Please choose the option that best describes the current state of the product you are selling",
+                painter = painterResource(id = R.drawable.ic_campaign),
             )
             Spacer(modifier = Modifier.size(4.dp))
 

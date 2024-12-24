@@ -26,7 +26,7 @@ class LocationViewModel @Inject constructor(
         viewModelScope.launch {
             combine(
                 repository.getAddresses(),
-                repository.getDefaultAddress()
+                repository.getDefaultAddressId()
             ) { addressesResult, defaultId ->
                 when (addressesResult) {
                     is Resource.Loading -> {
