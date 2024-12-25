@@ -25,6 +25,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
 import androidx.navigation.toRoute
+import com.example.freeupcopy.domain.enums.SpecialOption
 import com.example.freeupcopy.domain.model.Price
 import com.example.freeupcopy.ui.presentation.authentication_screen.connect_screen.ConnectScreen
 import com.example.freeupcopy.ui.presentation.authentication_screen.forgot_password_screen.ForgotPasswordScreen
@@ -44,12 +45,13 @@ import com.example.freeupcopy.ui.presentation.profile_screen.ProfileScreen
 import com.example.freeupcopy.ui.presentation.search_screen.SearchScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.SellScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.SellViewModel
-import com.example.freeupcopy.ui.presentation.sell_screen.componants.AdvanceSettingScreen
-import com.example.freeupcopy.ui.presentation.sell_screen.componants.BrandScreen
-import com.example.freeupcopy.ui.presentation.sell_screen.componants.CategoryScreen
-import com.example.freeupcopy.ui.presentation.sell_screen.componants.ConditionScreen
-import com.example.freeupcopy.ui.presentation.sell_screen.componants.LocationScreen
-import com.example.freeupcopy.ui.presentation.sell_screen.componants.ManufacturingScreen
+import com.example.freeupcopy.ui.presentation.sell_screen.advance_setting_screen.AdvanceSettingScreen
+import com.example.freeupcopy.ui.presentation.sell_screen.brand_screen.BrandScreen
+import com.example.freeupcopy.ui.presentation.sell_screen.category_screen.CategoryScreen
+import com.example.freeupcopy.ui.presentation.sell_screen.condition_screen.ConditionScreen
+import com.example.freeupcopy.ui.presentation.sell_screen.location_screen.add_location_screen.AddLocationScreen
+import com.example.freeupcopy.ui.presentation.sell_screen.location_screen.location_screen.LocationScreen
+import com.example.freeupcopy.ui.presentation.sell_screen.manufacturing_screen.ManufacturingScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.price_screen.PriceScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.weight_screen.WeightScreen
 import com.example.freeupcopy.ui.presentation.wish_list.WishListScreen
@@ -150,18 +152,12 @@ class MainActivity : ComponentActivity() {
                             ) {
                                 val sellViewModel = it.sharedViewModel<SellViewModel>(navController = navController)
 
-                                val selectedCategory =
-                                    it.savedStateHandle.get<String>("selected_category")
                                 val selectedBrand = it.savedStateHandle.get<String>("selected_brand")
-                                val selectedLocation =
-                                    it.savedStateHandle.get<String>("selected_location")
-                                val selectedGst = it.savedStateHandle.get<String>("selected_gst")
 
                                 SellScreen(
                                     sellViewModel = sellViewModel,
                                     onCategoryClick = {
                                         navController.navigate(Screen.CategoryScreen)
-                                        selectedCategory ?: ""
                                     },
                                     onWeightClick = { selectedWeightType ->
                                         navController.navigate(Screen.WeightScreen(selectedWeightType = selectedWeightType))
@@ -169,17 +165,17 @@ class MainActivity : ComponentActivity() {
                                     onConditionClick = { selectedCondition ->
                                         navController.navigate(Screen.ConditionScreen(selectedCondition = selectedCondition))
                                     },
-                                    onBrandClick = {
-                                        navController.navigate(Screen.BrandScreen(selectedBrand = selectedBrand))
-                                    },
+//                                    onBrandClick = {
+//                                        navController.navigate(Screen.BrandScreen(selectedBrand = selectedBrand))
+//                                    },
                                     onManufacturingClick = { manufacturingCountry ->
                                         navController.navigate(Screen.ManufacturingScreen(selectedCountry = manufacturingCountry))
                                     },
-                                    onLocationClick = {
+                                    onLocationClick = { selectedLocation ->
                                         navController.navigate(Screen.LocationScreen(selectedLocation = selectedLocation))
                                     },
                                     onAdvanceSettingClick = {
-                                        navController.navigate(Screen.GstScreen(selectedGst = selectedGst))
+                                        navController.navigate(Screen.GstScreen)
                                     },
                                     onPriceClick = { price ->
                                         navController.navigate(Screen.PriceScreen(price))
@@ -187,20 +183,69 @@ class MainActivity : ComponentActivity() {
                                     onClose = {
                                         navController.popBackStack()
                                     },
-                                    selectedCategory = selectedCategory ?: "",
-                                    selectedBrand = selectedBrand ?: "",
-                                    selectedLocation = selectedLocation
-                                        ?: "the Empire State Building is located at 40.7 degrees north (latitude), 74 degrees west (longitude)",
-                                    //selectedGst = selectedGst ?: ""
+                                    onSpecificationClick = { option ->
+                                        when(option) {
+                                            SpecialOption.FABRIC -> {
+
+                                            }
+                                            SpecialOption.COLOUR -> {
+
+                                            }
+                                            SpecialOption.OCCASION -> {
+
+                                            }
+                                            SpecialOption.BRAND -> {
+
+                                            }
+                                            SpecialOption.MODEL_NUMBER -> {
+
+                                            }
+                                            SpecialOption.INCLUDES -> {
+
+                                            }
+                                            SpecialOption.STORAGE_CAPACITY -> {
+
+                                            }
+                                            SpecialOption.RAM -> {
+
+                                            }
+                                            SpecialOption.BATTERY_CAPACITY -> {
+
+                                            }
+                                            SpecialOption.MOBILE_NETWORK -> {
+
+                                            }
+                                            SpecialOption.SCREEN_SIZE -> {
+
+                                            }
+                                            SpecialOption.SIM_TYPE -> {
+
+                                            }
+                                            SpecialOption.WARRANTY -> {
+
+                                            }
+                                            SpecialOption.SIZE -> {
+
+                                            }
+                                            SpecialOption.SHAPE -> {
+
+                                            }
+                                            SpecialOption.LENGTH -> {
+
+                                            }
+                                            SpecialOption.EXPIRATION_DATE -> {
+
+                                            }
+                                        }
+                                    }
                                 )
                             }
 
                             composable<Screen.CategoryScreen> {
+                                val sellViewModel = it.sharedViewModel<SellViewModel>(navController = navController)
                                 CategoryScreen(
-                                    onCategoryClick = { s ->
-                                        navController.previousBackStackEntry
-                                            ?.savedStateHandle
-                                            ?.set("selected_category", s)
+                                    sellViewModel = sellViewModel,
+                                    onCategoryClick = {
                                         navController.popBackStack()
                                     },
                                     onClose = {
@@ -262,34 +307,40 @@ class MainActivity : ComponentActivity() {
                             }
 
                             composable<Screen.LocationScreen> {
+                                val sellViewModel = it.sharedViewModel<SellViewModel>(navController = navController)
                                 val args = it.toRoute<Screen.LocationScreen>()
+
                                 LocationScreen(
-                                    onLocationClick = { s ->
-                                        navController.previousBackStackEntry
-                                            ?.savedStateHandle
-                                            ?.set("selected_location", s)
-                                        navController.popBackStack()
+                                    sellViewModel = sellViewModel,
+                                    onNewLocationClick = {
+                                        navController.navigate(Screen.AddLocationScreen)
                                     },
                                     onClose = {
                                         navController.popBackStack()
                                     },
-                                    selectedLocation = args.selectedLocation ?: ""
+                                    selectedLocation = args.selectedLocation ?: 0,
+                                    onLocationClick = {
+                                        navController.popBackStack()
+                                    },
+                                )
+                            }
+
+                            composable<Screen.AddLocationScreen> {
+                                AddLocationScreen(
+                                    onLocationAdded = {
+                                        navController.popBackStack()
+                                    },
+                                    onClose = {
+                                        navController.popBackStack()
+                                    }
                                 )
                             }
 
                             composable<Screen.GstScreen> {
-                                val args = it.toRoute<Screen.GstScreen>()
                                 AdvanceSettingScreen(
-                                    onClick = { s ->
-                                        navController.previousBackStackEntry
-                                            ?.savedStateHandle
-                                            ?.set("selected_gst", s)
-                                        navController.popBackStack()
-                                    },
                                     onClose = {
                                         navController.popBackStack()
-                                    },
-                                    //selectedGst = args.selectedGst ?: ""
+                                    }
                                 )
                             }
 

@@ -101,8 +101,6 @@ class PriceViewModel @Inject constructor(
                                 combinedCoin = "",
                                 earningccCash = "",
                                 earningccCoin = "",
-//                                sellingCoinCash = null,
-//                                earningCoinCash = null
                             )
                         }
                     }

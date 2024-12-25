@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package com.example.freeupcopy.ui.presentation.sell_screen
 
 import androidx.compose.foundation.Image
@@ -32,7 +30,9 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -68,10 +68,14 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.freeupcopy.R
+import com.example.freeupcopy.domain.enums.SpecialOption
 import com.example.freeupcopy.domain.model.Price
 import com.example.freeupcopy.domain.model.PriceUiModel
 import com.example.freeupcopy.domain.model.toUiModel
+import com.example.freeupcopy.ui.presentation.sell_screen.components.CustomDivider
+import com.example.freeupcopy.ui.theme.CardShape
 import com.example.freeupcopy.ui.theme.SwapsyTheme
+import com.example.freeupcopy.ui.theme.TextFieldShape
 import com.example.freeupcopy.utils.clearFocusOnKeyboardDismiss
 import com.example.freeupcopy.utils.dashedBorder
 
@@ -79,27 +83,19 @@ import com.example.freeupcopy.utils.dashedBorder
 @Composable
 fun SellScreen(
     modifier: Modifier = Modifier,
-    onCategoryClick: () -> String,
-    selectedCategory: String,
-    selectedBrand: String,
-    selectedLocation: String,
-    //selectedGst: String,
-    onBrandClick: () -> Unit,
+    onCategoryClick: () -> Unit,
     onConditionClick: (String) -> Unit,
     onWeightClick: (String) -> Unit,
     onManufacturingClick: (String) -> Unit,
     onPriceClick: (Price?) -> Unit,
-    onLocationClick: () -> Unit,
+    onLocationClick: (Int?) -> Unit,
     onAdvanceSettingClick: () -> Unit,
     onClose: () -> Unit,
+    onSpecificationClick: (SpecialOption) -> Unit,
     sellViewModel: SellViewModel
 ) {
     val lifeCycleOwner = LocalLifecycleOwner.current
     val state by sellViewModel.state.collectAsState()
-    //var chosenCategory by remember { mutableStateOf("") }
-    //var selectedWeight by remember { mutableStateOf(selectedWeight1) }
-    //var selectedBrand by remember { mutableStateOf(selectedBrand1) }
-    //var selectedCondition by remember { mutableStateOf("") }
 
     Scaffold(
         modifier = modifier
@@ -114,6 +110,12 @@ fun SellScreen(
                     ) {
                         Spacer(modifier = Modifier.size(8.dp))
                         Text(text = "Selling Details")
+                        if (state.isLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
                     }
                 },
                 navigationIcon = {
@@ -135,7 +137,7 @@ fun SellScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(20.dp, 20.dp, 0.dp, 0.dp))
+                    .clip(RoundedCornerShape(16.dp, 16.dp, 0.dp, 0.dp))
                     .background(MaterialTheme.colorScheme.primaryContainer.copy(0.85f))
                     .windowInsetsPadding(NavigationBarDefaults.windowInsets)
                     .defaultMinSize(minHeight = 70.dp)
@@ -195,7 +197,7 @@ fun SellScreen(
         ) {
             item {
                 CategorySection(
-                    chosenCategory = selectedCategory,
+                    chosenCategory = state.leafCategory ?: "",
                     onClick = {
                         val currentState = lifeCycleOwner.lifecycle.currentState
                         if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
@@ -205,16 +207,25 @@ fun SellScreen(
                 )
             }
             item {
-                DetailsSection()
+                DetailsSection(
+                    title = state.title,
+                    description = state.description,
+                    onTitleValueChange = { title ->
+                        sellViewModel.onEvent(SellUiEvent.TitleChange(title))
+                    },
+                    onDescriptionValueChange = { description ->
+                        sellViewModel.onEvent(SellUiEvent.DescriptionChange(description))
+                    }
+                )
             }
 
             item {
-                PickupLocationSection(
-                    location = selectedLocation,
+                LocationSection(
+                    location = state.address?.address ?: "",
                     onClick = {
                         val currentState = lifeCycleOwner.lifecycle.currentState
                         if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                            onLocationClick()
+                            onLocationClick(state.address?.id ?: 0)
                         }
                     }
                 )
@@ -222,22 +233,18 @@ fun SellScreen(
 
             item {
                 SpecificationSection(
-                    selectedWeight = state.weight?.range ?: "",
-                    selectedBrand = selectedBrand,
-                    selectedCondition = state.condition ?: "",
-                    selectedCountry = state.manufacturingCountry ?: "India",
                     onManufacturingClick = {
                         val currentState = lifeCycleOwner.lifecycle.currentState
                         if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
                             onManufacturingClick(state.manufacturingCountry ?: "India")
                         }
                     },
-                    onBrandClick = {
-                        val currentState = lifeCycleOwner.lifecycle.currentState
-                        if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                            onBrandClick()
-                        }
-                    },
+//                    onBrandClick = {
+//                        val currentState = lifeCycleOwner.lifecycle.currentState
+//                        if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+//                            onBrandClick()
+//                        }
+//                    },
                     onConditionClick = {
                         val currentState = lifeCycleOwner.lifecycle.currentState
                         if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
@@ -247,11 +254,22 @@ fun SellScreen(
                     onWeightClick = {
                         val currentState = lifeCycleOwner.lifecycle.currentState
                         if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                            //Log.e("WeightScreen Sell on click", "weight: ${state.weight?.type}")
                             onWeightClick(state.weight?.type ?: "")
                         }
                     },
-                    selectedTertiaryCategory = selectedCategory
+                    state = state,
+                    onSpecificationClick = { option ->
+                        val currentState = lifeCycleOwner.lifecycle.currentState
+                        if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                            onSpecificationClick(option)
+                        }
+                    },
+                    onOptionalSizeChange = { size ->
+                        sellViewModel.onEvent(SellUiEvent.SizeChange(size))
+                    },
+                    onOptionalBrandChange = { brand ->
+                        sellViewModel.onEvent(SellUiEvent.BrandChange(brand))
+                    }
                 )
             }
 
@@ -316,12 +334,13 @@ fun CategorySection(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun DetailsSection(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    title: String,
+    description: String,
+    onTitleValueChange: (String) -> Unit,
+    onDescriptionValueChange: (String) -> Unit
 ) {
-    var title by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-
-    val items = listOf(7,)
+    val items = listOf(7)
 
     Box(
         modifier = modifier
@@ -346,7 +365,6 @@ fun DetailsSection(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 items.forEachIndexed { index, i ->
-
                     AddPhotoBox()
                 }
                 if (items.size != 11) {
@@ -383,7 +401,7 @@ fun DetailsSection(
             OutlinedTextField(
                 value = title,
                 onValueChange = {
-                    title = it
+                    onTitleValueChange(it)
                 },
                 modifier = Modifier
                     .fillMaxWidth(),
@@ -398,7 +416,7 @@ fun DetailsSection(
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedBorderColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.4f),
                 ),
-                shape = RoundedCornerShape(16.dp)
+                shape = TextFieldShape
             )
 
             Spacer(modifier = Modifier.size(8.dp))
@@ -407,13 +425,13 @@ fun DetailsSection(
                 value = description,
                 minLines = 3,
                 onValueChange = {
-                    description = it
+                    onDescriptionValueChange(it)
                 },
                 modifier = Modifier
                     .fillMaxWidth(),
                 placeholder = {
                     Text(
-                        "Enter Title",
+                        "Enter Description",
                         fontStyle = FontStyle.Italic,
                         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f)
                     )
@@ -422,7 +440,7 @@ fun DetailsSection(
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedBorderColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.4f),
                 ),
-                shape = RoundedCornerShape(16.dp)
+                shape = TextFieldShape
             )
         }
     }
@@ -497,26 +515,20 @@ fun AddPhotoBox(
 @Composable
 fun SpecificationSection(
     modifier: Modifier = Modifier,
-    selectedTertiaryCategory: String,
-    selectedWeight: String,
-    selectedBrand: String,
-    selectedCondition: String,
-    selectedCountry: String,
     onManufacturingClick: () -> Unit,
-    onBrandClick: () -> Unit,
     onConditionClick: () -> Unit,
-    onWeightClick: () -> Unit
+    onWeightClick: () -> Unit,
+    state: SellUiState,
+    onSpecificationClick: (SpecialOption) -> Unit,
+    onOptionalSizeChange: (String) -> Unit,
+    onOptionalBrandChange: (String) -> Unit,
 ) {
-    var price by remember { mutableStateOf("") }
-//    var selectedBrand by remember { mutableStateOf("") }
-//    var selectedCondition by remember { mutableStateOf("") }
-//    var selectedWeight by remember { mutableStateOf(Weight.predefinedWeight) }
-    var size by remember { mutableStateOf("") }
+    //var size by remember { mutableStateOf("") }
     Box(
         modifier = modifier
             .fillMaxWidth()
             .clearFocusOnKeyboardDismiss()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(CardShape.medium)
             .background(MaterialTheme.colorScheme.primaryContainer)
             .padding(16.dp),
     ) {
@@ -529,145 +541,134 @@ fun SpecificationSection(
                 fontSize = 18.sp
             )
             Spacer(modifier = Modifier.size(10.dp))
-            Column(
-                modifier = modifier.fillMaxWidth()
-            ) {
-
-                CommonSpecification(
-                    initialLabel = "Product Condition",
-                    valueLabel = "Condition",
-                    value = selectedCondition,
-                    onClick = {
-                        onConditionClick()
-                    }
-                )
-
-                CustomDivider()
-
-                CommonSpecification(
-                    initialLabel = "Choose a Brand",
-                    valueLabel = "Brand",
-                    value = selectedBrand,
-                    onClick = {
-                        onBrandClick()
-                    }
-                )
-                CustomDivider()
-
-                CommonSpecification(
-                    initialLabel = "Manufacturing Country",
-                    valueLabel = "Manufacturing Country",
-                    value = selectedCountry,
-                    onClick = {
-                        onManufacturingClick()
-                    }
-                )
-
-                CustomDivider()
-
-                CommonSpecification(
-                    initialLabel = "Weight",
-                    valueLabel = "Weight",
-                    value = selectedWeight,
-                    onClick = {
-                        onWeightClick()
-                    }
-                )
-            }
-            if(selectedTertiaryCategory.isNotBlank()) {
-                Spacer(modifier = Modifier.size(10.dp))
-
-                Column(
-                    modifier = modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.6f))
-                        .padding(16.dp),
-
-                    ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        val isCategoryChosen = selectedBrand.isEmpty()
-                        Text(text = if (isCategoryChosen) "Choose a Brand" else "Brand")
-                        Spacer(modifier = Modifier.weight(1f))
-                        Text(
-                            text = selectedBrand,
-                            color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.6f)
-                        )
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                            contentDescription = "Choose a Brand",
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
-                        )
-                    }
-                    CustomDivider(modifier = Modifier.padding(12.dp))
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        Text(text = "Condition")
-                        Spacer(modifier = Modifier.weight(1f))
-                        Text(
-                            text = selectedBrand,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
-                        )
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                            contentDescription = "condition",
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
-                        )
-                    }
-                    CustomDivider(modifier = Modifier.padding(12.dp))
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        Text(text = "Size")
-                        Spacer(modifier = Modifier.weight(1f))
-                        Text(
-                            text = selectedBrand,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
-                        )
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                            contentDescription = "size",
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
-                        )
-                    }
-                }
-            }
 
 
-            Spacer(modifier = Modifier.size(10.dp))
-            Text(text = "Size (Optional)", modifier = Modifier.padding(bottom = 4.dp))
-            OutlinedTextField(
-                value = size,
-                onValueChange = {
-                    size = it
-                },
-                modifier = Modifier
-                    .fillMaxWidth(),
-                placeholder = {
-                    Text(
-                        "Enter Size",
-                        fontStyle = FontStyle.Italic,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f)
-                    )
-                },
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.4f),
-                ),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                shape = RoundedCornerShape(16.dp),
-                supportingText = {
-                    Text(
-                        text = "Provide size details (e.g., S, M, L, or dimensions in cm).",
-                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f)
-                    )
+            CommonSpecification(
+                initialLabel = "Product Condition",
+                valueLabel = "Condition",
+                value = state.condition ?: "",
+                onClick = {
+                    onConditionClick()
                 }
             )
+            SpecificationDivider()
+
+            if (!state.specialOptions.contains(SpecialOption.BRAND) && !state.leafCategory.isNullOrEmpty()) {
+                Column(
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 10.dp)
+                ) {
+                    Text(text = "Brand (Optional)", modifier = Modifier.padding(bottom = 4.dp))
+
+                    OutlinedTextField(
+                        value = state.brand ?: "",
+                        onValueChange = {
+                            //sellViewModel.onEvent(SellUiEvent.BrandChange(it))
+                            onOptionalBrandChange(it)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        placeholder = {
+                            Text(
+                                "Enter Brand",
+                                fontStyle = FontStyle.Italic,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f)
+                            )
+                        },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedBorderColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(
+                                alpha = 0.4f
+                            ),
+                        ),
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                        shape = TextFieldShape,
+                        supportingText = {
+                            Text(
+                                text = "Provide brand details (e.g., Nike, Adidas, etc.).",
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f)
+                            )
+                        }
+                    )
+                }
+                SpecificationDivider()
+            }
+
+            CommonSpecification(
+                initialLabel = "Manufacturing Country",
+                valueLabel = "Manufacturing Country",
+                value = state.manufacturingCountry ?: "India",
+                onClick = {
+                    onManufacturingClick()
+                }
+            )
+
+            SpecificationDivider()
+
+            CommonSpecification(
+                initialLabel = "Weight",
+                valueLabel = "Weight",
+                value = state.weight?.range ?: "",
+                onClick = {
+                    onWeightClick()
+                }
+            )
+
+
+            state.specialOptions.forEachIndexed() { i, option ->
+                if(i == 0) {
+                    SpecificationDivider()
+                }
+
+                CommonSpecification(
+                    initialLabel = option.initialLabel,
+                    valueLabel = option.valueLabel,
+                    value = option.valueSelector(state) ?: "",
+                    onClick = { onSpecificationClick(option) }
+                )
+                if (i != state.specialOptions.lastIndex) {
+                    SpecificationDivider()
+                }
+            }
+
+            if (!state.specialOptions.contains(SpecialOption.SIZE) && !state.leafCategory.isNullOrEmpty()) {
+                SpecificationDivider()
+
+                Column(
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                ) {
+
+                    Spacer(modifier = Modifier.size(16.dp))
+                    Text(text = "Size (Optional)", modifier = Modifier.padding(bottom = 4.dp))
+
+                    OutlinedTextField(
+                        value = state.size ?: "",
+                        onValueChange = {
+                            onOptionalSizeChange(it)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        placeholder = {
+                            Text(
+                                "Enter Size",
+                                fontStyle = FontStyle.Italic,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f)
+                            )
+                        },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedBorderColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(
+                                alpha = 0.4f
+                            ),
+                        ),
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                        shape = TextFieldShape,
+                        supportingText = {
+                            Text(
+                                text = "Provide size details (e.g., S, M, L, or dimensions in cm).",
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f)
+                            )
+                        }
+                    )
+                }
+            }
 
         }
     }
@@ -685,7 +686,7 @@ fun CommonSpecification(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(CardShape.medium)
             .clickable { onClick() }
             .padding(horizontal = 8.dp, vertical = 20.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -718,7 +719,7 @@ fun PriceAndQuantitySection(
         modifier
             .fillMaxWidth()
             .clearFocusOnKeyboardDismiss()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(CardShape.medium)
             .background(MaterialTheme.colorScheme.primaryContainer)
             .padding(16.dp)
     ) {
@@ -735,13 +736,11 @@ fun PriceAndQuantitySection(
                 .clip(RoundedCornerShape(16.dp))
                 .clickable { onPriceClick() }
                 .padding(horizontal = 8.dp, vertical = 20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            //horizontalArrangement = Arrangement.spacedBy(10.dp)
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Row {
                 Text(
-                    text = if(priceUiModel == null) "Price" else "You will be earning",
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
+                    text = if (priceUiModel == null) "Price" else "You will be earning"
                 )
                 Spacer(modifier = Modifier.weight(1f))
                 Icon(
@@ -750,15 +749,21 @@ fun PriceAndQuantitySection(
                     tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
                 )
             }
-            if(priceUiModel != null) {
+            if (priceUiModel != null) {
                 Spacer(modifier = Modifier.size(10.dp))
                 PriceRow(priceUiModel = priceUiModel, modifier = Modifier.align(Alignment.End))
             }
         }
 
-        CustomDivider()
+        HorizontalDivider(
+            modifier = Modifier.padding(horizontal = 10.dp),
+            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f)
+        )
+
         Spacer(modifier = Modifier.size(10.dp))
-        Column {
+        Column(
+            modifier = Modifier.padding(horizontal = 8.dp)
+        ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -766,8 +771,7 @@ fun PriceAndQuantitySection(
             ) {
                 Text(
                     text = "Quantity",
-                    modifier = Modifier.padding(bottom = 4.dp),
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
+                    //modifier = Modifier.padding(bottom = 4.dp)
                 )
                 Spacer(modifier = Modifier.weight(1f))
                 OutlinedTextField(
@@ -781,9 +785,14 @@ fun PriceAndQuantitySection(
                     modifier = Modifier
                         .widthIn(min = 200.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        unfocusedBorderColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.4f),
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(
+                            alpha = 0.4f
+                        ),
                     ),
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done, keyboardType = KeyboardType.Number),
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Done,
+                        keyboardType = KeyboardType.Number
+                    ),
                     shape = RoundedCornerShape(16.dp),
                     textStyle = TextStyle(textAlign = TextAlign.Center)
                 )
@@ -811,7 +820,7 @@ fun PriceAndQuantitySection(
 }
 
 @Composable
-fun PickupLocationSection(
+fun LocationSection(
     modifier: Modifier = Modifier,
     location: String,
     onClick: () -> Unit
@@ -819,7 +828,8 @@ fun PickupLocationSection(
     Column(
         modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(CardShape.medium)
+            .clickable { onClick() }
             .background(MaterialTheme.colorScheme.primaryContainer)
             .padding(top = 16.dp, start = 8.dp, end = 8.dp, bottom = 8.dp)
     ) {
@@ -835,13 +845,12 @@ fun PickupLocationSection(
             modifier = modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(16.dp))
-                .clickable { onClick() }
                 .padding(horizontal = 8.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             val isLocation = location.isNotEmpty()
-            if(!isLocation) {
+            if (!isLocation) {
                 Text(text = "Add address")
             } else {
                 Icon(
@@ -851,7 +860,7 @@ fun PickupLocationSection(
             }
             Text(
                 modifier = Modifier.weight(1f),
-                text =location,
+                text = location,
                 color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
             )
             Icon(
@@ -868,22 +877,32 @@ fun AdvancedSellerSettingSection(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    Row(
-        modifier = modifier
+    Column(
+        modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(CardShape.medium)
             .clickable { onClick() }
             .background(MaterialTheme.colorScheme.primaryContainer)
             .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "Advanced seller setting")
-        Spacer(modifier = Modifier.weight(1f))
-        Icon(
-            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-            contentDescription = "Choose a category",
-            tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
+        Text(
+            modifier = Modifier,
+            text = "For businesses",
+            fontWeight = FontWeight.Bold,
+            fontSize = 18.sp
         )
+        Spacer(modifier = Modifier.size(16.dp))
+
+        Row {
+            Text(text = "Advanced seller setting")
+            Spacer(modifier = Modifier.weight(1f))
+            Icon(
+                imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                contentDescription = "Choose a category",
+                tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
+            )
+        }
     }
 }
 
@@ -974,6 +993,14 @@ fun PriceRow(
             shouldShowDivider = true
         }
     }
+}
+
+@Composable
+private fun SpecificationDivider() {
+    HorizontalDivider(
+        modifier = Modifier.padding(horizontal = 10.dp),
+        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f)
+    )
 }
 
 @Preview(

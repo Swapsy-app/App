@@ -12,4 +12,10 @@
     <string name="category_announcement">"Use the dropdown menu above to choose a category. Once a category is selected, its subcategories will appear here for further exploration</string>
     <string name="weight_note">If the weight of the product is greater than what was declared by the seller, as reported by the courier partner, the seller will bear the extra courier charges along with penalty. This amount will be deducted from the seller\'s earnings. Continuous violations of this policy may result in the suspension of the seller\'s account."</string>
     <string name="weight_announcement">The examples attached with each weight category are for reference purposes only. Please ensure you check the actual weight, including its packaging, before selecting the appropriate weight category for shipping</string>
+    <string name="gst_note">If you are selling your product from a GST registered business, you are required to provide GSTIN. By not providing GSTIN, you accept that you are not registered under GST Act</string>
+
+    <string name="no_location_announcement">No saved locations yet. Click \'Location button\' at the top right to add your first one</string>
+    <string name="location_announcement">Click on the three vertical dots  to change the default location or delete it</string>
+
+    <string name="permission_text">Location access denied. To enable it, go to App Info> Permissions> Location and allow access.</string>
 </resources>

@@ -12,6 +12,7 @@ data class ValidationResult(
 object Validator {
 
     private const val EMAIL_REGEX = "^[A-Za-z](.*)([@]{1})(.{1,})(\\.)(.{1,})"
+    private const val GSTIN_REGEX = "^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$"
 
     fun validateName(name: String): ValidationResult {
         return when {
@@ -76,6 +77,14 @@ object Validator {
 
             else -> ValidationResult(true)
 
+        }
+    }
+
+    fun validateGstin(gstin: String): ValidationResult {
+        return when {
+            gstin.isEmpty() -> ValidationResult(true)
+            !gstin.matches(GSTIN_REGEX.toRegex()) -> ValidationResult(false, "Invalid GSTIN format.")
+            else -> ValidationResult(true)
         }
     }
 }

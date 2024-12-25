@@ -18,14 +18,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -37,7 +37,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -86,10 +85,11 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.freeupcopy.R
 import com.example.freeupcopy.domain.enums.PricingModel
 import com.example.freeupcopy.domain.model.Price
-import com.example.freeupcopy.ui.presentation.sell_screen.CustomDivider
+import com.example.freeupcopy.ui.presentation.sell_screen.components.CustomDivider
 import com.example.freeupcopy.ui.presentation.sell_screen.SellUiEvent
 import com.example.freeupcopy.ui.presentation.sell_screen.SellViewModel
-import com.example.freeupcopy.ui.presentation.sell_screen.weight_screen.NoteSection
+import com.example.freeupcopy.ui.presentation.sell_screen.weight_screen.AnnouncementComposable
+import com.example.freeupcopy.ui.theme.ButtonShape
 import com.example.freeupcopy.ui.theme.LinkColor
 import com.example.freeupcopy.ui.theme.NoteContainerLight
 import com.example.freeupcopy.ui.theme.RecommendedContainerColor
@@ -122,8 +122,6 @@ fun PriceScreen(
     }
 
     val lifeCycleOwner = LocalLifecycleOwner.current
-//    val availableOptions =
-//        remember { mutableStateListOf<String>("Cash", "Coins", "Cash\n+\nCoins") }
     var enabled by remember { mutableStateOf(false) }
 
     val sheetState = rememberModalBottomSheetState()
@@ -167,8 +165,6 @@ fun PriceScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(20.dp, 20.dp, 0.dp, 0.dp))
-                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f))
                     .windowInsetsPadding(NavigationBarDefaults.windowInsets)
                     .defaultMinSize(minHeight = 70.dp),
                 verticalArrangement = Arrangement.Center,
@@ -182,7 +178,7 @@ fun PriceScreen(
                             .weight(1f)
                             .heightIn(min = 50.dp)
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(10.dp))
+                            .clip(ButtonShape)
                             .clickable {
                                 if (!state.isLoading) {
                                     val validate = priceViewModel.validateAll()
@@ -280,7 +276,7 @@ fun PriceScreen(
                 }
 
                 if (state.pricingModel.isNotEmpty()) {
-                    NoteSection(
+                    AnnouncementComposable(
                         text = "Your product will be sold in " + when {
                             state.pricingModel.containsAll(PricingModel.entries) ->
                                 "cash, coins, and cash+coins"
@@ -319,11 +315,11 @@ fun PriceScreen(
                                 "coins only"
 
                             else -> ""
-                        }
+                        },
+                        painter = painterResource(id = R.drawable.ic_campaign),
                     )
                 }
             }
-            Spacer(modifier = Modifier.size(10.dp))
             Spacer(modifier = Modifier.size(10.dp))
             Row(
                 modifier = Modifier
@@ -536,11 +532,13 @@ fun PriceScreen(
                         isCashAndCoinSheetOpen = false
                     },
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    windowInsets = BottomSheetDefaults.windowInsets.only(WindowInsetsSides.Bottom)
+                    //windowInsets = BottomSheetDefaults.windowInsets.only(WindowInsetsSides.Bottom)
+                    windowInsets = WindowInsets(0.dp)
                 ) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .navigationBarsPadding()
                             .padding(16.dp)
                     ) {
                         when {
@@ -610,7 +608,7 @@ fun PaymentOption(
         modifier = modifier
             .fillMaxHeight()
             .border(
-                width = 2.dp,
+                width = 1.dp,
                 color = if (selected) MaterialTheme.colorScheme.primary else
                     MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.4f),
                 shape = RoundedCornerShape(10.dp)
