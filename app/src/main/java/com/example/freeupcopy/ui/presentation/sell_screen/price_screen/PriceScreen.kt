@@ -1,4 +1,4 @@
-package com.example.freeupcopy.ui.presentation.sell_screen.componants
+package com.example.freeupcopy.ui.presentation.sell_screen.price_screen
 
 import android.annotation.SuppressLint
 import android.widget.Toast
@@ -8,7 +8,6 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -19,17 +18,16 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -39,7 +37,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -55,8 +52,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -66,11 +64,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -83,15 +79,23 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.freeupcopy.R
-import com.example.freeupcopy.ui.presentation.sell_screen.CustomDivider
-import com.example.freeupcopy.ui.theme.SwapsyTheme
+import com.example.freeupcopy.domain.enums.PricingModel
+import com.example.freeupcopy.domain.model.Price
+import com.example.freeupcopy.ui.presentation.sell_screen.components.CustomDivider
+import com.example.freeupcopy.ui.presentation.sell_screen.SellUiEvent
+import com.example.freeupcopy.ui.presentation.sell_screen.SellViewModel
+import com.example.freeupcopy.ui.presentation.sell_screen.weight_screen.AnnouncementComposable
+import com.example.freeupcopy.ui.theme.ButtonShape
 import com.example.freeupcopy.ui.theme.LinkColor
 import com.example.freeupcopy.ui.theme.NoteContainerLight
 import com.example.freeupcopy.ui.theme.RecommendedContainerColor
 import com.example.freeupcopy.ui.theme.RecommendedTextColor
+import com.example.freeupcopy.ui.theme.SwapsyTheme
+import com.example.freeupcopy.utils.Validator
 import com.example.freeupcopy.utils.calculateDeliveryFee
 import com.example.freeupcopy.utils.calculatePlatformFee
 import com.example.freeupcopy.utils.calculateTotalEarnings
@@ -104,21 +108,20 @@ import com.example.freeupcopy.utils.validateCash
 @Composable
 fun PriceScreen(
     modifier: Modifier = Modifier,
-    onClose: () -> Unit
-
+    price: Price,
+    onClose: () -> Unit,
+    onConfirmClick: () -> Unit,
+    sellViewModel: SellViewModel,
+    priceViewModel: PriceViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
+    val state by priceViewModel.priceUiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        priceViewModel.getPrice(price)
+    }
 
     val lifeCycleOwner = LocalLifecycleOwner.current
-    var mrp by remember { mutableStateOf("") }
-    val selectedOptions = remember { mutableStateListOf<String>() }
-    val availableOptions =
-        remember { mutableStateListOf<String>("Cash", "Coins", "Cash\n+\nCoins") }
-
-    var cashEarning by remember { mutableStateOf("") }
-    var coinsEarning by remember { mutableStateOf("") }
-    var cAndCEarningCash by remember { mutableStateOf("") }
-    var cAndCEarningCoin by remember { mutableStateOf("") }
     var enabled by remember { mutableStateOf(false) }
 
     val sheetState = rememberModalBottomSheetState()
@@ -126,11 +129,6 @@ fun PriceScreen(
     var isCashSheetOpen by rememberSaveable { mutableStateOf(false) }
     var isCoinSheetOpen by rememberSaveable { mutableStateOf(false) }
     var isCashAndCoinSheetOpen by rememberSaveable { mutableStateOf(false) }
-
-    var sellingPriceCash by remember { mutableStateOf("") }
-    var sellingPriceCoin by remember { mutableStateOf("") }
-    var cAndCPriceCash by remember { mutableStateOf("") }
-    var cAndCPriceCoin by remember { mutableStateOf("") }
 
     Scaffold(
         modifier = modifier
@@ -167,8 +165,6 @@ fun PriceScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(20.dp, 20.dp, 0.dp, 0.dp))
-                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f))
                     .windowInsetsPadding(NavigationBarDefaults.windowInsets)
                     .defaultMinSize(minHeight = 70.dp),
                 verticalArrangement = Arrangement.Center,
@@ -182,13 +178,48 @@ fun PriceScreen(
                             .weight(1f)
                             .heightIn(min = 50.dp)
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(10.dp))
-                            .clickable { }
-                            .background(MaterialTheme.colorScheme.secondary),
+                            .clip(ButtonShape)
+                            .clickable {
+                                if (!state.isLoading) {
+                                    val validate = priceViewModel.validateAll()
+                                    if (validate.isValid) {
+                                        Toast
+                                            .makeText(context, "Successful", Toast.LENGTH_SHORT)
+                                            .show()
+                                        val newPrice = Price(
+                                            pricingModel = state.pricingModel,
+                                            mrp = state.mrp,
+                                            sellingCash = state.sellingCash,
+                                            earningCash = state.earningCash,
+                                            earningCoin = state.earningCoin,
+                                            sellingCoin = state.sellingCoin,
+                                            sellingCashCoin = Pair(
+                                                state.combinedCash,
+                                                state.combinedCoin
+                                            ),
+                                            earningCashCoin = Pair(
+                                                state.earningccCash,
+                                                state.earningccCoin
+                                            )
+                                        )
+                                        sellViewModel.onEvent(SellUiEvent.PriceChange(price = newPrice))
+                                        onConfirmClick()
+                                    } else {
+                                        Toast
+                                            .makeText(
+                                                context,
+                                                validate.errorMessage.orEmpty(),
+                                                Toast.LENGTH_SHORT
+                                            )
+                                            .show()
+                                    }
+                                }
+                            }
+                            .background(MaterialTheme.colorScheme.tertiary),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "Confirm", color = MaterialTheme.colorScheme.onSecondary,
+                            text = "Confirm", color = MaterialTheme.colorScheme.onTertiary,
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp
                         )
@@ -197,7 +228,6 @@ fun PriceScreen(
             }
         }
     ) { innerPadding ->
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -211,11 +241,11 @@ fun PriceScreen(
             Spacer(modifier = Modifier.size(16.dp))
 
             PaymentTextFieldWithoutEarning(
-                value = mrp,
+                value = state.mrp,
                 placeholder = "Enter MRP in rupees",
                 leadingIcon = R.drawable.ic_rupee,
                 onValueChange = {
-                    mrp = it
+                    priceViewModel.onEvent(PriceUiEvent.MrpChange(it))
                 },
                 onDone = {}
             )
@@ -225,49 +255,68 @@ fun PriceScreen(
             Text(text = "Pricing model(s)")
 
             Spacer(modifier = Modifier.size(10.dp))
+
             Column {
                 AnimatedVisibility(
-                    visible = selectedOptions.isEmpty() || (!selectedOptions.contains(
-                        "Coins"
-                    ) && !selectedOptions.contains("Cash\n+\nCoins")),
-                    enter = fadeIn(animationSpec = tween(600)) + expandVertically(animationSpec = tween(600)),
-                    exit = fadeOut(animationSpec = tween(600)) + shrinkVertically(animationSpec = tween(600))
+                    visible = state.pricingModel.isEmpty() ||
+                            (!state.pricingModel.contains(PricingModel.COINS) &&
+                                    !state.pricingModel.contains(PricingModel.CASH_AND_COINS)),
+                    enter = fadeIn(animationSpec = tween(600)) + expandVertically(
+                        animationSpec = tween(
+                            600
+                        )
+                    ),
+                    exit = fadeOut(animationSpec = tween(600)) + shrinkVertically(
+                        animationSpec = tween(
+                            600
+                        )
+                    )
                 ) {
                     PricingInBox(Modifier.padding(bottom = 10.dp))
                 }
 
-                if (selectedOptions.isNotEmpty()) {
-                    NoteSection(
+                if (state.pricingModel.isNotEmpty()) {
+                    AnnouncementComposable(
                         text = "Your product will be sold in " + when {
-                            selectedOptions.containsAll(
-                                listOf(
-                                    "Cash",
-                                    "Coins",
-                                    "Cash\n+\nCoins"
-                                )
-                            ) ->
+                            state.pricingModel.containsAll(PricingModel.entries) ->
                                 "cash, coins, and cash+coins"
 
-                            selectedOptions.containsAll(listOf("Cash", "Coins")) ->
+                            state.pricingModel.containsAll(
+                                listOf(
+                                    PricingModel.CASH,
+                                    PricingModel.COINS
+                                )
+                            ) ->
                                 "cash and coins"
 
-                            selectedOptions.containsAll(listOf("Cash", "Cash\n+\nCoins")) ->
+                            state.pricingModel.containsAll(
+                                listOf(
+                                    PricingModel.CASH,
+                                    PricingModel.CASH_AND_COINS
+                                )
+                            ) ->
                                 "cash and cash+coins"
 
-                            selectedOptions.containsAll(listOf("Coins", "Cash\n+\nCoins")) ->
+                            state.pricingModel.containsAll(
+                                listOf(
+                                    PricingModel.COINS,
+                                    PricingModel.CASH_AND_COINS
+                                )
+                            ) ->
                                 "coins and cash+coins"
 
-                            selectedOptions.contains("Cash\n+\nCoins") ->
+                            state.pricingModel.contains(PricingModel.CASH_AND_COINS) ->
                                 "cash+coins"
 
-                            selectedOptions.contains("Cash") ->
+                            state.pricingModel.contains(PricingModel.CASH) ->
                                 "cash only"
 
-                            selectedOptions.contains("Coins") ->
+                            state.pricingModel.contains(PricingModel.COINS) ->
                                 "coins only"
 
                             else -> ""
-                        }
+                        },
+                        painter = painterResource(id = R.drawable.ic_campaign),
                     )
                 }
             }
@@ -279,31 +328,25 @@ fun PriceScreen(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-
-                availableOptions.forEach {
+                PricingModel.entries.forEach { pricingModel ->
                     PaymentOption(
                         modifier = Modifier.weight(1f),
-                        icon = when (it) {
-                            "Cash" -> R.drawable.ic_cash
-                            "Coins" -> R.drawable.ic_coin
+                        icon = when (pricingModel) {
+                            PricingModel.CASH -> R.drawable.ic_cash
+                            PricingModel.COINS -> R.drawable.ic_coin
                             else -> null
                         },
-                        selected = selectedOptions.contains(it),
-                        text = it,
+                        selected = state.pricingModel.contains(pricingModel),
+                        text = pricingModel.displayValue,
                         onClick = {
-                            if (selectedOptions.contains(it)) {
-                                selectedOptions.remove(it)
-                            } else {
-                                selectedOptions.add(it)
-                            }
+                            priceViewModel.onEvent(PriceUiEvent.TogglePricingModel(pricingModel))
                         }
                     )
                 }
-
             }
 
             if (
-                selectedOptions.contains("Cash")
+                state.pricingModel.contains(PricingModel.CASH)
             ) {
                 CustomDivider(Modifier.padding(vertical = 16.dp))
                 Row(
@@ -320,37 +363,36 @@ fun PriceScreen(
 
                 Spacer(modifier = Modifier.size(10.dp))
                 PaymentTextField(
-                    value = sellingPriceCash,
+                    value = state.sellingCash ?: "",
                     placeholder = "Enter selling price in rupees",
                     leadingIcon = R.drawable.ic_rupee,
                     onValueChange = {
-                        sellingPriceCash = it
+                        priceViewModel.onEvent(PriceUiEvent.SellingCashChange(it))
                     },
                     onDone = {
-                        if (it.isNotEmpty()) {
-                            val tempCalculate = calculateTotalEarnings(it.toLong(), "cat0")
-                            if (tempCalculate < 10) {
+                        if (!state.isLoading) {
+                            val validate = Validator.validateCashAmount(it)
+                            if (validate.isValid) {
+                                priceViewModel.onEvent(
+                                    PriceUiEvent.EarningCashChange(
+                                        calculateTotalEarnings(it.toLong(), "cat0").toString()
+                                    )
+                                )
+                            } else {
                                 Toast.makeText(
                                     context,
-                                    "Selling amount is too low, you can sell using coins",
+                                    validate.errorMessage.orEmpty(),
                                     Toast.LENGTH_SHORT
-                                )
-                                    .show()
-                                cashEarning = ""
-                                sellingPriceCash = ""
-                            } else {
-                                cashEarning = tempCalculate.toString()
+                                ).show()
+                                priceViewModel.onEvent(PriceUiEvent.EarningCashChange(""))
+                                priceViewModel.onEvent(PriceUiEvent.SellingCashChange(""))
                             }
-                        } else {
-                            Toast.makeText(context, "Value can not be empty", Toast.LENGTH_SHORT)
-                                .show()
-                            cashEarning = ""
                         }
                     }
                 )
-                if (cashEarning.isNotEmpty()) {
+                if (state.earningCash?.isNotEmpty() == true) {
                     YourEarning(
-                        earnings = "₹$cashEarning",
+                        earnings = "₹${state.earningCash}",
                         onClick = {
                             isSheetOpen = true
                             isCashSheetOpen = true
@@ -360,7 +402,7 @@ fun PriceScreen(
             }
 
             if (
-                selectedOptions.contains("Coins")
+                state.pricingModel.contains(PricingModel.COINS)
             ) {
                 CustomDivider(Modifier.padding(vertical = 16.dp))
                 Row(
@@ -377,36 +419,32 @@ fun PriceScreen(
 
                 Spacer(modifier = Modifier.size(10.dp))
                 PaymentTextField(
-                    value = sellingPriceCoin,
+                    value = state.sellingCoin ?: "",
                     placeholder = "In coins",
                     leadingIcon = R.drawable.ic_coin,
                     onValueChange = {
-                        sellingPriceCoin = it
+                        priceViewModel.onEvent(PriceUiEvent.SellingCoinChange(it))
                     },
                     onDone = {
-                        if (it.isNotEmpty()) {
-                            if (it.toLong() < 10) {
+                        if (!state.isLoading) {
+                            val validate = Validator.validateCoinAmount(it)
+                            if (validate.isValid) {
+                                priceViewModel.onEvent(PriceUiEvent.EarningCoinChange(it))
+                            } else {
                                 Toast.makeText(
                                     context,
-                                    "Selling amount cannot be < 10",
+                                    validate.errorMessage.orEmpty(),
                                     Toast.LENGTH_SHORT
-                                )
-                                    .show()
-                                coinsEarning = ""
-                                sellingPriceCoin = ""
-                            } else {
-                                coinsEarning = it
+                                ).show()
+                                priceViewModel.onEvent(PriceUiEvent.EarningCoinChange(""))
+                                priceViewModel.onEvent(PriceUiEvent.SellingCoinChange(""))
                             }
-                        } else {
-                            Toast.makeText(context, "Value can not be empty", Toast.LENGTH_SHORT)
-                                .show()
-                            coinsEarning = ""
                         }
                     },
                 )
-                if (coinsEarning.isNotEmpty()) {
+                if (state.earningCoin?.isNotEmpty() == true) {
                     YourEarning(
-                        earnings = "$coinsEarning coins",
+                        earnings = "${state.earningCoin} coins",
                         onClick = {
                             isSheetOpen = true
                             isCoinSheetOpen = true
@@ -416,69 +454,64 @@ fun PriceScreen(
             }
 
             if (
-                selectedOptions.contains("Cash\n+\nCoins")
+                state.pricingModel.contains(PricingModel.CASH_AND_COINS)
             ) {
                 CashAndCoinRow(
-                    cashEntered = cAndCPriceCash,
-                    coinEntered = cAndCPriceCoin,
+                    cashEntered = state.combinedCash ?: "",
+                    coinEntered = state.combinedCoin ?: "",
+//                    sellingCashCoin = state.sellingCoinCash ?: Pair("", ""),
                     enabled = enabled,
                     onCashValueChange = {
-                        cAndCPriceCash = it
-                        enabled = validateCash(cAndCPriceCash)
+                        priceViewModel.onEvent(PriceUiEvent.SellingccCashChange(it))
+                        enabled = validateCash(it)
                     },
                     onCoinValueChange = {
-                        cAndCPriceCoin = it
+                        priceViewModel.onEvent(PriceUiEvent.SellingccCoinChange(it))
                     },
                     onNext = {
-                        if (it.isNotEmpty()) {
-                            val tempCalculate = calculateTotalEarnings(it.toLong(), "cat0")
-                            if (tempCalculate < 10) {
+                        if (!state.isLoading) {
+                            val validate = Validator.validateCashAmount(it)
+                            if (validate.isValid) {
+                                priceViewModel.onEvent(
+                                    PriceUiEvent.EarningccCashChange(
+                                        calculateTotalEarnings(it.toLong(), "cat0").toString()
+                                    )
+                                )
+                            } else {
                                 Toast.makeText(
                                     context,
-                                    "Selling amount is too low",
+                                    validate.errorMessage.orEmpty(),
                                     Toast.LENGTH_SHORT
                                 ).show()
-                                cAndCPriceCash = ""
-                                cAndCEarningCash = ""
-                                cAndCEarningCoin = ""
-                                cAndCPriceCoin = ""
-                            } else {
-                                cAndCEarningCash = tempCalculate.toString()
+                                priceViewModel.onEvent(PriceUiEvent.EarningccCashChange(""))
+                                priceViewModel.onEvent(PriceUiEvent.SellingccCashChange(""))
+                                priceViewModel.onEvent(PriceUiEvent.SellingccCoinChange(""))
+                                priceViewModel.onEvent(PriceUiEvent.EarningCoinChange(""))
                             }
-                        } else {
-                            Toast.makeText(context, "Value can not be empty", Toast.LENGTH_SHORT)
-                                .show()
-                            cAndCEarningCash = ""
-                            cAndCEarningCoin = ""
-                            cAndCPriceCash = ""
-                            cAndCEarningCoin = ""
                         }
                     },
                     onDone = {
-                        if (it.isNotEmpty()) {
-                            if (it.toLong() < 10) {
+
+                        if (!state.isLoading) {
+                            val validate = Validator.validateCoinAmount(it)
+                            if (validate.isValid) {
+                                priceViewModel.onEvent(PriceUiEvent.EarningccCoinChange(it))
+                            } else {
                                 Toast.makeText(
                                     context,
-                                    "Selling amount cannot be < 10",
+                                    validate.errorMessage.orEmpty(),
                                     Toast.LENGTH_SHORT
-                                )
-                                    .show()
-                                cAndCEarningCoin = ""
-                                cAndCPriceCoin = ""
-                            } else {
-                                cAndCEarningCoin = it
+                                ).show()
+                                priceViewModel.onEvent(PriceUiEvent.SellingccCoinChange(""))
+                                priceViewModel.onEvent(PriceUiEvent.EarningccCoinChange(""))
                             }
-                        } else {
-                            Toast.makeText(context, "Value can not be empty", Toast.LENGTH_LONG)
-                                .show()
-                            cAndCEarningCoin = ""
                         }
                     }
                 )
 
-                if (cAndCEarningCash.isNotEmpty() && cAndCEarningCoin.isNotEmpty()) {
+                if (state.earningccCash?.isNotEmpty() == true && state.earningccCoin?.isNotEmpty() == true) {
                     YourEarning(
-                        earnings = "₹$cAndCEarningCash + $cAndCEarningCoin coins",
+                        earnings = "₹${state.earningccCash} + ${state.earningccCoin} coins",
                         onClick = {
                             isSheetOpen = true
                             isCashAndCoinSheetOpen = true
@@ -499,24 +532,24 @@ fun PriceScreen(
                         isCashAndCoinSheetOpen = false
                     },
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    windowInsets = BottomSheetDefaults.windowInsets.only(WindowInsetsSides.Bottom)
+                    //windowInsets = BottomSheetDefaults.windowInsets.only(WindowInsetsSides.Bottom)
+                    windowInsets = WindowInsets(0.dp)
                 ) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .navigationBarsPadding()
                             .padding(16.dp)
                     ) {
                         when {
                             isCashSheetOpen -> {
-
-                                val deliveryFee =
-                                    calculateDeliveryFee("cat0", sellingPriceCash.toLong())
-                                val platformFee = calculatePlatformFee(sellingPriceCash.toLong())
-                                val totalEarnings =
-                                    sellingPriceCash.toLong() - deliveryFee - platformFee
+                                val combinedCash = state.sellingCash!!.toLong()
+                                val deliveryFee = calculateDeliveryFee("cat0", combinedCash)
+                                val platformFee = calculatePlatformFee(combinedCash)
+                                val totalEarnings = combinedCash - deliveryFee - platformFee
 
                                 CommissionDetails(
-                                    initialPrice = sellingPriceCash.toLong(),
+                                    initialPrice = combinedCash,
                                     deliveryFee = deliveryFee,
                                     platformFee = platformFee,
                                     totalEarnings = totalEarnings,
@@ -537,14 +570,14 @@ fun PriceScreen(
                             }
 
                             isCashAndCoinSheetOpen -> {
-                                val deliveryFee =
-                                    calculateDeliveryFee("cat0", cAndCPriceCash.toLong())
-                                val platformFee = calculatePlatformFee(cAndCPriceCash.toLong())
+                                val combinedCash = state.combinedCash!!.toLong()
+                                val deliveryFee = calculateDeliveryFee("cat0", combinedCash)
+                                val platformFee = calculatePlatformFee(combinedCash)
                                 val totalEarnings =
-                                    cAndCPriceCash.toLong() - deliveryFee - platformFee
+                                    combinedCash - deliveryFee - platformFee
 
                                 CommissionDetails(
-                                    initialPrice = cAndCPriceCash.toLong(),
+                                    initialPrice = combinedCash,
                                     deliveryFee = deliveryFee,
                                     platformFee = platformFee,
                                     totalEarnings = totalEarnings,
@@ -575,7 +608,7 @@ fun PaymentOption(
         modifier = modifier
             .fillMaxHeight()
             .border(
-                width = 2.dp,
+                width = 1.dp,
                 color = if (selected) MaterialTheme.colorScheme.primary else
                     MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.4f),
                 shape = RoundedCornerShape(10.dp)
@@ -660,6 +693,7 @@ fun CashAndCoinRow(
     modifier: Modifier = Modifier,
     cashEntered: String,
     coinEntered: String,
+    //sellingCashCoin: Pair<String?, String?>,
     enabled: Boolean,
     onCashValueChange: (String) -> Unit,
     onCoinValueChange: (String) -> Unit,
@@ -668,6 +702,9 @@ fun CashAndCoinRow(
 ) {
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
+
+    var initialized by remember { mutableStateOf(false) }
+    var isKeyboardDone by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -684,6 +721,17 @@ fun CashAndCoinRow(
                 modifier = modifier
                     .clearFocusOnKeyboardDismiss()
                     .focusRequester(focusRequester)
+                    .onFocusChanged {
+                        if (!initialized) {
+                            initialized = true // Mark as initialized
+                        } else if (!it.isFocused && !isKeyboardDone) {
+                            // Only trigger onDone if focus loss wasn't caused by keyboard done button
+                            onNext(cashValue)
+                        }
+                        if (!it.isFocused) {
+                            isKeyboardDone = false // Reset the flag when focus is lost
+                        }
+                    }
                     .fillMaxWidth()
                     .weight(1f),
                 value = cashEntered,
@@ -724,6 +772,7 @@ fun CashAndCoinRow(
                 textStyle = TextStyle(textAlign = TextAlign.End),
                 keyboardActions = KeyboardActions(
                     onDone = {
+                        isKeyboardDone = true // Set flag before clearing focus
                         onNext(cashValue)
                         focusManager.clearFocus()
                     }
@@ -934,6 +983,8 @@ fun PaymentTextField(
     onValueChange: (String) -> Unit
 ) {
     var quantity by remember { mutableStateOf(value) }
+    var initialized by remember { mutableStateOf(false) }
+    var isKeyboardDone by remember { mutableStateOf(false) }
 
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
@@ -942,6 +993,17 @@ fun PaymentTextField(
         modifier = modifier
             .clearFocusOnKeyboardDismiss()
             .focusRequester(focusRequester)
+            .onFocusChanged {
+                if (!initialized) {
+                    initialized = true // Mark as initialized
+                } else if (!it.isFocused && !isKeyboardDone) {
+                    // Only trigger onDone if focus loss wasn't caused by keyboard done button
+                    onDone(quantity)
+                }
+                if (!it.isFocused) {
+                    isKeyboardDone = false // Reset the flag when focus is lost
+                }
+            }
             .fillMaxWidth(),
         value = value,
         onValueChange = {
@@ -981,6 +1043,7 @@ fun PaymentTextField(
         textStyle = TextStyle(textAlign = TextAlign.End),
         keyboardActions = KeyboardActions(
             onDone = {
+                isKeyboardDone = true // Set flag before clearing focus
                 onDone(quantity)
                 focusManager.clearFocus()
             }
@@ -1002,11 +1065,25 @@ fun PaymentTextFieldWithoutEarning(
 
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
+    var initialized by remember { mutableStateOf(false) }
+    var isKeyboardDone by remember { mutableStateOf(false) }
+
 
     OutlinedTextField(
         modifier = modifier
             .clearFocusOnKeyboardDismiss()
             .focusRequester(focusRequester)
+            .onFocusChanged {
+                if (!initialized) {
+                    initialized = true // Mark as initialized
+                } else if (!it.isFocused && !isKeyboardDone) {
+                    // Only trigger onDone if focus loss wasn't caused by keyboard done button
+                    onDone(quantity)
+                }
+                if (!it.isFocused) {
+                    isKeyboardDone = false // Reset the flag when focus is lost
+                }
+            }
             .fillMaxWidth(),
         value = value,
         enabled = enabled,
@@ -1047,6 +1124,7 @@ fun PaymentTextFieldWithoutEarning(
         textStyle = TextStyle(textAlign = TextAlign.End),
         keyboardActions = KeyboardActions(
             onDone = {
+                isKeyboardDone = true // Set flag before clearing focus
                 onDone(quantity)
                 focusManager.clearFocus()
             }
@@ -1080,9 +1158,6 @@ fun YourEarning(
                 onClick()
             }
         ) {
-            // Measure the Text width dynamically
-//            val textWidth = remember { mutableStateOf(0) }
-
             Text(
                 text = earnings,
                 color = LinkColor,
@@ -1097,33 +1172,7 @@ fun YourEarning(
                         dashWidth = 5.dp,
                         dashGap = 4.dp
                     )
-//                    .onGloballyPositioned { coordinates ->
-//                        textWidth.value = coordinates.size.width
-//                    }
             )
-
-//            Canvas(
-//                modifier = Modifier
-//                    .width(with(LocalDensity.current) { textWidth.value.toDp() }) // Use text's width
-//                    .height(1.dp)
-//                    .padding(top = 11.dp) // Adjust padding to align with text
-//            ) {
-//                val dashWidth = 4.dp.toPx()
-//                val dashGap = 4.dp.toPx()
-//                val startX = 0f
-//                val endX = size.width
-//
-//                var currentX = startX
-//                while (currentX < endX) {
-//                    drawLine(
-//                        color = LinkColor,
-//                        start = Offset(x = currentX, y = 0f),
-//                        end = Offset(x = (currentX + dashWidth).coerceAtMost(endX), y = 0f),
-//                        strokeWidth = 1.dp.toPx()
-//                    )
-//                    currentX += dashWidth + dashGap
-//                }
-//            }
         }
     }
 }

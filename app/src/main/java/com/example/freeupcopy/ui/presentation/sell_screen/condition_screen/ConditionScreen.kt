@@ -1,4 +1,4 @@
-package com.example.freeupcopy.ui.presentation.sell_screen.componants
+package com.example.freeupcopy.ui.presentation.sell_screen.condition_screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -26,21 +26,26 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.example.freeupcopy.R
 import com.example.freeupcopy.domain.model.Condition
-import com.example.freeupcopy.ui.theme.SwapsyTheme
+import com.example.freeupcopy.ui.presentation.sell_screen.SellUiEvent
+import com.example.freeupcopy.ui.presentation.sell_screen.SellViewModel
+import com.example.freeupcopy.ui.presentation.sell_screen.weight_screen.AnnouncementComposable
+import com.example.freeupcopy.ui.theme.CardShape
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConditionScreen(
     modifier: Modifier = Modifier,
-    onConditionClick: (String) -> Unit,
+    onConditionClick: () -> Unit,
     onClose: () -> Unit,
-    selectedCondition: String
+    selectedCondition: String,
+    sellViewModel: SellViewModel
 ) {
 
     val lifeCycleOwner = LocalLifecycleOwner.current
@@ -104,36 +109,26 @@ fun ConditionScreen(
         ) {
             Spacer(modifier = Modifier.size(8.dp))
 
-            NoteSection(
-                text = "Please choose the option that best describes the current state of the product you are selling"
+            AnnouncementComposable(
+                text = "Please choose the option that best describes the current state of the product you are selling",
+                painter = painterResource(id = R.drawable.ic_campaign),
             )
             Spacer(modifier = Modifier.size(4.dp))
 
             conditionList.forEach { condition ->
                 ConditionItem(
                     onClick = {
-                        onConditionClick(condition.tag)
+                        val currentState = lifeCycleOwner.lifecycle.currentState
+                        if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                            sellViewModel.onEvent(SellUiEvent.ConditionChange(condition.tag))
+                            onConditionClick()
+                        }
                     },
                     tag = condition.tag,
                     description = condition.description,
                     isSelected = selectedCondition == condition.tag
                 )
             }
-//            Row(
-//                modifier = modifier
-//                    .fillMaxWidth()
-//                    .clip(RoundedCornerShape(10.dp))
-//                    .background(NoteContainerLight.copy(alpha = 0.75f))
-//                    .padding(16.dp),
-//            ) {
-//                Text(
-//                    text = "Products are manufactured in various regions worldwide. Please select 'India' for locally manufactured products or 'Others' for products made elsewhere to continue.",
-//                    fontSize = 13.5.sp,
-//                    lineHeight = 18.sp,
-//                    fontStyle = FontStyle.Italic,
-//                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
-//                )
-//            }
         }
     }
 }
@@ -149,10 +144,10 @@ fun ConditionItem(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(CardShape.medium)
             .clickable { onClick(tag) }
             .border(
-                width = 2.dp,
+                width = 1.dp,
                 color = if (isSelected) MaterialTheme.colorScheme.primary else
                     MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.2f),
                 shape = RoundedCornerShape(16.dp)
@@ -172,14 +167,15 @@ fun ConditionItem(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewConditionScreen() {
-    SwapsyTheme {
-        ConditionScreen(
-            onConditionClick = {},
-            onClose = {},
-            selectedCondition = "India"
-        )
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewConditionScreen() {
+//    SwapsyTheme {
+//        ConditionScreen(
+//            onConditionClick = {},
+//            onClose = {},
+//            selectedCondition = "New with Price Tag",
+//            sellViewModel = SellViewModel()
+//        )
+//    }
+//}

@@ -1,4 +1,4 @@
-package com.example.freeupcopy.ui.presentation.sell_screen.componants
+package com.example.freeupcopy.ui.presentation.sell_screen.manufacturing_screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -40,6 +40,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.freeupcopy.R
+import com.example.freeupcopy.ui.presentation.sell_screen.SellUiEvent
+import com.example.freeupcopy.ui.presentation.sell_screen.SellViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,7 +49,8 @@ fun ManufacturingScreen(
     modifier: Modifier = Modifier,
     onManufacturingClick: (String) -> Unit,
     onClose: () -> Unit,
-    manufacturingCountry: String
+    manufacturingCountry: String,
+    sellViewModel: SellViewModel
 ) {
 
     val lifeCycleOwner = LocalLifecycleOwner.current
@@ -120,7 +123,11 @@ fun ManufacturingScreen(
                     label = "India",
                     isSelected = manufacturingCountry == "India",
                     onClick = {
-                        onManufacturingClick("India")
+                        val currentState = lifeCycleOwner.lifecycle.currentState
+                        if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                            sellViewModel.onEvent(SellUiEvent.ManufacturingCountryChange("India"))
+                            onManufacturingClick("India")
+                        }
                     }
                 ) {
                     Image(
@@ -138,7 +145,11 @@ fun ManufacturingScreen(
                     label = "Others",
                     isSelected = manufacturingCountry == "Others",
                     onClick = {
-                        onManufacturingClick("Others")
+                        val currentState = lifeCycleOwner.lifecycle.currentState
+                        if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                            sellViewModel.onEvent(SellUiEvent.ManufacturingCountryChange("Others"))
+                            onManufacturingClick("Others")
+                        }
                     }
                 ) { tint ->
                     Icon(
@@ -199,12 +210,14 @@ fun ManufacturingCountryButton(
     }
 }
 
-@Preview
-@Composable
-fun ManufacturingScreenPreview() {
-    ManufacturingScreen(
-        onManufacturingClick = {},
-        onClose = {},
-        manufacturingCountry = "India"
-    )
-}
+//@Preview
+//@Composable
+//fun ManufacturingScreenPreview() {
+//    ManufacturingScreen(
+//        modifier = Modifier,
+//        onManufacturingClick = {},
+//        onClose = {},
+//        manufacturingCountry = "India",
+//        sellViewModel = SellViewModel()
+//    )
+//}

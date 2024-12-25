@@ -35,8 +35,8 @@ class LoginViewModel @Inject constructor() : ViewModel() {
         val emailResult = Validator.validateEmail(state.value.email)
         if (!emailResult.isValid) return emailResult
 
-        val passwordResult = Validator.validatePassword(state.value.password)
-        if (!passwordResult.isValid) return passwordResult
+//        val passwordResult = Validator.validatePassword(state.value.password)
+//        if (!passwordResult.isValid) return passwordResult
 
         return ValidationResult(true) // All validations passed
     }

@@ -2,6 +2,7 @@ package com.example.freeupcopy.utils
 
 
 private const val ERR_LEN = "Minimum 8 character required."
+private const val OUR_CURRENCY = "Coin"
 
 data class ValidationResult(
     val isValid: Boolean = false,
@@ -11,6 +12,7 @@ data class ValidationResult(
 object Validator {
 
     private const val EMAIL_REGEX = "^[A-Za-z](.*)([@]{1})(.{1,})(\\.)(.{1,})"
+    private const val GSTIN_REGEX = "^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$"
 
     fun validateName(name: String): ValidationResult {
         return when {
@@ -44,6 +46,44 @@ object Validator {
 //            password.none { it.isUpperCase() } -> ValidationResult(false, "Password must contain at least one uppercase letter.")
 //            password.none { it.isLowerCase() } -> ValidationResult(false, "Password must contain at least one lowercase letter.")
 //            password.none { !it.isLetterOrDigit() } -> ValidationResult(false, "Password must contain at least one special character.")
+            else -> ValidationResult(true)
+        }
+    }
+
+    fun validateMrp(amount: String?): ValidationResult {
+        return when {
+            amount.isNullOrEmpty() -> ValidationResult(false, "Mrp cannot be empty")
+            amount.toLongOrNull() == null || amount.toLong() <= 0 -> ValidationResult(false, "Mrp must be greater than zero")
+            else -> ValidationResult(true)
+        }
+    }
+
+    fun validateCashAmount(amount: String?, minEarnings: Long = 10): ValidationResult {
+        return when {
+            amount.isNullOrEmpty() -> ValidationResult(false, "Cash cannot be empty")
+            amount.toLongOrNull() == null || amount.toLong() <= 0 -> ValidationResult(false, "Cash must be greater than zero")
+            calculateTotalEarnings(amount.toLong(), "cat0") < minEarnings -> ValidationResult(false, "Cash is too low, you can sell using coins")
+            else -> ValidationResult(true)
+        }
+    }
+
+    fun validateCoinAmount(amount: String?, minCoins: Long = 10): ValidationResult {
+        return when {
+            amount.isNullOrEmpty() -> ValidationResult(false, "$OUR_CURRENCY cannot be empty")
+            amount.toLongOrNull() == null || amount.toLong() < minCoins -> ValidationResult(
+                false,
+                "$OUR_CURRENCY must be greater than $minCoins"
+            )
+
+            else -> ValidationResult(true)
+
+        }
+    }
+
+    fun validateGstin(gstin: String): ValidationResult {
+        return when {
+            gstin.isEmpty() -> ValidationResult(true)
+            !gstin.matches(GSTIN_REGEX.toRegex()) -> ValidationResult(false, "Invalid GSTIN format.")
             else -> ValidationResult(true)
         }
     }

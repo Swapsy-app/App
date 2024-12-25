@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package com.example.freeupcopy.ui.presentation.sell_screen.componants
+package com.example.freeupcopy.ui.presentation.sell_screen.brand_screen
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.freeupcopy.ui.presentation.home_screen.componants.SearchBar
+import com.example.freeupcopy.ui.presentation.sell_screen.weight_screen.CustomRadioButton
 import com.example.freeupcopy.ui.theme.SwapsyTheme
 
 @Composable
