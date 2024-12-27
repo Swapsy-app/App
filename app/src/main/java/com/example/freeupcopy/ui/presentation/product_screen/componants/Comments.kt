@@ -1,33 +1,59 @@
-package com.example.freeupcopy.ui.presentation.product_page.componants
+package com.example.freeupcopy.ui.presentation.product_screen.componants
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Send
+import androidx.compose.material.icons.automirrored.rounded.Send
+import androidx.compose.material.icons.rounded.AccountCircle
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.freeupcopy.R
 import com.example.freeupcopy.domain.model.Comment
 import com.example.freeupcopy.domain.model.Reply
+import com.example.freeupcopy.ui.theme.ButtonShape
+import com.example.freeupcopy.ui.theme.SwapsyTheme
+import com.example.freeupcopy.ui.theme.TextFieldShape
+import com.example.freeupcopy.utils.clearFocusOnKeyboardDismiss
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Comments(
     comment: List<Comment>,
@@ -35,44 +61,104 @@ fun Comments(
     userReply: String,
     onCommentChange: (String) -> Unit,
     onReplyChange: (String) -> Unit,
-    sendComment : () -> Unit,
-    commentReplying : String,
-    onReply: (String) -> Unit,
-    sendReply: (String) -> Unit
+    sendComment: () -> Unit,
+    onReplyClick: (String?) -> Unit,
+    sendReply: (String) -> Unit,
+    toReplyId: String?,
 ) {
     Column(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .clearFocusOnKeyboardDismiss()
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.primaryContainer)
+            .padding(16.dp),
     ) {
-        Text(
-            text = "Comments",
-            fontSize = 24.sp
-        )
-        Spacer(modifier = Modifier.size(8.dp))
+        Row {
+            Icon(
+                painter = painterResource(R.drawable.ic_comment),
+                contentDescription = "post comment",
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.size(8.dp))
+            Text(
+                text = "Comments",
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        Spacer(modifier = Modifier.size(16.dp))
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = Arrangement.Center
         ) {
             OutlinedTextField(
                 value = userComment,
                 onValueChange = { onCommentChange(it) },
-                label = {
-                    Text(text = "Add a comment...")
+                placeholder = {
+                    Text(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = "Add a comment...",
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.4f),
+                        fontStyle = FontStyle.Italic,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 },
-                modifier = Modifier.fillMaxWidth(0.9f)
+                modifier = Modifier.weight(1f),
+                shape = TextFieldShape,
+                leadingIcon = {
+                    Icon(
+                        modifier = Modifier
+                            .padding(start = 6.dp, end = 4.dp)
+                            .size(48.dp),
+                        imageVector = Icons.Rounded.AccountCircle,
+                        contentDescription = "user profile",
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f)
+                    )
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.03f),
+                )
             )
-            Icon(
-                imageVector = Icons.Rounded.Send,
-                contentDescription = "post comment",
+
+            Spacer(modifier = Modifier.size(8.dp))
+
+            Box(
                 modifier = Modifier
+                    .size(50.dp)
+                    .clip(ButtonShape)
+                    .background(MaterialTheme.colorScheme.onPrimaryContainer)
                     .clickable {
                         sendComment()
-                    }
-            )
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Rounded.Send,
+                    contentDescription = "post comment",
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+            }
         }
+
         Spacer(modifier = Modifier.size(24.dp))
         comment.forEach { commentItem ->
-            CommentItem(comment = commentItem, nestingLevel = 0, userReply = userReply, onReplyChange = onReplyChange, sendReply = sendReply, userReplying = (commentItem.id.equals(commentReplying)), onReply = onReply)
+            CommentItem(
+                comment = commentItem,
+                userReply = userReply,
+                isReplying = toReplyId == commentItem.id,
+                onReplyChange = onReplyChange,
+                sendReply = sendReply,
+                onReplyClick = {
+                    onReplyClick(it)
+                },
+                replyToReplyId = toReplyId,
+//                onReplyToReplyClick = { reply ->
+//                    onReplyToReplyClick(reply?.id)
+//                }
+            )
             Spacer(modifier = Modifier.size(16.dp))
         }
     }
@@ -81,80 +167,128 @@ fun Comments(
 @Composable
 fun CommentItem(
     comment: Comment,
-    nestingLevel: Int,
-    userReplying : Boolean,
+    isReplying: Boolean,
+    replyToReplyId: String?,
     onReplyChange: (String) -> Unit,
     userReply: String,
-    sendReply : (String) -> Unit,
-    onReply: (String) -> Unit
+    sendReply: (String) -> Unit,
+    onReplyClick: (String?) -> Unit,
 ) {
+    val focusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
+
     Row(
         modifier = Modifier.fillMaxWidth()
     ) {
-        VerticalDivider(
-            color = Color.Gray,
-            thickness = 2.dp,
-            modifier = Modifier
-                .height(IntrinsicSize.Max)
-                .padding(start = (nestingLevel * 16).dp)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
         Column(
             modifier = Modifier.fillMaxWidth()
         ) {
-            Row {
-                Text(
-                    text = comment.user,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
+            Row(
+                verticalAlignment = Alignment.Top
+            ) {
+                Icon(
+                    modifier = Modifier.size(30.dp),
+                    imageVector = Icons.Rounded.AccountCircle,
+                    contentDescription = "User image",
                 )
                 Spacer(modifier = Modifier.size(8.dp))
-                Text(
-                    text = comment.text,
-                    fontSize = 16.sp
-                )
-            }
-            Spacer(modifier = Modifier.size(8.dp))
-            if(userReplying){
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    OutlinedTextField(
-                        value = userReply,
-                        onValueChange = { onReplyChange(it) },
-                        label = {
-                            Text(text = "Add a reply...")
-                        },
-                        modifier = Modifier.fillMaxWidth(0.9f)
+                Column {
+                    Row {
+                        Text(
+                            text = comment.user,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Spacer(modifier = Modifier.size(8.dp))
+                        Text(
+                            text = comment.timeStamp,
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
+                        )
+                    }
+                    Spacer(modifier = Modifier.size(6.dp))
+                    Text(
+                        text = comment.text
                     )
-                    Icon(
-                        imageVector = Icons.Rounded.Send,
-                        contentDescription = "post comment",
-                        modifier = Modifier
-                            .clickable {
-                                sendReply(comment.id)
+
+                    // Only show Reply button if no reply UI is open
+                    if (!isReplying) {
+                        Text(
+                            text = "Reply",
+                            fontSize = 14.sp,
+                            color = Color.Gray,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier
+                                .clickable {
+                                    onReplyClick(comment.id)
+                                }
+                        )
+                    }
+
+                    // Show reply UI for main comment
+                    AnimatedVisibility(isReplying) {
+                        Row(
+                            modifier = Modifier.padding(top = 8.dp),
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            Icon(
+                                modifier = Modifier
+                                    .rotate(180f)
+                                    .offset(x = 4.dp),
+                                painter = painterResource(id = R.drawable.ic_reply),
+                                contentDescription = "post reply",
+                            )
+
+                            ReplyTextField(
+                                value = userReply,
+                                onValueChange = { onReplyChange(it) },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .focusRequester(focusRequester),
+                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                                keyboardActions = KeyboardActions(
+                                    onDone = {
+                                        //isKeyboardDone = true
+                                        onReplyClick(null)
+                                        focusManager.clearFocus()
+                                    }
+                                ),
+                                placeholder = "Add a reply..."
+                            )
+
+                            IconButton(
+                                onClick = {
+//                                    sendReply(comment.id)
+                                    onReplyClick(null)
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Close,
+                                    contentDescription = "post reply",
+                                )
                             }
-                    )
-                }
-            }
-            else{
-                Text(
-                    text = "Reply     ${comment.timeStamp}",
-                    fontSize = 14.sp,
-                    color = Color.Gray,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .padding(start = 16.dp)
-                        .clickable {
-                            onReply(comment.id)
                         }
-                )
-            }
-            Spacer(modifier = Modifier.size(12.dp))
-            comment.replies.forEach { reply ->
-                ReplyItem(reply = reply, nestingLevel = nestingLevel + 1)
+
+                    }
+
+                    // Show replies
+                    Spacer(modifier = Modifier.size(12.dp))
+                    comment.replies.forEachIndexed { i, reply ->
+                        ReplyItem(
+                            reply = reply,
+                            parentCommentId = comment.id,
+                            isReplying = replyToReplyId == reply.id,
+                            onReplyClick = {
+                                onReplyClick(it?.id)
+                            },
+                            onReplyChange = onReplyChange,
+                            userReply = userReply,
+                            sendReply = sendReply
+                        )
+                        if (i != comment.replies.size - 1) {
+                            Spacer(modifier = Modifier.size(12.dp))
+                        }
+                    }
+                }
             }
         }
     }
@@ -163,44 +297,98 @@ fun CommentItem(
 @Composable
 fun ReplyItem(
     reply: Reply,
-    nestingLevel: Int
+    parentCommentId: String,
+    isReplying: Boolean,
+    onReplyClick: (Reply?) -> Unit,
+    onReplyChange: (String) -> Unit,
+    userReply: String,
+    sendReply: (String) -> Unit
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        VerticalDivider(
-            color = Color.Black,
-            thickness = 2.dp,
-            modifier = Modifier
-                .height(IntrinsicSize.Max)
-                .padding(start = (nestingLevel * 16).dp)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Column(
-            modifier = Modifier.fillMaxWidth()
+    val focusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
+
+    Column {
+        Row(
+            verticalAlignment = Alignment.Top
         ) {
-            Row {
-                Text(
-                    text = reply.user,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.size(8.dp))
-                Column {
+            Icon(
+                imageVector = Icons.Rounded.AccountCircle,
+                contentDescription = "User image",
+            )
+            Spacer(modifier = Modifier.size(8.dp))
+            Column {
+                Row {
                     Text(
-                        text = reply.text,
-                        fontSize = 16.sp
+                        text = reply.user,
+                        fontWeight = FontWeight.SemiBold,
                     )
                     Spacer(modifier = Modifier.size(8.dp))
                     Text(
                         text = reply.timeStamp,
                         fontSize = 14.sp,
-                        color = Color.Gray,
-                        fontWeight = FontWeight.Bold
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
                     )
                 }
+                Text(
+                    text = reply.text
+                )
+
+                if (!isReplying) {
+                    Text(
+                        text = "Reply",
+                        fontSize = 14.sp,
+                        color = Color.Gray,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.clickable {
+                            onReplyClick(reply)
+                        }
+                    )
+                }
+
+                AnimatedVisibility(isReplying) {
+                    Row(
+                        modifier = Modifier.padding(top = 8.dp),
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        Icon(
+                            modifier = Modifier
+                                .size(20.dp)
+                                .rotate(180f)
+                                .offset(x = 4.dp),
+                            painter = painterResource(id = R.drawable.ic_reply),
+                            contentDescription = "post reply",
+                        )
+
+                        ReplyTextField(
+                            value = userReply,
+                            onValueChange = { onReplyChange(it) },
+                            modifier = Modifier
+                                .weight(1f)
+                                .focusRequester(focusRequester),
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                            keyboardActions = KeyboardActions(
+                                onSend = {
+                                    onReplyClick(null)
+                                    focusManager.clearFocus()
+                                }
+                            ),
+                            placeholder = "Reply to ${reply.user}..."
+                        )
+
+                        IconButton(
+                            onClick = {
+                                //sendReply(parentCommentId)
+                                onReplyClick(null)
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Close,
+                                contentDescription = "post reply",
+                            )
+                        }
+                    }
+                }
             }
-            Spacer(modifier = Modifier.size(8.dp))
         }
     }
 }
@@ -210,96 +398,131 @@ fun ReplyItem(
     showBackground = true
 )
 @Composable
-fun CommentsPreview(){
-    Comments(
-        comment = listOf(
-            Comment(
-                id = "c1",
-                user = "Alice",
-                userId = "u1",
-                text = "This is a great post! Thanks for sharing.",
-                replies = listOf(
-                    Reply(
-                        id = "r1",
-                        user = "Bob",
-                        userId = "u2",
-                        text = "I agree, very insightful!",
-                        timeStamp = "25 Dec"
+fun CommentsPreview() {
+    SwapsyTheme {
+        Comments(
+            comment = listOf(
+                Comment(
+                    id = "c1",
+                    user = "Alice",
+                    userId = "u1",
+                    text = "This is a great post! Thanks for sharing.",
+                    replies = listOf(
+                        Reply(
+                            id = "r1",
+                            user = "Bob",
+                            userId = "u2",
+                            text = "I agree, very insightful!",
+                            timeStamp = "25 Dec"
+                        ),
+                        Reply(
+                            id = "r2",
+                            user = "Charlie",
+                            userId = "u3",
+                            text = "Thanks for the info, Alice!",
+                            timeStamp = "25 Dec"
+                        )
                     ),
-                    Reply(
-                        id = "r2",
-                        user = "Charlie",
-                        userId = "u3",
-                        text = "Thanks for the info, Alice!",
-                        timeStamp = "25 Dec"
-                    )
+                    timeStamp = "25 Dec"
                 ),
-                timeStamp = "25 Dec"
-            ),
-            Comment(
-                id = "c2",
-                user = "David",
-                userId = "u4",
-                text = "Can someone explain this part in more detail?",
-                replies = listOf(
-                    Reply(
-                        id = "r3",
-                        user = "Eve",
-                        userId = "u5",
-                        text = "Sure, I can help. Which part do you need clarification on?",
-                        timeStamp = "25 Dec"
-                    )
+                Comment(
+                    id = "c2",
+                    user = "David",
+                    userId = "u4",
+                    text = "Can someone explain this part in more detail?",
+                    replies = listOf(
+                        Reply(
+                            id = "r3",
+                            user = "Eve",
+                            userId = "u5",
+                            text = "Sure, I can help. Which part do you need clarification on?",
+                            timeStamp = "25 Dec"
+                        )
+                    ),
+                    timeStamp = "25 Dec"
                 ),
-                timeStamp = "25 Dec"
-            ),
-            Comment(
-                id = "c3",
-                user = "Frank",
-                userId = "u6",
-                text = "Interesting perspective, but I think there's another way to look at this.",
-                replies = emptyList(),
-                timeStamp = "25 Dec"
-            )
-        ),
-        userComment = "",
-        onCommentChange = {},
-        sendComment = { },
-        commentReplying = "",
-        sendReply = {},
-        onReply = {},
-        userReply = "",
-        onReplyChange = {}
-    )
-}
-
-
-@Preview(
-    showBackground = true
-)
-@Composable
-fun CommentItemPreview(){
-    CommentItem(
-        Comment(
-            id = "c2",
-            user = "David",
-            userId = "u4",
-            text = "Can someone explain this part in more detail?",
-            replies = listOf(
-                Reply(
-                    id = "r3",
-                    user = "Eve",
-                    userId = "u5",
-                    text = "Sure, I can help. Which part do you need clarification on?",
+                Comment(
+                    id = "c3",
+                    user = "Frank",
+                    userId = "u6",
+                    text = "Interesting perspective, but I think there's another way to look at this.",
+                    replies = emptyList(),
                     timeStamp = "25 Dec"
                 )
             ),
-            timeStamp = "25 Dec"
-        ),
-        nestingLevel = 0,
-        userReplying = true,
-        sendReply = {},
-        onReply = {},
-        userReply = "",
-        onReplyChange = {}
+            userComment = "",
+            onCommentChange = {},
+            sendComment = { },
+            sendReply = {},
+            userReply = "",
+            onReplyChange = {},
+            onReplyClick = {},
+            toReplyId = null
+        )
+    }
+}
+
+
+//@Preview(
+//    showBackground = true
+//)
+//@Composable
+//fun CommentItemPreview() {
+//    SwapsyTheme {
+//        CommentItem(
+//            Comment(
+//                id = "c2",
+//                user = "David",
+//                userId = "u4",
+//                text = "Can someone explain this part in more detail?",
+//                replies = listOf(
+//                    Reply(
+//                        id = "r3",
+//                        user = "Eve",
+//                        userId = "u5",
+//                        text = "Sure, I can help. Which part do you need clarification on?",
+//                        timeStamp = "2 days ago"
+//                    )
+//                ),
+//                timeStamp = "4 days ago"
+//            ),
+//            sendReply = {},
+//            onReplyClick = {},
+//            userReply = "",
+//            onReplyChange = {},
+//            isReplying = true,
+//            replyToReplyId = "",
+//        )
+//    }
+//}
+
+@Composable
+fun ReplyTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    placeholder: String,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+) {
+
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        placeholder = {
+            Text(
+                text = placeholder,
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(
+                    alpha = 0.4f
+                ),
+                fontStyle = FontStyle.Italic,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        },
+        modifier = modifier,
+        keyboardActions = keyboardActions,
+        shape = TextFieldShape,
+        keyboardOptions = keyboardOptions
     )
 }

@@ -5,138 +5,176 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.AccountCircle
+import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
-import androidx.compose.material3.Divider
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Shapes
 import androidx.compose.material3.Text
-import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.freeupcopy.R
-import com.example.freeupcopy.domain.model.BargainOffers
+import com.example.freeupcopy.domain.model.BargainOffer
+import com.example.freeupcopy.ui.theme.ButtonShape
+import com.example.freeupcopy.ui.theme.CardShape
+import com.example.freeupcopy.ui.theme.SwapsyTheme
 
 @Composable
 fun BargainElement(
-    bargainOffers: List<BargainOffers>,
-    innerPaddingValues : PaddingValues,
-    onOpenPopup : () -> Unit
-){
+    bargainOffers: List<BargainOffer>,
+    onOpenPopup: () -> Unit,
+    onShowMore: () -> Unit = {}
+) {
+    // State to track whether all offers are shown
+    var showAllOffers by remember { mutableStateOf(false) }
+
     Column(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.primaryContainer,
+                        MaterialTheme.colorScheme.secondary.copy(alpha = 0.175f)
+                    ),
+                    start = Offset(0f, 0f),
+                    end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
+                )
+            )
+            .padding(16.dp)
     ) {
         Text(
-            text = "BARGAIN OFFER",
-            fontSize = 24.sp
+            text = "Bargain offers",
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.size(16.dp))
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(
-                    width = 1.dp,
-                    color = Color.Black
-                )
-                .clickable {
-                    onOpenPopup()
-                }
+
+        ElevatedButton(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = onOpenPopup,
+            shape = ButtonShape,
+            elevation = ButtonDefaults.buttonElevation(4.dp),
+            colors = ButtonDefaults.elevatedButtonColors(
+                containerColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            )
         ) {
             Text(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
                 text = "Make an Offer",
-                fontSize = 18.sp,
-                textAlign = TextAlign.Center,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 16.sp
             )
         }
+
         Spacer(modifier = Modifier.size(16.dp))
-        bargainOffers.forEach{
-            BargainOffers(bargainOffer = it)
-            Spacer(modifier = Modifier.size(16.dp))
+
+        // Show limited or all offers based on the state
+        val offersToDisplay = if (showAllOffers) bargainOffers else bargainOffers.take(3)
+        offersToDisplay.forEach { offer ->
+            BargainOffer(
+                bargainOffer = offer
+            )
+            if (offer != offersToDisplay.last()) {
+                Spacer(modifier = Modifier.size(10.dp))
+            }
         }
-        Box {
-            Divider(
-                Modifier
-                    .fillMaxWidth()
-                    .absoluteOffset(x = -(innerPaddingValues.calculateTopPadding())),
-                thickness = 8.dp,
-                color = Color.LightGray
-            )
-            Divider(
-                Modifier
-                    .fillMaxWidth()
-                    .absoluteOffset(x = (innerPaddingValues.calculateTopPadding())),
-                thickness = 8.dp,
-                color = Color.LightGray
-            )
+
+        Spacer(modifier = Modifier.size(2.dp))
+
+        // Show "Show More" or "Show Less" button
+        if (bargainOffers.size > 3) {
+            TextButton(
+                onClick = { showAllOffers = !showAllOffers },
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            ) {
+                Text(
+                    text = if (showAllOffers) "Show Less" else "Show ${bargainOffers.size - 3} more offers",
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Icon(
+                    modifier = Modifier.rotate(if (showAllOffers) 180f else 0f),
+                    imageVector = Icons.Rounded.ArrowDropDown,
+                    contentDescription = if (showAllOffers) "Show less" else "Show more",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
         }
     }
 }
 
 @Composable
-fun BargainOffers(
-    bargainOffer: BargainOffers
-){
-    Row(
-        modifier = Modifier.fillMaxWidth()
+fun BargainOffer(
+    modifier: Modifier = Modifier,
+    bargainOffer: BargainOffer,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(CardShape.medium)
+            .background(MaterialTheme.colorScheme.primaryContainer)
+            .padding(16.dp)
     ) {
-        Column(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Row {
-                Text(
-                    text = bargainOffer.user,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.size(8.dp))
-                Column {
+
+        Row(
+            verticalAlignment = Alignment.Top
+        ) { // User and time
+            Icon(
+                imageVector = Icons.Rounded.AccountCircle,
+                contentDescription = "User image",
+            )
+            Spacer(modifier = Modifier.size(8.dp))
+            Column {
+                Row {
                     Text(
-                        text = bargainOffer.text,
-                        fontSize = 16.sp
+                        text = bargainOffer.user,
+                        fontWeight = FontWeight.SemiBold,
                     )
                     Spacer(modifier = Modifier.size(8.dp))
                     Text(
                         text = bargainOffer.timeStamp,
                         fontSize = 14.sp,
-                        color = Color.Gray,
-                        fontWeight = FontWeight.Bold
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
                     )
                 }
+                Spacer(modifier = Modifier.size(4.dp))
+                Text(
+                    text = bargainOffer.text
+                )
             }
-            Spacer(modifier = Modifier.size(8.dp))
+            
         }
     }
 }
@@ -144,24 +182,24 @@ fun BargainOffers(
 @Composable
 fun BargainPopup(
     isRupeeSelected: Boolean,
-    optionFocused : Int,
-    listedPrice : String,
-    recommendation : List<List<String>>,
-    onCoin : () -> Unit,
-    onRupee : () -> Unit,
-    onFocus0 : () -> Unit,
-    onFocus1 : () -> Unit,
-    onFocus2 : () -> Unit,
-    bargainText : String,
-    onChangeBargainText : (String) -> Unit,
-    messageToSeller : String,
-    onChangeMessageToSeller : (String) -> Unit,
-    onClosePopup : () -> Unit
-){
+    optionFocused: Int,
+    listedPrice: String,
+    recommendation: List<List<String>>,
+    onCoin: () -> Unit,
+    onRupee: () -> Unit,
+    onFocus0: () -> Unit,
+    onFocus1: () -> Unit,
+    onFocus2: () -> Unit,
+    bargainText: String,
+    onChangeBargainText: (String) -> Unit,
+    messageToSeller: String,
+    onChangeMessageToSeller: (String) -> Unit,
+    onClosePopup: () -> Unit
+) {
     Card(
         modifier = Modifier
             .clip(
-            RoundedCornerShape(32.dp, 32.dp, 0.dp, 0.dp)
+                RoundedCornerShape(32.dp, 32.dp, 0.dp, 0.dp)
             ),
         colors = CardColors(
             containerColor = MaterialTheme.colorScheme.background,
@@ -435,73 +473,74 @@ fun BargainPopup(
     }
 }
 
-@Preview(
-    showBackground = true
-)
-@Composable
-fun BargainPopupPreview(){
-    BargainPopup(
-        isRupeeSelected = true,
-        optionFocused = 1,
-        listedPrice = "200",
-        recommendation = listOf(listOf("150","180"),listOf("500","800")),
-        onCoin = {},
-        onRupee = {},
-        onFocus0 = {},
-        onFocus1 = {},
-        onFocus2 = {},
-        bargainText = "",
-        onChangeBargainText = {},
-        messageToSeller = "",
-        onChangeMessageToSeller = {},
-        onClosePopup = {}
-    )
-}
+//@Preview(
+//    showBackground = true
+//)
+//@Composable
+//fun BargainPopupPreview() {
+//    BargainPopup(
+//        isRupeeSelected = true,
+//        optionFocused = 1,
+//        listedPrice = "200",
+//        recommendation = listOf(listOf("150", "180"), listOf("500", "800")),
+//        onCoin = {},
+//        onRupee = {},
+//        onFocus0 = {},
+//        onFocus1 = {},
+//        onFocus2 = {},
+//        bargainText = "",
+//        onChangeBargainText = {},
+//        messageToSeller = "",
+//        onChangeMessageToSeller = {},
+//        onClosePopup = {}
+//    )
+//}
 
 @Preview(
     showBackground = true
 )
 @Composable
-fun BargainElementPreview(){
-    BargainElement(
-        innerPaddingValues = PaddingValues(0.dp),
-        onOpenPopup = {},
-        bargainOffers = listOf(
-            BargainOffers(
-                id = "BO12345",
-                user = "John Doe",
-                userId = "U001",
-                text = "Looking for a 20% discount on bulk orders.",
-                timeStamp = "24 Dec"
-            ),
-            BargainOffers(
-                id = "BO12346",
-                user = "Jane Smith",
-                userId = "U002",
-                text = "Can I get free shipping for orders above $50?",
-                timeStamp = "23 Dec"
-            ),
-            BargainOffers(
-                id = "BO12347",
-                user = "Alex Johnson",
-                userId = "U003",
-                text = "Would you accept a counteroffer of $30 for this item?",
-                timeStamp = "22 Dec"
-            ),
-            BargainOffers(
-                id = "BO12348",
-                user = "Emily Davis",
-                userId = "U004",
-                text = "If I buy two items, can I get a third one free?",
-                timeStamp = "21 Dec"
-            ),
-            BargainOffers(
-                id = "BO12349",
-                user = "Michael Brown",
-                userId = "U005",
-                text = "Is there any holiday discount available?",
-                timeStamp = "20 Dec"
+fun BargainElementPreview() {
+    SwapsyTheme {
+        BargainElement(
+            onOpenPopup = {},
+            bargainOffers = listOf(
+                BargainOffer(
+                    id = "BO12345",
+                    user = "John Doe",
+                    userId = "U001",
+                    text = "Looking for a 20% discount on bulk orders.",
+                    timeStamp = "1 day ago"
+                ),
+                BargainOffer(
+                    id = "BO12346",
+                    user = "Jane Smith",
+                    userId = "U002",
+                    text = "Can I get free shipping for orders above $50?",
+                    timeStamp = "1 day ago"
+                ),
+                BargainOffer(
+                    id = "BO12347",
+                    user = "Alex Johnson",
+                    userId = "U003",
+                    text = "Would you accept a counteroffer of $30 for this item?",
+                    timeStamp = "2 day ago"
+                ),
+                BargainOffer(
+                    id = "BO12348",
+                    user = "Emily Davis",
+                    userId = "U004",
+                    text = "If I buy two items, can I get a third one free?",
+                    timeStamp = "2 day ago"
+                ),
+                BargainOffer(
+                    id = "BO12349",
+                    user = "Michael Brown",
+                    userId = "U005",
+                    text = "Is there any holiday discount available?",
+                    timeStamp = "4 day ago"
+                )
             )
         )
-    )
+    }
 }

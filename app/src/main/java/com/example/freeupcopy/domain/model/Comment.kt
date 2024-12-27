@@ -18,7 +18,7 @@ data class Reply(
     val timeStamp : String
 )
 
-data class BargainOffers(
+data class BargainOffer(
     val id : String,
     val user : String,
     val userId: String,

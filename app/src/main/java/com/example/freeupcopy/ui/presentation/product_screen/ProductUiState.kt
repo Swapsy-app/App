@@ -1,17 +1,18 @@
 package com.example.freeupcopy.ui.presentation.product_screen
 
-import com.example.freeupcopy.domain.model.BargainOffers
+import com.example.freeupcopy.domain.model.BargainOffer
 import com.example.freeupcopy.domain.model.Comment
 import com.example.freeupcopy.domain.model.Reply
 
-data class ProductScreenUiState(
+data class ProductUiState(
     val isLiked : Boolean = false,
     val pincode : String = "",
     val comment : String = "",
     val reply : String = "",
     val isImageOpen : Boolean = false,
     val imageIndex : Int = 1,
-    val commentReplying : String = "",
+
+    val toReplyId: String? = null, // Track which reply is being replied to
 
     val isRupeeSelected : Boolean = true,
     val optionFocused : Int = 1,
@@ -27,7 +28,7 @@ data class ProductScreenUiState(
     val priceOffered: String = "1200",
     val priceOriginal: String = "3500",
     val coinsOffered: String = "7800",
-    val specialOffer: Array<String> = arrayOf("4000","800"),
+    val specialOffer: Pair<String, String> = Pair("4000","800"),
     val comments: List<Comment> = listOf(
         Comment(
             id = "c1",
@@ -77,41 +78,41 @@ data class ProductScreenUiState(
             timeStamp = "25 Dec"
         )
     ),
-    val bargainOffersList : List<BargainOffers> = listOf(
-        BargainOffers(
+    val bargainOfferLists : List<BargainOffer> = listOf(
+        BargainOffer(
             id = "BO12345",
             user = "John Doe",
             userId = "U001",
             text = "Looking for a 20% discount on bulk orders.",
-            timeStamp = "24 Dec"
+            timeStamp = "2 hrs ago"
         ),
-        BargainOffers(
+        BargainOffer(
             id = "BO12346",
             user = "Jane Smith",
             userId = "U002",
             text = "Can I get free shipping for orders above $50?",
-            timeStamp = "23 Dec"
+            timeStamp = "1 day ago"
         ),
-        BargainOffers(
+        BargainOffer(
             id = "BO12347",
             user = "Alex Johnson",
             userId = "U003",
             text = "Would you accept a counteroffer of $30 for this item?",
-            timeStamp = "22 Dec"
+            timeStamp = "2 days ago"
         ),
-        BargainOffers(
+        BargainOffer(
             id = "BO12348",
             user = "Emily Davis",
             userId = "U004",
             text = "If I buy two items, can I get a third one free?",
-            timeStamp = "21 Dec"
+            timeStamp = "2 days ago"
         ),
-        BargainOffers(
+        BargainOffer(
             id = "BO12349",
             user = "Michael Brown",
             userId = "U005",
             text = "Is there any holiday discount available?",
-            timeStamp = "20 Dec"
+            timeStamp = "1 week ago"
         )
     )
 

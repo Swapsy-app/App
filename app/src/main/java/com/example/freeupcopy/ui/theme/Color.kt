@@ -59,6 +59,7 @@ val AnnouncementContainerColor = Color(0xFFFFF5AD)
 val AnnouncementTextColor = Color(0xFF92400e)
 val AnnouncementIconColor = Color(0xFFd97706)
 
+val CustomOrangeColor = Color(0xFFFFA500)
 
 
 val RecommendedContainerColor = Color(0xFFB2F368)

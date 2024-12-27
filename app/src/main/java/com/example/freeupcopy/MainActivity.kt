@@ -41,6 +41,7 @@ import com.example.freeupcopy.ui.presentation.home_screen.componants.CustomNavig
 import com.example.freeupcopy.ui.presentation.inbox_screen.InboxScreen
 import com.example.freeupcopy.ui.navigation.CustomNavType
 import com.example.freeupcopy.ui.navigation.Screen
+import com.example.freeupcopy.ui.presentation.product_screen.ProductScreen
 import com.example.freeupcopy.ui.presentation.profile_screen.ProfileScreen
 import com.example.freeupcopy.ui.presentation.search_screen.SearchScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.SellScreen
@@ -128,7 +129,7 @@ class MainActivity : ComponentActivity() {
 
                     NavHost(
                         navController = navController,
-                        startDestination = Screen.HomeScreen,
+                        startDestination = Screen.ProductScreen,
                         enterTransition = {
                             slideIntoContainer(
                                 towards = AnimatedContentTransitionScope.SlideDirection.Left,
@@ -151,8 +152,6 @@ class MainActivity : ComponentActivity() {
                                 exitTransition = { fadeOut(tween(700)) }
                             ) {
                                 val sellViewModel = it.sharedViewModel<SellViewModel>(navController = navController)
-
-                                val selectedBrand = it.savedStateHandle.get<String>("selected_brand")
 
                                 SellScreen(
                                     sellViewModel = sellViewModel,
@@ -623,6 +622,10 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
                             )
+                        }
+
+                        composable<Screen.ProductScreen> {
+                            ProductScreen()
                         }
                     }
                 }
