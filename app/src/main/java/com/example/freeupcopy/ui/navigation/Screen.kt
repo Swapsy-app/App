@@ -73,4 +73,6 @@ sealed class Screen {
     //Product Screens
     @Serializable
     data object ProductScreen : Screen()
+    @Serializable
+    data object ReplyScreen : Screen()
 }

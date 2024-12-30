@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.Text
@@ -24,7 +23,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -35,7 +33,6 @@ import androidx.compose.ui.unit.sp
 import com.example.freeupcopy.R
 import com.example.freeupcopy.ui.theme.ButtonShape
 import com.example.freeupcopy.ui.theme.CashColor1
-import com.example.freeupcopy.ui.theme.CashColor2
 import com.example.freeupcopy.ui.theme.CustomOrangeColor
 import com.example.freeupcopy.ui.theme.SwapsyTheme
 import com.example.freeupcopy.utils.dashedBorder
@@ -74,11 +71,9 @@ fun ProductScreenBottomBar(
                         cap = StrokeCap.Square
                     )
                     .background(
-                        //MaterialTheme.colorScheme.tertiary.copy(alpha = 0.5f)
                         brush = Brush.linearGradient(
                             colors = listOf(
                                 MaterialTheme.colorScheme.tertiary.copy(alpha = 0.5f),
-                                //MaterialTheme.colorScheme.secondary.copy(alpha = 0.175f)
                                 CustomOrangeColor.copy(alpha = 0.5f)
                             ),
                             start = Offset(0f, 0f),

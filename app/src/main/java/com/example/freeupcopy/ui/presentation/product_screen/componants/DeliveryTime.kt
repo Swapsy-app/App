@@ -3,20 +3,29 @@ package com.example.freeupcopy.ui.presentation.product_screen.componants
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -32,6 +41,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.freeupcopy.R
 import com.example.freeupcopy.ui.presentation.sell_screen.location_screen.add_location_screen.AddLocationUiEvent
+import com.example.freeupcopy.ui.theme.CardShape
+import com.example.freeupcopy.ui.theme.CashColor1
+import com.example.freeupcopy.ui.theme.CashColor2
 import com.example.freeupcopy.ui.theme.SwapsyTheme
 import com.example.freeupcopy.ui.theme.TextFieldShape
 import com.example.freeupcopy.utils.clearFocusOnKeyboardDismiss
@@ -60,141 +72,137 @@ fun DeliveryTime(
 
         Spacer(modifier = Modifier.size(16.dp))
 
-        OutlinedTextField(
-            modifier = Modifier
-                .clearFocusOnKeyboardDismiss()
-                .focusRequester(focusRequester)
-                .fillMaxWidth(),
-            value = pinCode,
-            onValueChange = {
-                onPinCodeChange(it)
-            },
-            label = {
-                Text("Pincode")
-            },
-            placeholder = {
-                Text(
-                    modifier = Modifier.fillMaxWidth(),
-                    text = "e.g., 560001",
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.4f),
-                    fontStyle = FontStyle.Italic,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            singleLine = true,
-            maxLines = 1,
-            keyboardActions = KeyboardActions(
-                onDone = {
-
-                    focusManager.clearFocus()
-                }
-            ),
-            shape = TextFieldShape
-        )
-
-        Text(
-            modifier = Modifier.padding(start = 8.dp, top = 2.dp),
-            text = "Delivery to : $userLocation",
-            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.4f),
-            fontSize = 14.sp
-        )
-        Spacer(modifier = Modifier.size(20.dp))
-
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.Top
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.buy),
-                    contentDescription = "buy icon",
-                    modifier = Modifier.size(32.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
-                Spacer(modifier = Modifier.size(8.dp))
-                Text(
-                    text = "Today",
-                    fontWeight = FontWeight.W500,
-                )
-                Text(
-                    text = "Place Order",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.W300,
-                    textAlign = TextAlign.Center
-                )
-            }
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
-                painter = painterResource(id = R.drawable.right_arrow),
-                contentDescription = "right arrow",
-                modifier = Modifier.size(32.dp),
+                imageVector = Icons.Outlined.LocationOn,
+                contentDescription = "location icon",
+                modifier = Modifier.size(20.dp),
+                tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.4f),
             )
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.truck),
-                    contentDescription = "truck icon",
-                    modifier = Modifier.size(32.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
-                Spacer(modifier = Modifier.size(8.dp))
-                Text(
-                    text = dateOfPickup,
-                    fontWeight = FontWeight.W500,
-                )
-                Text(
-                    text = "Pickup from Seller",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.W300,
-                    textAlign = TextAlign.Center
-                )
-            }
-            Icon(
-                painter = painterResource(id = R.drawable.right_arrow),
-                contentDescription = "right arrow",
-                modifier = Modifier.size(32.dp)
+            Spacer(modifier = Modifier.size(4.dp))
+            Text(
+
+                text = "Delivery to:",
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.4f),
+                fontSize = 15.sp
             )
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.box),
-                    contentDescription = "box icon",
-                    modifier = Modifier.size(32.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
-                Spacer(modifier = Modifier.size(8.dp))
-                Text(
-                    text = dateOfPickup,
-                    fontWeight = FontWeight.W500,
-                )
-                Text(
-                    text = "Deliver to You",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.W300,
-                    textAlign = TextAlign.Center
-                )
-            }
         }
+        Spacer(modifier = Modifier.size(4.dp))
+        Row(
+            modifier = Modifier.height(IntrinsicSize.Min),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            OutlinedTextField(
+                modifier = Modifier
+                    .clearFocusOnKeyboardDismiss()
+                    .focusRequester(focusRequester)
+                    .weight(1f),
+                value = pinCode,
+                onValueChange = {
+                    onPinCodeChange(it)
+                },
+                placeholder = {
+                    Text(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = "Enter Pincode",
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.4f),
+                        fontStyle = FontStyle.Italic,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                singleLine = true,
+                maxLines = 1,
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        focusManager.clearFocus()
+                    }
+                ),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.02f),
+                ),
+                shape = TextFieldShape
+            )
+
+            ElevatedButton(
+                modifier = Modifier.fillMaxHeight(),
+                onClick = {
+
+                },
+                shape = TextFieldShape,
+                colors = ButtonDefaults.elevatedButtonColors(
+                    containerColor = Color(0xFFF1E6FF),
+                    contentColor = MaterialTheme.colorScheme.primary
+                )
+            ) {
+                Text(
+                    text = "Check",
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+
+        }
+        Text(
+            modifier = Modifier.padding(top = 2.dp, start = 4.dp),
+            text = userLocation,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f),
+        )
+
+        Spacer(modifier = Modifier.size(8.dp))
+
+        ExpectedDeliveryRow()
     }
 }
 
-@Preview
+@Composable
+fun ExpectedDeliveryRow(
+    modifier: Modifier = Modifier
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(CardShape.medium)
+            .background(MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.03f))
+            .padding(16.dp)
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.ic_calendar),
+            contentDescription = "calendar icon",
+        )
+        Spacer(modifier = Modifier.size(16.dp))
+        Column {
+             Text(
+                text = "Expected Delivery",
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f),
+                 fontSize = 14.sp
+            )
+            Text(
+                text = "24 September 2024",
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 18.sp,
+                //color = CashColor2
+            )
+        }
+        Spacer(modifier = Modifier.weight(1f))
+    }
+}
+
+@Preview(showBackground = true)
 @Composable
 fun PreviewDeliveryTime() {
     SwapsyTheme {
         DeliveryTime(
             pinCode = "",
             onPinCodeChange = {},
-            userLocation = "Delhi",
+            userLocation = "Mumbai, Maharashtra",
             dateOfPickup = "24 Sep",
             dateOfDelivery = "26 Sep"
         )
+        //ExpectedDeliveryRow()
     }
 }

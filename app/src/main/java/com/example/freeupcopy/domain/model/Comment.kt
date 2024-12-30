@@ -1,9 +1,11 @@
 package com.example.freeupcopy.domain.model
 
+import com.example.freeupcopy.domain.enums.Currency
+
 
 data class Comment(
     val id: String,
-    val user: String,
+    val username: String,
     val userId: String,
     val text: String,
     val replies: List<Reply>,
@@ -20,8 +22,10 @@ data class Reply(
 
 data class BargainOffer(
     val id : String,
-    val user : String,
+    val username : String,
     val userId: String,
-    val text: String,
+    val message: String,
+    val amount: String,
+    val currency: Currency,
     val timeStamp : String
 )

@@ -1,54 +1,74 @@
 package com.example.freeupcopy.ui.presentation.product_screen.componants
 
-import android.content.Intent
+import android.util.Log
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material.icons.rounded.Share
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.rounded.FavoriteBorder
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.zIndex
 import com.example.freeupcopy.R
 import com.example.freeupcopy.ui.theme.CardShape
 import com.example.freeupcopy.ui.theme.SwapsyTheme
@@ -56,11 +76,15 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun ProductDetails(
-    productTitle: String = "Product Title",
+    productTitle: String = "Lymio Men Polyester Jackets || Bomber Jacket For Men || Lightweight Outwear Sportswear Bomber Standard Length Jacket (J4-6)",
     productCondition: String = "New with Price Tag",
     productSize: String = "Bust 32in",
-    productBrand: String = "Adidas",
-    productDescription: String = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla vehicula eros ut libero dictum, a pretium ligula hendrerit. Curabitur auctor magna id felis interdum, vitae feugiat velit.",
+    productBrand: String = "Lymio",
+    productDescription: String = "men jackets || bomber jacket for men || Lightweight Outwear Sportswear Bomber Jacket\n" +
+            "Type:Bomber\n" +
+            "Sleeve Length:Long Sleeve\n" +
+            "Fit Type:Regular Fit\n" +
+            "Please Noted - Only upper part of Only shirt is given Not inner t shirt and No any Accessories given",
     productCategory: String = "Office Supplies & Stationery",
     productFabric: String = "Product Fabric",
     productOccasion: String = "Product Occasion",
@@ -68,14 +92,10 @@ fun ProductDetails(
     productColor: String = "Product Color",
     productShape: String = "Product Shape",
     productWeight: String = "Product Weight",
-    imageSelected: Int,
-    changeImage: (Int) -> Unit,
-    isLiked: Boolean,
     numberOfLikes: Int,
-    productLink: String,
-    shareCounter: Int
+    shareCounter: Int,
+    onImagePreview: (Int) -> Unit
 ) {
-    val context = LocalContext.current
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -93,10 +113,9 @@ fun ProductDetails(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    imageVector = if (isLiked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                    imageVector = Icons.Rounded.FavoriteBorder,
                     contentDescription = "like icon",
-                    tint = Color.Red,
-                    modifier = Modifier.clickable { }
+                    tint = Color.Red
                 )
                 Spacer(modifier = Modifier.size(8.dp))
                 Text(
@@ -107,16 +126,16 @@ fun ProductDetails(
                 )
                 Spacer(modifier = Modifier.size(16.dp))
                 Icon(
-                    imageVector = Icons.Rounded.Share,
+                    imageVector = Icons.Outlined.Share,
                     contentDescription = "share icon",
-                    modifier = Modifier.clickable {
-                        val shareIntent = Intent().apply {
-                            action = Intent.ACTION_SEND
-                            putExtra(Intent.EXTRA_TEXT, productLink)
-                            type = "text/plain"
-                        }
-                        context.startActivity(Intent.createChooser(shareIntent, "Share via"))
-                    }
+//                    modifier = Modifier.clickable {
+//                        val shareIntent = Intent().apply {
+//                            action = Intent.ACTION_SEND
+//                            putExtra(Intent.EXTRA_TEXT, productLink)
+//                            type = "text/plain"
+//                        }
+//                        context.startActivity(Intent.createChooser(shareIntent, "Share via"))
+//                    }
                 )
                 Spacer(modifier = Modifier.size(8.dp))
                 Text(
@@ -125,11 +144,11 @@ fun ProductDetails(
                     fontSize = 16.sp
                 )
             }
-            Spacer(modifier = Modifier.size(16.dp))
+            Spacer(modifier = Modifier.size(8.dp))
             Text(
                 text = productTitle,
                 fontWeight = FontWeight.Bold,
-                fontSize = 24.sp
+                fontSize = 20.sp
             )
             Spacer(modifier = Modifier.size(8.dp))
             Row {
@@ -161,19 +180,22 @@ fun ProductDetails(
             }
         }
 
-
-        //Spacer(modifier = Modifier.size(24.dp))
         DynamicImage(
-            imageSelected = imageSelected,
-            changeImage = changeImage
+            onImagePreview = onImagePreview
         )
-        Spacer(modifier = Modifier.size(32.dp))
+        Spacer(modifier = Modifier.size(16.dp))
 
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
         ) {
+            Text(
+                text = "Product Description",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.size(16.dp))
 
             Text(
                 text = productDescription,
@@ -181,7 +203,11 @@ fun ProductDetails(
             )
             Spacer(modifier = Modifier.size(20.dp))
             Column(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(CardShape.medium)
+                    .background(MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.04f))
+                    .padding(8.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -248,24 +274,24 @@ fun ProductDetails(
         }
 
 
-
     }
+
 }
 
 @Composable
 fun DynamicImage(
     modifier: Modifier = Modifier,
-    images: List<Painter> = listOf(
-        painterResource(id = R.drawable.ic_comment),
-        painterResource(id = R.drawable.ic_campaign),
-        painterResource(id = R.drawable.ic_add_location),
-        painterResource(id = R.drawable.ic_community),
-        painterResource(id = R.drawable.ic_favorite),
-
-        ),
-    changeImage: (Int) -> Unit,
-    imageSelected: Int,
+    images: List<Int> = listOf(
+        R.drawable.p1,
+        R.drawable.p2,
+        R.drawable.p3,
+        R.drawable.p4,
+        R.drawable.p5,
+        R.drawable.p6
+    ),
+    onImagePreview: (Int) -> Unit
 ) {
+
     val pagerState = rememberPagerState(initialPage = 0) { images.size }
     val scope = rememberCoroutineScope()
 
@@ -274,27 +300,33 @@ fun DynamicImage(
             .fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Box{
+        Box {
             HorizontalPager(
                 state = pagerState,
             ) { currentPage ->
 
-                Card(
-                    modifier.fillMaxWidth(),
-                ) {
-                    Image(
-                        modifier = Modifier
-                            .size(300.dp),
-                        painter = images[currentPage],
-                        contentDescription = null
-                    )
-                }
+                Image(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(0.75f)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = {
+                                onImagePreview(pagerState.currentPage)
+                                Log.e("Image Clicked", pagerState.currentPage.toString())
+                            }
+                        ),
+                    painter = painterResource(id = images[currentPage]),
+                    contentDescription = null
+                )
+
             }
 
             IconButton(
                 modifier = Modifier
-                    //.padding(30.dp)
-                    .size(48.dp)
+                    .padding(16.dp)
+                    .size(40.dp)
                     .align(Alignment.CenterEnd)
                     .clip(CircleShape),
                 onClick = {
@@ -306,25 +338,25 @@ fun DynamicImage(
                     }
                 },
                 colors = IconButtonDefaults.iconButtonColors(
-                    containerColor = Color.Black.copy(alpha = 0.5f)
+                    containerColor = Color.Black.copy(alpha = 0.4f)
                 )
             ) {
                 Icon(
                     modifier = Modifier.fillMaxSize(),
-                    imageVector = Icons.Filled.KeyboardArrowRight,
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                     contentDescription = "",
-                    tint = Color.LightGray
+                    tint = Color.White
                 )
             }
 
             IconButton(
                 modifier = Modifier
-                    //.padding(30.dp)
-                    .size(48.dp)
+                    .padding(16.dp)
+                    .size(40.dp)
                     .align(Alignment.CenterStart)
                     .clip(CircleShape),
                 colors = IconButtonDefaults.iconButtonColors(
-                    containerColor = Color.Black.copy(alpha = 0.5f)
+                    containerColor = Color.Black.copy(alpha = 0.4f)
                 ),
                 onClick = {
                     val prevPage = pagerState.currentPage - 1
@@ -337,12 +369,14 @@ fun DynamicImage(
             ) {
                 Icon(
                     modifier = Modifier.fillMaxSize(),
-                    imageVector = Icons.Filled.KeyboardArrowLeft,
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                     contentDescription = "",
-                    tint = Color.LightGray
+                    tint = Color.White
                 )
             }
         }
+
+        Spacer(modifier = Modifier.size(8.dp))
 
         PageIndicator(
             pageCount = images.size,
@@ -350,13 +384,12 @@ fun DynamicImage(
             modifier = modifier
         )
     }
-
 }
 
 @Composable
-fun PageIndicator(pageCount: Int, currentPage: Int, modifier: Modifier) {
+fun PageIndicator(pageCount: Int, currentPage: Int, modifier: Modifier = Modifier) {
     Row(
-        modifier = modifier,
+        modifier = modifier.height(18.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -371,18 +404,16 @@ fun PageIndicator(pageCount: Int, currentPage: Int, modifier: Modifier) {
 
 @Composable
 fun IndicatorDots(isSelected: Boolean, modifier: Modifier) {
-    val size = animateDpAsState(targetValue = if (isSelected) 12.dp else 10.dp, label = "")
+    val size = animateDpAsState(targetValue = if (isSelected) 12.dp else 8.dp, label = "")
     Box(
         modifier = modifier
-            .padding(2.dp)
+            .padding(3.dp)
             .size(size.value)
             .clip(CircleShape)
             .background(
-                color = if (isSelected) Color.Black else Color.Gray
+                color = if (isSelected) Color.Black else Color.Black.copy(0.2f)
             )
-    ) {
-
-    }
+    )
 }
 
 @Composable
@@ -405,18 +436,189 @@ fun ProductSpecification(
     }
 }
 
+@Composable
+fun ImagePreviewDialog(
+    images: List<Int>,
+    initialImageIndex: Int,
+    onDismiss: () -> Unit
+) {
+    val pagerState = rememberPagerState(
+        initialPage = initialImageIndex,
+        pageCount = { images.size }
+    )
 
+    val scope = rememberCoroutineScope()
+    val lazyListState = rememberLazyListState(initialFirstVisibleItemIndex = initialImageIndex)
+
+    // Keep thumbnail scroll position synced with main pager
+    LaunchedEffect(pagerState.currentPage) {
+        lazyListState.animateScrollToItem(pagerState.currentPage)
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .windowInsetsPadding(WindowInsets(0.dp))
+            .navigationBarsPadding()
+            .background(Color.White)
+    ) {
+        // Main content pager
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxSize(),
+            key = { images[it] }
+        ) { page ->
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(id = images[page]),
+                    contentDescription = "Image ${page + 1}",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit
+                )
+            }
+        }
+
+        // Top bar
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "${pagerState.currentPage + 1} / ${images.size}",
+                color = Color.Black,
+                fontSize = 16.sp
+            )
+            TextButton(
+                onClick = onDismiss
+            ) {
+                Text(
+                    text = "CLOSE",
+                    color = Color.Black,
+                    fontSize = 18.sp
+                )
+            }
+        }
+
+        // Navigation arrows
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.Center)
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            IconButton(
+                onClick = {
+                    scope.launch {
+                        if (pagerState.currentPage > 0) {
+                            pagerState.animateScrollToPage(pagerState.currentPage - 1)
+                        }
+                    }
+                },
+                modifier = Modifier
+                    .size(48.dp)
+                    .background(
+                        color = Color.Black.copy(alpha = 0.7f),
+                        shape = CircleShape
+                    ),
+                enabled = pagerState.currentPage > 0
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                    contentDescription = "Previous image",
+                    tint = Color.White,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+
+            IconButton(
+                onClick = {
+                    scope.launch {
+                        if (pagerState.currentPage < images.size - 1) {
+                            pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                        }
+                    }
+                },
+                modifier = Modifier
+                    .size(48.dp)
+                    .background(
+                        color = Color.Black.copy(alpha = 0.7f),
+                        shape = CircleShape
+                    ),
+                enabled = pagerState.currentPage < images.size - 1
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = "Next image",
+                    tint = Color.White,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+        }
+
+        // Thumbnail strip at bottom
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(80.dp)
+                .align(Alignment.BottomCenter)
+                .padding(horizontal = 8.dp)
+        ) {
+            LazyRow(
+                state = lazyListState,
+                modifier = Modifier.fillMaxSize(),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                items(images.size) { index ->
+                    Box(
+                        modifier = Modifier
+                            .size(60.dp)
+                            .background(
+                                color = if (index == pagerState.currentPage)
+                                    Color.Black.copy(alpha = 0.15f)
+                                else
+                                    Color.Transparent,
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            .clickable {
+                                scope.launch {
+                                    pagerState.animateScrollToPage(index)
+                                }
+                            }
+                    ) {
+                        Image(
+                            painter = painterResource(id = images[index]),
+                            contentDescription = "Thumbnail ${index + 1}",
+                            modifier = Modifier
+                                .padding(4.dp)
+                                .fillMaxSize(),
+                            contentScale = ContentScale.Crop,
+                            alpha = 0.8f
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
 @Preview
 @Composable
 fun PreviewProductDetails() {
     SwapsyTheme {
         ProductDetails(
-            imageSelected = 1,
-            changeImage = {},
-            isLiked = false,
+//            imageSelected = 1,
+//            changeImage = {},
             numberOfLikes = 34,
-            productLink = "Mock Link",
-            shareCounter = 35
+            shareCounter = 35,
+            onImagePreview = {}
         )
     }
 }

@@ -1,25 +1,16 @@
 package com.example.freeupcopy.ui.presentation.product_screen
 
 import android.content.Intent
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Favorite
@@ -27,41 +18,39 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material.icons.rounded.MoreVert
-import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBarDefaults
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.freeupcopy.R
 import com.example.freeupcopy.ui.presentation.product_screen.componants.BargainElement
-import com.example.freeupcopy.ui.presentation.product_screen.componants.BargainPopup
+import com.example.freeupcopy.ui.presentation.product_screen.componants.BargainOptionsSheet
 import com.example.freeupcopy.ui.presentation.product_screen.componants.Comments
 import com.example.freeupcopy.ui.presentation.product_screen.componants.DeliveryTime
+import com.example.freeupcopy.ui.presentation.product_screen.componants.ImagePreviewDialog
 import com.example.freeupcopy.ui.presentation.product_screen.componants.ProductDetails
 import com.example.freeupcopy.ui.presentation.product_screen.componants.ProductFAB
 import com.example.freeupcopy.ui.presentation.product_screen.componants.ProductScreenBottomBar
@@ -71,13 +60,18 @@ import com.example.freeupcopy.ui.theme.SwapsyTheme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductScreen(
+    onReplyClick: (String?) -> Unit,
     productViewModel: ProductViewModel = viewModel()
 ) {
     val state = productViewModel.state.collectAsState()
     val lifeCycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
 
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+
+    var currentIndex by remember { mutableIntStateOf(0) }
 
     Scaffold(
         modifier = Modifier
@@ -85,191 +79,83 @@ fun ProductScreen(
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
-            Column {
-                TopAppBar(
-                    scrollBehavior = scrollBehavior,
-                    title = {},
-                    actions = {
-                        IconButton(
-                            onClick = {}
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.ShoppingCart,
-                                contentDescription = "cart button",
-                            )
-                        }
-                        IconButton(
-                            onClick = {
-                                val shareIntent = Intent().apply {
-                                    action = Intent.ACTION_SEND
-                                    putExtra(
-                                        Intent.EXTRA_TEXT,
-                                        state.value.productLink
-                                    )
-                                    type = "text/plain"
-                                }
-                                context.startActivity(
-                                    Intent.createChooser(
-                                        shareIntent,
-                                        "Share via"
-                                    )
+
+            TopAppBar(
+                scrollBehavior = scrollBehavior,
+                title = {},
+                actions = {
+                    IconButton(
+                        onClick = {}
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.ShoppingCart,
+                            contentDescription = "cart button",
+                        )
+                    }
+                    IconButton(
+                        onClick = {
+                            val shareIntent = Intent().apply {
+                                action = Intent.ACTION_SEND
+                                putExtra(
+                                    Intent.EXTRA_TEXT,
+                                    state.value.productLink
                                 )
+                                type = "text/plain"
                             }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Share,
-                                contentDescription = "share button",
+                            context.startActivity(
+                                Intent.createChooser(
+                                    shareIntent,
+                                    "Share via"
+                                )
                             )
                         }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Share,
+                            contentDescription = "share button",
+                        )
+                    }
 
-                        IconButton(
-                            onClick = {}
-                        ) {
-                            Icon(
-                                imageVector = Icons.Rounded.MoreVert,
-                                contentDescription = "more button",
-                            )
+                    IconButton(
+                        onClick = {}
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.MoreVert,
+                            contentDescription = "more button",
+                        )
+                    }
+                },
+                navigationIcon = {
+                    IconButton(onClick = {
+                        val currentState = lifeCycleOwner.lifecycle.currentState
+                        if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                            productViewModel.onClose()
                         }
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = {
-                            val currentState = lifeCycleOwner.lifecycle.currentState
-                            if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                                productViewModel.onClose()
-                            }
-                        }) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
-                                contentDescription = "close"
-                            )
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        scrolledContainerColor = MaterialTheme.colorScheme.secondaryContainer
-                    )
+                    }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
+                            contentDescription = "close"
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    scrolledContainerColor = MaterialTheme.colorScheme.secondaryContainer
                 )
-
-                HorizontalDivider(
-                    thickness = 1.dp,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(0.23f)
-                )
-            }
+            )
         },
         bottomBar = {
-
             ProductScreenBottomBar(
                 specialOffer = state.value.specialOffer,
-                coinsOffered = state.value.coinsOffered,
-                mrp = state.value.priceOriginal,
-                priceOffered = state.value.priceOffered,
+                coinsOffered = state.value.listedCoinPrice,
+                mrp = state.value.mrp,
+                priceOffered = state.value.listedCashPrice,
             )
-            
-//            Column(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .clip(RoundedCornerShape(16.dp, 16.dp, 0.dp, 0.dp))
-//                    .background(MaterialTheme.colorScheme.primaryContainer.copy(0.85f))
-//                    .windowInsetsPadding(NavigationBarDefaults.windowInsets)
-//                    .defaultMinSize(minHeight = 70.dp)
-//                    .padding(16.dp),
-//                verticalArrangement = Arrangement.Center,
-//                horizontalAlignment = Alignment.CenterHorizontally
-//            ) {
-//                Column {
-//                    Row(
-//                        modifier = Modifier
-//                            .heightIn(min = 50.dp)
-//                            .fillMaxWidth()
-//                            .clip(RoundedCornerShape(10.dp))
-//                            .clickable { }
-//                            .background(MaterialTheme.colorScheme.primary),
-//                        verticalAlignment = Alignment.CenterVertically,
-//                        horizontalArrangement = Arrangement.Center
-//                    ) {
-//                        Text(
-//                            text = "₹${state.value.specialOffer[1]}  +  ${state.value.specialOffer[0]}",
-//                            color = MaterialTheme.colorScheme.onPrimary,
-//                            fontWeight = FontWeight.Bold,
-//                            fontSize = 18.sp
-//                        )
-//                        Spacer(modifier = Modifier.size(4.dp))
-//                        Image(
-//                            painter = painterResource(id = R.drawable.coin),
-//                            contentDescription = "coin",
-//                            modifier = Modifier.size(24.dp)
-//                        )
-//                    }
-//                    Spacer(modifier = Modifier.size(8.dp))
-//                    Row {
-//                        Row(
-//                            modifier = Modifier
-//                                .weight(0.70f)
-//                                .heightIn(min = 50.dp)
-//                                .fillMaxWidth()
-//                                .clip(RoundedCornerShape(10.dp))
-//                                .clickable { }
-//                                .border(
-//                                    1.dp,
-//                                    MaterialTheme.colorScheme.onPrimaryContainer,
-//                                    RoundedCornerShape(10.dp)
-//                                ),
-//                            verticalAlignment = Alignment.CenterVertically,
-//                            horizontalArrangement = Arrangement.Center
-//                        ) {
-//                            Text(
-//                                text = state.value.coinsOffered,
-//                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-//                                fontWeight = FontWeight.Bold,
-//                                fontSize = 18.sp
-//                            )
-//                            Spacer(modifier = Modifier.size(4.dp))
-//                            Image(
-//                                painter = painterResource(id = R.drawable.coin),
-//                                contentDescription = "coin",
-//                                modifier = Modifier.size(24.dp)
-//                            )
-//
-//                        }
-//                        Spacer(modifier = Modifier.size(8.dp))
-//                        Row(
-//                            modifier = Modifier
-//                                .weight(0.70f)
-//                                .heightIn(min = 50.dp)
-//                                .fillMaxWidth()
-//                                .clip(RoundedCornerShape(10.dp))
-//                                .clickable { }
-//                                .border(
-//                                    1.dp,
-//                                    MaterialTheme.colorScheme.onPrimaryContainer,
-//                                    RoundedCornerShape(10.dp)
-//                                ),
-//                            verticalAlignment = Alignment.CenterVertically,
-//                            horizontalArrangement = Arrangement.Center
-//                        ) {
-//                            Text(
-//                                text = "₹" + state.value.priceOriginal,
-//                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-//                                textDecoration = TextDecoration.LineThrough,
-//                                fontWeight = FontWeight.Bold,
-//                                fontSize = 18.sp
-//                            )
-//                            Spacer(modifier = Modifier.size(8.dp))
-//                            Text(
-//                                text = "₹" + state.value.priceOffered,
-//                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-//                                fontWeight = FontWeight.Bold,
-//                                fontSize = 18.sp
-//                            )
-//                        }
-//                    }
-//                }
-//
-//            }
         },
         floatingActionButton = {
             Row(
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 ProductFAB(
                     onClick = {
@@ -283,28 +169,13 @@ fun ProductScreen(
                         )
                     }
                 )
-                Spacer(modifier = Modifier.size(8.dp))
+
                 ProductFAB(
-                    onClick = {
-                        val shareIntent = Intent().apply {
-                            action = Intent.ACTION_SEND
-                            putExtra(
-                                Intent.EXTRA_TEXT,
-                                state.value.productLink
-                            )
-                            type = "text/plain"
-                        }
-                        context.startActivity(
-                            Intent.createChooser(
-                                shareIntent,
-                                "Share via"
-                            )
-                        )
-                    },
+                    onClick = {},
                     icon = {
                         Icon(
-                            imageVector = Icons.Outlined.Share,
-                            contentDescription = "share icon",
+                            imageVector = Icons.Outlined.ShoppingCart,
+                            contentDescription = "cart icon",
                         )
                     }
                 )
@@ -324,12 +195,12 @@ fun ProductScreen(
             ) {
                 item {
                     ProductDetails(
-                        imageSelected = state.value.imageIndex, // did 1 based indexing to lazy to change it now
-                        changeImage = { productViewModel.changeImage(it) },
-                        isLiked = state.value.isLiked,
                         numberOfLikes = state.value.likeCounter.toInt(),
-                        productLink = state.value.productLink,
-                        shareCounter = state.value.shareCounter.toInt()
+                        shareCounter = state.value.shareCounter.toInt(),
+                        onImagePreview = { index ->
+                            currentIndex = index
+                            productViewModel.onEvent(ProductUiEvent.OnImagePreview)
+                        }
                     )
                 }
 
@@ -357,8 +228,15 @@ fun ProductScreen(
                 item {
                     BargainElement(
                         bargainOffers = state.value.bargainOfferLists,
-                        onOpenPopup = { productViewModel.onOpenPopup() },
-                        onShowMore = {}
+                        onOpenPopup = {
+                            //productViewModel.onOpenPopup()
+                            productViewModel.onEvent(ProductUiEvent.BargainOptionsClicked)
+                        },
+                        onEditOffer = {
+                            productViewModel.onEvent(ProductUiEvent.EditBargainOption(it))
+                        },
+                        currentUserId = "U002",
+
                     )
                 }
                 item {
@@ -369,42 +247,97 @@ fun ProductScreen(
                             productViewModel.onEvent(ProductUiEvent.ChangeComment(it))
                         },
                         sendComment = { productViewModel.sendComment() },
-                        sendReply = { productViewModel.sendReply(it) },
+//                        sendReply = { productViewModel.sendReply(it) },
                         onReplyClick = { itemId ->
-                            productViewModel.onEvent(ProductUiEvent.OnReplyClick(itemId))
+                            //productViewModel.onEvent(ProductUiEvent.OnReplyClick(itemId))
+                            val currentState = lifeCycleOwner.lifecycle.currentState
+                            if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                                onReplyClick(itemId)
+                            }
                         },
-                        userReply = state.value.reply,
-                        onReplyChange = { reply ->
-                            productViewModel.onEvent(ProductUiEvent.ChangeReply(reply))
-                        },
-                        toReplyId = state.value.toReplyId,
+//                        userReply = state.value.reply,
+//                        onReplyChange = { reply ->
+//                            productViewModel.onEvent(ProductUiEvent.ChangeReply(reply))
+//                        },
+//                        toReplyId = state.value.toReplyId,
                     )
                 }
             }
         }
     }
-    if (state.value.isPopupOpen) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.BottomCenter
+    if (state.value.isSheetOpen) {
+        ModalBottomSheet(
+            modifier = Modifier,
+            sheetState = sheetState,
+            onDismissRequest = { productViewModel.onEvent(ProductUiEvent.BargainOptionsClicked) },
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            //windowInsets = BottomSheetDefaults.windowInsets.only(WindowInsetsSides.Bottom)
+            windowInsets = WindowInsets(0.dp)
         ) {
-            BargainPopup(
-                isRupeeSelected = state.value.isRupeeSelected,
-                optionFocused = state.value.optionFocused,
-                listedPrice = state.value.priceOffered,
-                recommendation = state.value.recommendation,
-                onCoin = { productViewModel.onCoin() },
-                onRupee = { productViewModel.onRupee() },
-                onFocus0 = { productViewModel.onFocus0() },
-                onFocus1 = { productViewModel.onFocus1() },
-                onFocus2 = { productViewModel.onFocus2() },
-                bargainText = state.value.bargainTextField,
-                onChangeBargainText = { productViewModel.onChangeBargainText(it) },
-                messageToSeller = state.value.messageToSeller,
-                onChangeMessageToSeller = { productViewModel.onChangeMessageToSeller(it) },
-                onClosePopup = { productViewModel.onClosePopup() },
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(start = 16.dp, bottom = 16.dp, end = 16.dp)
+            ) {
+                BargainOptionsSheet(
+                    listedPrice = state.value.listedCashPrice,
+                    mrp = state.value.mrp,
+                    bargainAmount = state.value.bargainAmount,
+                    onBargainAmountChange = {
+                        productViewModel.onEvent(ProductUiEvent.ChangeBargainAmount(it))
+                    },
+                    message = state.value.bargainMessage,
+                    onBargainMessageChange = {
+                        productViewModel.onEvent(ProductUiEvent.ChangeBargainMessage(it))
+                    },
+                    onBargainRequest = {
+                        val validationResult = productViewModel.validateAll()
+                        if (validationResult.isValid) {
+                            productViewModel.onEvent(
+                                ProductUiEvent.BargainRequest(
+                                    state.value.bargainMessage,
+                                    state.value.bargainAmount
+                                )
+                            )
+                        } else {
+                            Toast.makeText(
+                                context,
+                                validationResult.errorMessage,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    },
+                    onClosePopup = { productViewModel.onEvent(ProductUiEvent.BargainOptionsClicked) },
+                    fifteenPercentRecommended = state.value.fifteenPercentRecommended ?: Pair("", ""),
+                    tenPercentRecommended = state.value.tenPercentRecommended ?: Pair("", ""),
+                    currencySelected = state.value.bargainCurrencySelected,
+                    onCurrencySelected = {
+                        productViewModel.onEvent(ProductUiEvent.BargainCurrencySelectedChange(it))
+                    },
+                    selectedIndex = state.value.bargainSelectedIndex,
+                    onSelectedIndexChange = {
+                        productViewModel.onEvent(ProductUiEvent.BargainSelectedChange(it))
+                    },
+                    //isEditing = false
+                )
+            }
         }
+    }
+
+    if (state.value.isImageOpen) {
+        ImagePreviewDialog(
+            initialImageIndex = currentIndex,
+            images = listOf(
+                R.drawable.p1,
+                R.drawable.p2,
+                R.drawable.p3,
+                R.drawable.p4,
+                R.drawable.p5,
+                R.drawable.p6
+            ),
+            onDismiss = { productViewModel.onEvent(ProductUiEvent.OnImagePreview) }
+        )
     }
 }
 
@@ -414,7 +347,9 @@ fun ProductScreen(
 @Composable
 fun PreviewProductScreen() {
     SwapsyTheme {
-        ProductScreen()
+        ProductScreen(
+            onReplyClick = {}
+        )
     }
 }
 

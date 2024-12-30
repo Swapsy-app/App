@@ -1002,17 +1002,3 @@ private fun SpecificationDivider() {
         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f)
     )
 }
-
-@Preview(
-    showBackground = true
-)
-@Composable
-fun PreviewSellScreen() {
-    SwapsyTheme {
-        PriceAndQuantitySection(
-            priceUiModel = PriceUiModel(emptyList(), "1000", "1000", Pair("100", "100")),
-        ) {
-
-        }
-    }
-}

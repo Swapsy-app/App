@@ -29,7 +29,7 @@ fun ProductFAB(
                 MaterialTheme.colorScheme.onPrimaryContainer.copy(0.25f),
                 CircleShape
             )
-            .background(MaterialTheme.colorScheme.primaryContainer.copy(0.9f)),
+            .background(MaterialTheme.colorScheme.primaryContainer),
         contentAlignment = Alignment.Center
     ) {
         icon()

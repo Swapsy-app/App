@@ -27,6 +27,8 @@ import androidx.navigation.navigation
 import androidx.navigation.toRoute
 import com.example.freeupcopy.domain.enums.SpecialOption
 import com.example.freeupcopy.domain.model.Price
+import com.example.freeupcopy.ui.navigation.CustomNavType
+import com.example.freeupcopy.ui.navigation.Screen
 import com.example.freeupcopy.ui.presentation.authentication_screen.connect_screen.ConnectScreen
 import com.example.freeupcopy.ui.presentation.authentication_screen.forgot_password_screen.ForgotPasswordScreen
 import com.example.freeupcopy.ui.presentation.authentication_screen.login_screen.LoginScreen
@@ -39,10 +41,9 @@ import com.example.freeupcopy.ui.presentation.community_screen.CommunityScreen
 import com.example.freeupcopy.ui.presentation.home_screen.HomeScreen
 import com.example.freeupcopy.ui.presentation.home_screen.componants.CustomNavigationBar
 import com.example.freeupcopy.ui.presentation.inbox_screen.InboxScreen
-import com.example.freeupcopy.ui.navigation.CustomNavType
-import com.example.freeupcopy.ui.navigation.Screen
 import com.example.freeupcopy.ui.presentation.product_screen.ProductScreen
 import com.example.freeupcopy.ui.presentation.profile_screen.ProfileScreen
+import com.example.freeupcopy.ui.presentation.reply_screen.ReplyScreen
 import com.example.freeupcopy.ui.presentation.search_screen.SearchScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.SellScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.SellViewModel
@@ -625,7 +626,19 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable<Screen.ProductScreen> {
-                            ProductScreen()
+                            ProductScreen(
+                                onReplyClick = {
+                                    navController.navigate(Screen.ReplyScreen)
+                                }
+                            )
+                        }
+
+                        composable<Screen.ReplyScreen> {
+                            ReplyScreen(
+                                onClose = {
+                                    navController.popBackStack()
+                                }
+                            )
                         }
                     }
                 }

@@ -1,6 +1,9 @@
 package com.example.freeupcopy.ui.presentation.product_screen
 
 import androidx.lifecycle.ViewModel
+import com.example.freeupcopy.utils.ValidationResult
+import com.example.freeupcopy.utils.calculateFifteenPercent
+import com.example.freeupcopy.utils.calculateTenPercent
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -13,65 +16,12 @@ class ProductViewModel : ViewModel() {
         /* todo */
     }
 
-
-    fun changeImage(int: Int){
-        _state.value = _state.value.copy(
-            imageIndex = int
-        )
-    }
-
     fun sendReply(id : String){
         /* todo */
     }
 
     fun sendComment(){
         /* todo */
-    }
-
-    fun onRupee(){
-        _state.value = _state.value.copy(
-            isRupeeSelected = true
-        )
-    }
-    fun onCoin(){
-        _state.value = _state.value.copy(
-            isRupeeSelected = false
-        )
-    }
-    fun onFocus0(){
-        _state.value = _state.value.copy(
-            optionFocused = 0
-        )
-    }
-    fun onFocus1(){
-        _state.value = _state.value.copy(
-            optionFocused = 1
-        )
-    }
-    fun onFocus2(){
-        _state.value = _state.value.copy(
-            optionFocused = 2
-        )
-    }
-    fun onChangeBargainText(str : String){
-        _state.value = _state.value.copy(
-            bargainTextField = str
-        )
-    }
-    fun onChangeMessageToSeller(str : String){
-        _state.value = _state.value.copy(
-            messageToSeller = str
-        )
-    }
-    fun onOpenPopup(){
-        _state.value = _state.value.copy(
-            isPopupOpen = true
-        )
-    }
-    fun onClosePopup(){
-        _state.value = _state.value.copy(
-            isPopupOpen = false
-        )
     }
 
     fun onEvent(event: ProductUiEvent) {
@@ -103,17 +53,79 @@ class ProductViewModel : ViewModel() {
                     it.copy(imageIndex = event.imageId)
                 }
             }
-//            is ProductUiEvent.ReplyToReplyToggle -> {
-//                _state.update { currentState ->
-//                    val isSameReply = currentState.replyToReplyId == event.reply.id
-//                    currentState.copy(
-//                        commentReplyingId = "", // Clear comment replying state
-//                        replyToReplyId = if (isSameReply) "" else event.reply.id, // Toggle reply-to-reply state
-//                        replyingToUser = if (isSameReply) "" else event.reply.user, // Update user mention
-//                        reply = if (isSameReply) "" else "@${event.reply.user} " // Add or clear username mention
-//                    )
-//                }
-//            }
+
+            is ProductUiEvent.OnImagePreview -> {
+                _state.update {
+                    it.copy(isImageOpen = !it.isImageOpen)
+                }
+            }
+
+            is ProductUiEvent.BargainOptionsClicked -> {
+                val tenPercentCash = calculateTenPercent(_state.value.listedCashPrice)
+                val tenPercentCoin = calculateTenPercent(_state.value.listedCoinPrice)
+
+                val fifteenPercentCash = calculateFifteenPercent(_state.value.listedCashPrice)
+                val fifteenPercentCoin = calculateFifteenPercent(_state.value.listedCoinPrice)
+
+                _state.update {
+                    it.copy(
+                        isSheetOpen = !it.isSheetOpen,
+                        tenPercentRecommended = Pair(tenPercentCash, tenPercentCoin),
+                        fifteenPercentRecommended = Pair(fifteenPercentCash, fifteenPercentCoin)
+                    )
+                }
+            }
+
+            is ProductUiEvent.ChangeBargainMessage -> {
+                _state.update {
+                    it.copy(bargainMessage = event.message)
+                }
+            }
+
+            is ProductUiEvent.ChangeBargainAmount -> {
+                _state.update {
+                    it.copy(bargainAmount = event.amount)
+                }
+            }
+
+            is ProductUiEvent.BargainRequest -> {
+                _state.update {
+                    it.copy(
+                        isSheetOpen = false,
+                        bargainMessage = "",
+                        bargainAmount = event.amount
+                    )
+                }
+            }
+
+            is ProductUiEvent.EditBargainOption -> {
+                _state.update {
+                    it.copy(
+                        isSheetOpen = true,
+                        bargainSelectedIndex = 2,
+                        bargainMessage = event.bargainOffer.message,
+                        bargainAmount = event.bargainOffer.amount,
+                        bargainCurrencySelected = event.bargainOffer.currency
+                    )
+                }
+            }
+
+            is ProductUiEvent.BargainSelectedChange -> {
+                _state.update {
+                    it.copy(
+                        bargainSelectedIndex = event.index,
+                        bargainAmount = ""
+                    )
+                }
+            }
+            is ProductUiEvent.BargainCurrencySelectedChange -> {
+                _state.update {
+                    it.copy(
+                        bargainCurrencySelected = event.currency,
+                        bargainAmount = ""
+                    )
+                }
+            }
 
             is ProductUiEvent.OnReplyClick -> {
                 _state.update {
@@ -134,5 +146,12 @@ class ProductViewModel : ViewModel() {
                 }
             }
         }
+    }
+
+    fun validateAll(): ValidationResult {
+        if (_state.value.bargainAmount.toInt() < 50) return ValidationResult(false, "Minimum bargain amount is 50")
+
+        return ValidationResult(true) // All validations passed
+
     }
 }

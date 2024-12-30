@@ -1,5 +1,6 @@
 package com.example.freeupcopy.ui.presentation.product_screen
 
+import com.example.freeupcopy.domain.enums.Currency
 import com.example.freeupcopy.domain.model.BargainOffer
 import com.example.freeupcopy.domain.model.Comment
 import com.example.freeupcopy.domain.model.Reply
@@ -16,23 +17,26 @@ data class ProductUiState(
 
     val isRupeeSelected : Boolean = true,
     val optionFocused : Int = 1,
-    val recommendation : List<List<String>> = listOf(listOf("800","1000"),listOf("5000","7000")),
-    val bargainTextField : String = "",
-    val messageToSeller : String = "",
-    val isPopupOpen : Boolean = false,
+    val tenPercentRecommended : Pair<String, String>? = null,
+    val fifteenPercentRecommended : Pair<String, String>? = null,
+    val bargainAmount : String = "",
+    val bargainMessage : String = "",
+    val isSheetOpen : Boolean = false,
+    val bargainSelectedIndex: Int = 1,
+    val bargainCurrencySelected: Currency = Currency.CASH,
 
     val productLink : String = "Mock Link",
     val likeCounter: String = "34",
     val shareCounter: String = "35",
     val isFollowed : Boolean = false,
-    val priceOffered: String = "1200",
-    val priceOriginal: String = "3500",
-    val coinsOffered: String = "7800",
+    val listedCashPrice: String = "1200",
+    val mrp: String = "3500",
+    val listedCoinPrice: String = "7800",
     val specialOffer: Pair<String, String> = Pair("4000","800"),
     val comments: List<Comment> = listOf(
         Comment(
             id = "c1",
-            user = "Alice",
+            username = "Alice",
             userId = "u1",
             text = "This is a great post! Thanks for sharing.",
             replies = listOf(
@@ -55,7 +59,7 @@ data class ProductUiState(
         ),
         Comment(
             id = "c2",
-            user = "David",
+            username = "David",
             userId = "u4",
             text = "Can someone explain this part in more detail?",
             replies = listOf(
@@ -71,7 +75,7 @@ data class ProductUiState(
         ),
         Comment(
             id = "c3",
-            user = "Frank",
+            username = "Frank",
             userId = "u6",
             text = "Interesting perspective, but I think there's another way to look at this.",
             replies = emptyList(),
@@ -81,38 +85,48 @@ data class ProductUiState(
     val bargainOfferLists : List<BargainOffer> = listOf(
         BargainOffer(
             id = "BO12345",
-            user = "John Doe",
+            username = "Johoe",
             userId = "U001",
-            text = "Looking for a 20% discount on bulk orders.",
-            timeStamp = "2 hrs ago"
+            message = "Looking for a 20% discount on bulk orders.",
+            timeStamp = "2 hrs ago",
+            amount = "2000",
+            currency = Currency.CASH
         ),
         BargainOffer(
             id = "BO12346",
-            user = "Jane Smith",
+            username = "JaSmith",
             userId = "U002",
-            text = "Can I get free shipping for orders above $50?",
-            timeStamp = "1 day ago"
+            message = "Can I get free shipping for orders above $50?",
+            timeStamp = "1 day ago",
+            amount = "5000",
+            currency = Currency.COIN
         ),
         BargainOffer(
             id = "BO12347",
-            user = "Alex Johnson",
+            username = "Alehnson",
             userId = "U003",
-            text = "Would you accept a counteroffer of $30 for this item?",
-            timeStamp = "2 days ago"
+            message = "Would you accept a counteroffer of $30 for this item?",
+            timeStamp = "2 days ago",
+            amount = "3000",
+            currency = Currency.COIN
         ),
         BargainOffer(
             id = "BO12348",
-            user = "Emily Davis",
+            username = "Emilvis",
             userId = "U004",
-            text = "If I buy two items, can I get a third one free?",
-            timeStamp = "2 days ago"
+            message = "If I buy two items, can I get a third one free?",
+            timeStamp = "2 days ago",
+            amount = "4000",
+            currency = Currency.CASH
         ),
         BargainOffer(
             id = "BO12349",
-            user = "Michael Brown",
+            username = "Michaerown",
             userId = "U005",
-            text = "Is there any holiday discount available?",
-            timeStamp = "1 week ago"
+            message = "Is there any holiday discount available?",
+            timeStamp = "1 week ago",
+            amount = "1000",
+            currency = Currency.CASH
         )
     )
 
