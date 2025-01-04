@@ -1,37 +1,94 @@
 package com.example.freeupcopy.ui.presentation.authentication_screen.signup_screen
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.freeupcopy.common.Resource
+import com.example.freeupcopy.data.remote.dto.SignUpRequest
+import com.example.freeupcopy.domain.enums.SignUpStatus
+import com.example.freeupcopy.domain.repository.AuthRepository
 import com.example.freeupcopy.utils.ValidationResult
 import com.example.freeupcopy.utils.Validator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class SignUpViewModel @Inject constructor(
-
-): ViewModel() {
+    private val authRepository: AuthRepository
+) : ViewModel() {
     private val _state = MutableStateFlow(SignUpUiState())
-    val state: StateFlow<SignUpUiState> = _state
+    val state = _state.asStateFlow()
 
     fun onEvent(event: SignUpUiEvent) {
-        when(event) {
+        when (event) {
             is SignUpUiEvent.NameChange -> {
-                _state.value = state.value.copy(name = event.name)
+                _state.update { it.copy(name = event.name) }
             }
+
             is SignUpUiEvent.MobileChange -> {
-                _state.value = state.value.copy(mobile = event.mobile)
+                _state.update { it.copy(mobile = event.mobile) }
             }
+
             is SignUpUiEvent.EmailChange -> {
-                _state.value = state.value.copy(email = event.email)
+                _state.update { it.copy(email = event.email) }
             }
+
             is SignUpUiEvent.PasswordChange -> {
-                _state.value = state.value.copy(password = event.password)
+                _state.update { it.copy(password = event.password) }
             }
+
             is SignUpUiEvent.ConfirmPasswordChange -> {
-                _state.value = state.value.copy(confirmPassword = event.confirmPassword)
+                _state.update { it.copy(confirmPassword = event.confirmPassword) }
             }
+
+            is SignUpUiEvent.SignUp -> {
+                viewModelScope.launch {
+                    val signUpRequest = SignUpRequest(
+                        name = _state.value.name,
+                        email = _state.value.email,
+                        mobile = _state.value.mobile,
+                        password = _state.value.password,
+                    )
+
+                    authRepository.signUp(signUpRequest).collect { result ->
+                        when (result) {
+                            is Resource.Loading -> {
+                                _state.update {
+                                    it.copy(
+                                        isLoading = true,
+                                        error = "",
+                                        shouldNavigateToOtp = false
+                                    )
+                                }
+                            }
+
+                            is Resource.Success -> {
+                                _state.update {
+                                    it.copy(
+                                        isLoading = false,
+                                        shouldNavigateToOtp = true,
+                                        error = ""
+                                    )
+                                }
+                            }
+
+                            is Resource.Error -> {
+                                _state.update {
+                                    it.copy(
+                                        error = result.message ?: "An unexpected error occurred",
+                                        isLoading = false,
+                                        shouldNavigateToOtp = false
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
 //            is SignUpUiEvent.ValidateAll -> {
 //                val validationResult = validateAll()
 //                if (!validationResult.isValid) {

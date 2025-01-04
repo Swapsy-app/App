@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -70,7 +71,7 @@ fun WeightScreen(
     Scaffold(
         modifier = modifier
             .fillMaxSize()
-            .padding(start = 16.dp, end = 16.dp),
+            .navigationBarsPadding(),
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             TopAppBar(
@@ -134,6 +135,7 @@ fun WeightScreen(
                     modifier = modifier
                         .fillMaxWidth()
                         .verticalScroll(rememberScrollState())
+                        .padding(start = 16.dp, end = 16.dp)
                         .padding(innerPadding),
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {

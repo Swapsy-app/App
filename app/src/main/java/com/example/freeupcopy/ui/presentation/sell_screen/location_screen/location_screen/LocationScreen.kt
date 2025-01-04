@@ -146,20 +146,20 @@ fun LocationScreen(
                                     onNewLocationClick()
                                 }
                             }
-                            .background(MaterialTheme.colorScheme.primary),
+                            .background(Color.Black),
                         contentAlignment = Alignment.Center
                     ) {
                         Row {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_add_location),
                                 contentDescription = "add location",
-                                tint = MaterialTheme.colorScheme.onPrimary
+                                tint = Color.White
                             )
 
                             Spacer(modifier = Modifier.size(13.dp))
 
                             Text(
-                                text = "Add New Location", color = MaterialTheme.colorScheme.onPrimary,
+                                text = "Add New Location", color = Color.White,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 18.sp
                             )
@@ -279,7 +279,8 @@ fun AddressItem(
             )
             .background(if (isSelected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent)
             .padding(start = 16.dp, top = 16.dp, bottom = 16.dp),
-        horizontalArrangement = Arrangement.Center
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
     ) {
 
         Column(
@@ -291,7 +292,7 @@ fun AddressItem(
                     modifier = Modifier
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.primary)
-                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                        .padding(horizontal = 16.dp, vertical = 3.dp)
                 ) {
                     Text(
                         text = "Default",
@@ -314,9 +315,9 @@ fun AddressItem(
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            CustomRadioButton(
-                isSelected = isSelected
-            )
+//            CustomRadioButton(
+//                isSelected = isSelected
+//            )
 
             Box {
                 IconButton(onClick = {

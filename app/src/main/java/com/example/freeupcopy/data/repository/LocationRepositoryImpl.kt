@@ -7,10 +7,11 @@ import android.os.Build
 import com.example.freeupcopy.common.Resource
 import com.example.freeupcopy.data.local.Address
 import com.example.freeupcopy.data.local.AddressDao
-import com.example.freeupcopy.data.pref.SellPref
+import com.example.freeupcopy.data.pref.SwapGoPref
 import com.example.freeupcopy.domain.model.AddressData
 import com.example.freeupcopy.domain.model.StateAndCity
 import com.example.freeupcopy.domain.repository.LocationRepository
+import com.example.freeupcopy.utils.checkLocationPrerequisites
 import com.google.android.gms.location.FusedLocationProviderClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -26,7 +27,7 @@ import kotlin.coroutines.resume
 
 class LocationRepositoryImpl(
     private val addressDao: AddressDao,
-    private val sellPref: SellPref
+    private val swapGoPref: SwapGoPref
 ): LocationRepository {
 
     override fun getAddresses(): Flow<Resource<List<Address>>> = channelFlow {
@@ -34,15 +35,15 @@ class LocationRepositoryImpl(
         try {
             combine(
                 addressDao.getAddresses(),
-                sellPref.getDefaultAddress()
+                swapGoPref.getDefaultAddress()
             ) { addresses, default ->
                 addresses.sortedByDescending { it.id == default }
             }.collect { sortedAddresses ->
                 if (sortedAddresses.isNotEmpty()) {
-                    val currentDefault = sellPref.getDefaultAddress().first()
+                    val currentDefault = swapGoPref.getDefaultAddress().first()
                     if (currentDefault == null || currentDefault == 0) {
                         val firstAddress = sortedAddresses.first()
-                        sellPref.saveDefaultAddress(firstAddress.id)
+                        swapGoPref.saveDefaultAddress(firstAddress.id)
                     }
                 }
                 send(Resource.Success(sortedAddresses))
@@ -82,12 +83,12 @@ class LocationRepositoryImpl(
 
             val remainingAddresses = addressDao.getAddresses().first()
             if (remainingAddresses.isNotEmpty()) {
-                if (sellPref.getDefaultAddress().first() == address.id) {
+                if (swapGoPref.getDefaultAddress().first() == address.id) {
                     val lastAddress = remainingAddresses.last()
-                    sellPref.saveDefaultAddress(lastAddress.id)
+                    swapGoPref.saveDefaultAddress(lastAddress.id)
                 }
             } else {
-                sellPref.saveDefaultAddress(0)
+                swapGoPref.saveDefaultAddress(0)
             }
             send(Resource.Success(Unit))
         } catch (e: Exception) {
@@ -97,13 +98,13 @@ class LocationRepositoryImpl(
 
 
     override fun getDefaultAddressId(): Flow<Int?> =
-        sellPref.getDefaultAddress().flowOn(Dispatchers.IO)
+        swapGoPref.getDefaultAddress().flowOn(Dispatchers.IO)
 
 
     override fun setDefaultAddress(addressId: Int): Flow<Resource<Unit>> = channelFlow {
         send(Resource.Loading())
         try {
-            sellPref.saveDefaultAddress(address = addressId)
+            swapGoPref.saveDefaultAddress(address = addressId)
             send(Resource.Success(Unit))
         } catch (e: Exception) {
             send(Resource.Error("Failed to set default address: ${e.message}"))
@@ -117,6 +118,10 @@ class LocationRepositoryImpl(
         fusedLocationClient: FusedLocationProviderClient
     ): Flow<Resource<AddressData>> = flow {
         emit(Resource.Loading())
+        if (!checkLocationPrerequisites(context)) {
+            emit(Resource.Error("Location or internet is turned off"))
+            return@flow
+        }
         try {
             val location = fusedLocationClient.lastLocation.await()
                 ?: throw Exception("Unable to fetch location")

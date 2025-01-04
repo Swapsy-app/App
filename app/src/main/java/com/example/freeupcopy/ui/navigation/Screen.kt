@@ -68,7 +68,7 @@ sealed class Screen {
     @Serializable
     data object ForgotPasswordScreen : Screen()
     @Serializable
-    data object OtpScreen : Screen()
+    data class OtpScreen(val email: String?) : Screen()
 
     //Product Screens
     @Serializable

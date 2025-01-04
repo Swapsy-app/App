@@ -16,13 +16,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.freeupcopy.ui.presentation.authentication_screen.componants.OtpTextField
+import com.example.freeupcopy.ui.theme.BottomSheetShape
+import com.example.freeupcopy.ui.theme.ButtonShape
 
 @Composable
 fun OtpSection(
     modifier: Modifier = Modifier,
+    email: String,
     otpValues: List<String>,
     //isVerifyEnabled: Boolean,
     isResendEnabled: Boolean,
@@ -36,11 +40,19 @@ fun OtpSection(
     Column(
         modifier
             .fillMaxSize()
-            .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+            .clip(BottomSheetShape)
             .background(MaterialTheme.colorScheme.surface)
             .padding(horizontal = 16.dp, vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
+        Text(
+            modifier = Modifier.align(Alignment.Start),
+            text = "Email sent to $email",
+            fontSize = 13.sp,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+            fontStyle = FontStyle.Italic
+        )
 
         Spacer(modifier = Modifier.height(30.dp))
 
@@ -76,7 +88,7 @@ fun OtpSection(
             },
             //enabled = isVerifyEnabled,
             modifier = Modifier.width(200.dp),
-            shape = RoundedCornerShape(12.dp),
+            shape = ButtonShape,
             //shape = CircleShape,
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.tertiary,

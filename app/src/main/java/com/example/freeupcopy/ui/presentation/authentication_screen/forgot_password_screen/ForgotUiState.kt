@@ -8,4 +8,6 @@ data class ForgotUiState(
     val doPasswordsMatch: Boolean = true,
     val isLoading: Boolean = false,
     val error: String = "",
+
+    val shouldNavigateToLogin: Boolean = false
 )

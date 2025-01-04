@@ -1,33 +1,87 @@
 package com.example.freeupcopy.ui.presentation.authentication_screen.login_screen
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.freeupcopy.common.Resource
+import com.example.freeupcopy.data.remote.dto.LoginRequest
+import com.example.freeupcopy.domain.repository.AuthRepository
 import com.example.freeupcopy.utils.ValidationResult
 import com.example.freeupcopy.utils.Validator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class LoginViewModel @Inject constructor() : ViewModel() {
+class LoginViewModel @Inject constructor(
+    private val authRepository: AuthRepository
+) : ViewModel() {
     private val _state = MutableStateFlow(LoginUiState())
-    val state: StateFlow<LoginUiState> = _state
+    val state = _state.asStateFlow()
 
     fun onEvent(event: LoginUiEvent) {
         when (event) {
             is LoginUiEvent.EmailChange -> {
-                _state.value = state.value.copy(email = event.email)
+                _state.update {
+                    it.copy(email = event.email)
+                }
             }
+
             is LoginUiEvent.PasswordChange -> {
-                _state.value = state.value.copy(password = event.password)
+                _state.update {
+                    it.copy(password = event.password)
+                }
             }
+
             is LoginUiEvent.ForgotPassword -> {
                 // Handle forgot password logic (e.g., navigate or show dialog)
             }
+
             is LoginUiEvent.Login -> {
-                _state.value = state.value.copy(isLoading = true)
-                // Implement login logic (e.g., call API, update state based on success or failure)
+                viewModelScope.launch {
+                    val loginRequest = LoginRequest(
+                        email = state.value.email,
+                        password = state.value.password
+                    )
+
+                    authRepository.login(loginRequest).collect { response ->
+                        when (response) {
+                            is Resource.Loading -> {
+                                _state.update {
+                                    it.copy(
+                                        isLoading = true,
+                                        error = "",
+                                        shouldNavigateToHome = false
+                                    )
+                                }
+                            }
+
+                            is Resource.Success -> {
+                                _state.update {
+                                    it.copy(
+                                        isLoading = false,
+                                        error = "",
+                                        shouldNavigateToHome = true
+                                    )
+                                }
+                            }
+
+                            is Resource.Error -> {
+                                _state.update {
+                                    it.copy(
+                                        isLoading = false,
+                                        error = response.message ?: "An unexpected error occurred",
+                                        shouldNavigateToHome = false
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
             }
+
         }
     }
 

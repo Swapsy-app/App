@@ -189,7 +189,7 @@ fun ManufacturingCountryButton(
             )
             .clip(RoundedCornerShape(10.dp))
             .background(
-                if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f) else Color.Transparent
+                if (isSelected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent
             )
             .heightIn(min = 70.dp)
             .clickable { onClick(label) },

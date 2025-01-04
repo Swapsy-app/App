@@ -1,6 +1,7 @@
 package com.example.freeupcopy.ui.presentation.authentication_screen.login_screen
 
 import android.annotation.SuppressLint
+import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -26,12 +27,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -61,6 +64,23 @@ fun LoginScreen(
 ) {
     val lifeCycleOwner = LocalLifecycleOwner.current
     val state by loginViewModel.state.collectAsState()
+    val context = LocalContext.current
+
+    LaunchedEffect(state.error) {
+        state.error.takeIf { it.isNotBlank() }?.let {
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    LaunchedEffect(state.shouldNavigateToHome) {
+        if (state.shouldNavigateToHome) {
+            val current = lifeCycleOwner.lifecycle.currentState
+            if (current.isAtLeast(Lifecycle.State.RESUMED)) {
+                Toast.makeText(context, "Login Successful", Toast.LENGTH_LONG).show()
+                onSuccessfulLogin()
+            }
+        }
+    }
 
     Scaffold(
         modifier = modifier
@@ -194,12 +214,12 @@ fun LoginScreen(
                                 onForgotPasswordClick()
                             }
                         },
-                        onSuccessfulLogin = {
-                            val currentState = lifeCycleOwner.lifecycle.currentState
-                            if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                                onSuccessfulLogin()
-                            }
-                        },
+//                        onSuccessfulLogin = {
+//                            val currentState = lifeCycleOwner.lifecycle.currentState
+//                            if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+//                                onSuccessfulLogin()
+//                            }
+//                        },
                         onSignUpClick = {
                             val currentState = lifeCycleOwner.lifecycle.currentState
                             if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {

@@ -2,31 +2,74 @@ package com.example.freeupcopy.ui.presentation.authentication_screen.forgot_pass
 
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.freeupcopy.common.Resource
+import com.example.freeupcopy.data.remote.dto.ForgotPasswordRequest
+import com.example.freeupcopy.domain.repository.AuthRepository
 import com.example.freeupcopy.utils.ValidationResult
 import com.example.freeupcopy.utils.Validator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class ForgotViewModel @Inject constructor(): ViewModel() {
+class ForgotViewModel @Inject constructor(
+    private val authRepository: AuthRepository
+): ViewModel() {
     private val _state = MutableStateFlow(ForgotUiState())
-    val state: StateFlow<ForgotUiState> = _state
+    val state = _state.asStateFlow()
 
     fun onEvent(event: ForgotUiEvent) {
         when(event) {
             is ForgotUiEvent.EmailChange -> {
-                _state.value = _state.value.copy(email = event.email)
+                _state.update {
+                    it.copy(email = event.email)
+                }
             }
             is ForgotUiEvent.PasswordChange -> {
-                _state.value = _state.value.copy(password = event.password)
+                _state.update {
+                    it.copy(password = event.password)
+                }
             }
             is ForgotUiEvent.ConfirmPasswordChange -> {
-                _state.value = _state.value.copy(confirmPassword = event.confirmPassword)
+                _state.update {
+                    it.copy(confirmPassword = event.confirmPassword)
+                }
             }
             is ForgotUiEvent.ResetPassword -> {
-                _state.value = _state.value.copy(isLoading = false)
+                viewModelScope.launch {
+                    val forgotPasswordRequest = ForgotPasswordRequest(
+                        email = _state.value.email
+                    )
+
+                    authRepository.forgotPassword(forgotPasswordRequest).collect { result ->
+                        when(result) {
+                            is Resource.Loading -> {
+                                _state.update {
+                                    it.copy(isLoading = true, shouldNavigateToLogin = false)
+                                }
+                            }
+                            is Resource.Success -> {
+                                _state.update {
+                                    it.copy(isLoading = false, shouldNavigateToLogin = true)
+                                }
+                            }
+                            is Resource.Error -> {
+                                _state.update {
+                                    it.copy(
+                                        isLoading = false,
+                                        error = result.message ?: "An unexpected error occurred",
+                                        shouldNavigateToLogin = false
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }

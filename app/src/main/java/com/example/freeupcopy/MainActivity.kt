@@ -11,12 +11,16 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.NavHost
@@ -39,7 +43,7 @@ import com.example.freeupcopy.ui.presentation.cash_screen.CashScreen
 import com.example.freeupcopy.ui.presentation.coin_screen.CoinScreen
 import com.example.freeupcopy.ui.presentation.community_screen.CommunityScreen
 import com.example.freeupcopy.ui.presentation.home_screen.HomeScreen
-import com.example.freeupcopy.ui.presentation.home_screen.componants.CustomNavigationBar
+import com.example.freeupcopy.ui.presentation.home_screen.componants.SwapGoNavigationBar
 import com.example.freeupcopy.ui.presentation.inbox_screen.InboxScreen
 import com.example.freeupcopy.ui.presentation.product_screen.ProductScreen
 import com.example.freeupcopy.ui.presentation.profile_screen.ProfileScreen
@@ -94,7 +98,13 @@ class MainActivity : ComponentActivity() {
                                 || route.hasRoute(Screen.ProfileScreen::class)
                                 || route.hasRoute(Screen.InboxScreen::class)
                             ) {
-                                CustomNavigationBar(
+//                                Box(
+//                                    modifier = Modifier
+//                                        .fillMaxWidth()
+//                                        .size(60.dp)
+//                                        .background(androidx.compose.ui.graphics.Color.Red)
+//                                )
+                                SwapGoNavigationBar(
                                     navController = navController,
                                     onHomeClick = {
                                         navController.navigate(Screen.HomeScreen) {
@@ -112,10 +122,10 @@ class MainActivity : ComponentActivity() {
                                         }
                                     },
                                     onProfileClick = {
-//                                        navController.navigate(Screen.ProfileScreen) {
-//                                            popUpTo(Screen.HomeScreen) { inclusive = false }
-//                                        }
-                                        navController.navigate(Screen.ConnectScreen)
+                                        navController.navigate(Screen.ProfileScreen) {
+                                            popUpTo(Screen.HomeScreen) { inclusive = false }
+                                        }
+                                        //navController.navigate(Screen.ConnectScreen)
                                     },
                                     onSellClick = {
                                         navController.navigate(Screen.SellScreen(null, null)) {
@@ -130,7 +140,7 @@ class MainActivity : ComponentActivity() {
 
                     NavHost(
                         navController = navController,
-                        startDestination = Screen.ProductScreen,
+                        startDestination = Screen.HomeScreen,
                         enterTransition = {
                             slideIntoContainer(
                                 towards = AnimatedContentTransitionScope.SlideDirection.Left,
@@ -408,7 +418,9 @@ class MainActivity : ComponentActivity() {
                             enterTransition = { fadeIn(tween(700)) },
                             exitTransition = { fadeOut(tween(700)) }
                         ) {
-                            ProfileScreen()
+                            ProfileScreen(
+                                innerPadding = innerPadding
+                            )
                         }
 
                         composable<Screen.SearchScreen> {
@@ -479,9 +491,9 @@ class MainActivity : ComponentActivity() {
                                         popUpTo(Screen.ConnectScreen) { inclusive = false }
                                     }
                                 },
-                                onSuccessfulSignUp = {
-                                    navController.navigate(Screen.HomeScreen) {
-                                        popUpTo(Screen.HomeScreen) { inclusive = true }
+                                onSuccessfulSignUp = { email ->
+                                    navController.navigate(Screen.OtpScreen(email)) {
+                                       // popUpTo(Screen.OtpScreen) { inclusive = true }
                                     }
                                 }
                             )
@@ -607,19 +619,21 @@ class MainActivity : ComponentActivity() {
                             ForgotPasswordScreen(
                                 onBackClick = { navController.popBackStack() },
                                 onSuccessfulOptSent = {
-                                    navController.navigate(Screen.OtpScreen)
+                                    //navController.navigate(Screen.OtpScreen)
                                 }
                             )
                         }
 
                         composable<Screen.OtpScreen> {
+                            val args = it.toRoute<Screen.OtpScreen>()
                             OtpVerificationScreen(
+                                email = args.email ?: "",
                                 onBackClick = {
                                     navController.popBackStack()
                                 },
                                 onSuccessfulVerification = {
-                                    navController.navigate(Screen.HomeScreen) {
-                                        popUpTo(Screen.HomeScreen) { inclusive = true }
+                                    navController.navigate(Screen.LoginScreen) {
+                                        popUpTo(Screen.ConnectScreen) { inclusive = true }
                                     }
                                 }
                             )

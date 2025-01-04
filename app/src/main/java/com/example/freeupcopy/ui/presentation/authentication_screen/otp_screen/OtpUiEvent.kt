@@ -5,6 +5,6 @@ sealed class OtpUiEvent {
     data class VerifyChange(val isVerifyEnabled: Boolean) : OtpUiEvent()
     data class ResendChange(val isResendEnabled: Boolean) : OtpUiEvent()
     object CooldownCount: OtpUiEvent()
-    object ResendOtp : OtpUiEvent()
-    object VerifyOtp : OtpUiEvent()
+    data class ResendOtp(val email: String) : OtpUiEvent()
+    data class VerifyOtp(val email: String) : OtpUiEvent()
 }

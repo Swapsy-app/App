@@ -45,6 +45,7 @@ import com.example.freeupcopy.ui.theme.ButtonShape
 import com.example.freeupcopy.ui.theme.CardShape
 import com.example.freeupcopy.ui.theme.NoteContainerLight
 import com.example.freeupcopy.ui.theme.SwapsyTheme
+import com.example.freeupcopy.ui.theme.TextFieldContainerColor
 
 @Composable
 fun SellerDetail(
@@ -139,14 +140,15 @@ fun SellerDetail(
                 .clip(CardShape.medium)
                 .background(
 //                    NoteContainerLight.copy(0.5f)
-                    brush = Brush.linearGradient(
-                        colors = listOf(
-                            NoteContainerLight.copy(0.25f),
-                            MaterialTheme.colorScheme.primaryContainer
-                        ),
-                        start = Offset(0f, 0f),
-                        end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
-                    )
+//                    brush = Brush.linearGradient(
+//                        colors = listOf(
+//                            NoteContainerLight.copy(0.25f),
+//                            MaterialTheme.colorScheme.primaryContainer
+//                        ),
+//                        start = Offset(0f, 0f),
+//                        end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
+//                    )
+                    TextFieldContainerColor
                 )
                 .border(
                     1.dp,
