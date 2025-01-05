@@ -55,7 +55,7 @@ import com.example.freeupcopy.ui.presentation.product_screen.componants.ProductD
 import com.example.freeupcopy.ui.presentation.product_screen.componants.ProductFAB
 import com.example.freeupcopy.ui.presentation.product_screen.componants.ProductScreenBottomBar
 import com.example.freeupcopy.ui.presentation.product_screen.componants.SellerDetail
-import com.example.freeupcopy.ui.theme.SwapsyTheme
+import com.example.freeupcopy.ui.theme.SwapGoTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -346,7 +346,7 @@ fun ProductScreen(
 )
 @Composable
 fun PreviewProductScreen() {
-    SwapsyTheme {
+    SwapGoTheme {
         ProductScreen(
             onReplyClick = {}
         )

@@ -54,7 +54,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.freeupcopy.R
 import com.example.freeupcopy.ui.theme.ButtonShape
 import com.example.freeupcopy.ui.theme.NoteContainerLight
-import com.example.freeupcopy.ui.theme.SwapsyTheme
+import com.example.freeupcopy.ui.theme.SwapGoTheme
 import com.example.freeupcopy.ui.theme.TextFieldShape
 import com.example.freeupcopy.utils.clearFocusOnKeyboardDismiss
 
@@ -229,7 +229,7 @@ fun AdvanceSettingScreen(
 @Preview(showBackground = true)
 @Composable
 fun GstScreenPreview() {
-    SwapsyTheme {
+    SwapGoTheme {
         AdvanceSettingScreen (
             //onClick = {  },
             onClose = {  },

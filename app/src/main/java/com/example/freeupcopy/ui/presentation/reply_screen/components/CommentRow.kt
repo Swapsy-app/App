@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import com.example.freeupcopy.domain.model.Comment
 import com.example.freeupcopy.ui.theme.CardShape
 import com.example.freeupcopy.ui.theme.NoteContainerLight
-import com.example.freeupcopy.ui.theme.SwapsyTheme
+import com.example.freeupcopy.ui.theme.SwapGoTheme
 
 @Composable
 fun CommentRow(
@@ -70,7 +70,7 @@ fun CommentRow(
 @Preview(showBackground = true)
 @Composable
 fun CommentRowPreview() {
-    SwapsyTheme {
+    SwapGoTheme {
         CommentRow(
             comment = Comment(
                 id = "c2",

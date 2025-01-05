@@ -95,7 +95,7 @@ import com.example.freeupcopy.ui.theme.LinkColor
 import com.example.freeupcopy.ui.theme.NoteContainerLight
 import com.example.freeupcopy.ui.theme.RecommendedContainerColor
 import com.example.freeupcopy.ui.theme.RecommendedTextColor
-import com.example.freeupcopy.ui.theme.SwapsyTheme
+import com.example.freeupcopy.ui.theme.SwapGoTheme
 import com.example.freeupcopy.utils.Validator
 import com.example.freeupcopy.utils.calculateDeliveryFee
 import com.example.freeupcopy.utils.calculatePlatformFee
@@ -1192,7 +1192,7 @@ fun UsageItem(
 @Preview(showBackground = true)
 @Composable
 fun PriceScreenPreview() {
-    SwapsyTheme {
+    SwapGoTheme {
         CoinsDetails(
             onClick = {}
         )

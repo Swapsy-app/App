@@ -11,16 +11,12 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.NavHost
@@ -47,6 +43,7 @@ import com.example.freeupcopy.ui.presentation.home_screen.componants.SwapGoNavig
 import com.example.freeupcopy.ui.presentation.inbox_screen.InboxScreen
 import com.example.freeupcopy.ui.presentation.product_screen.ProductScreen
 import com.example.freeupcopy.ui.presentation.profile_screen.ProfileScreen
+import com.example.freeupcopy.ui.presentation.profile_screen.posted_products_screen.PostedProductsScreen
 import com.example.freeupcopy.ui.presentation.reply_screen.ReplyScreen
 import com.example.freeupcopy.ui.presentation.search_screen.SearchScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.SellScreen
@@ -61,7 +58,7 @@ import com.example.freeupcopy.ui.presentation.sell_screen.manufacturing_screen.M
 import com.example.freeupcopy.ui.presentation.sell_screen.price_screen.PriceScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.weight_screen.WeightScreen
 import com.example.freeupcopy.ui.presentation.wish_list.WishListScreen
-import com.example.freeupcopy.ui.theme.SwapsyTheme
+import com.example.freeupcopy.ui.theme.SwapGoTheme
 import com.example.freeupcopy.utils.sharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlin.reflect.typeOf
@@ -79,7 +76,7 @@ class MainActivity : ComponentActivity() {
             navigationBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
         )
         setContent {
-            SwapsyTheme(darkTheme = false) {
+            SwapGoTheme(darkTheme = false) {
 
                 val navController = rememberNavController()
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -98,12 +95,6 @@ class MainActivity : ComponentActivity() {
                                 || route.hasRoute(Screen.ProfileScreen::class)
                                 || route.hasRoute(Screen.InboxScreen::class)
                             ) {
-//                                Box(
-//                                    modifier = Modifier
-//                                        .fillMaxWidth()
-//                                        .size(60.dp)
-//                                        .background(androidx.compose.ui.graphics.Color.Red)
-//                                )
                                 SwapGoNavigationBar(
                                     navController = navController,
                                     onHomeClick = {
@@ -419,7 +410,10 @@ class MainActivity : ComponentActivity() {
                             exitTransition = { fadeOut(tween(700)) }
                         ) {
                             ProfileScreen(
-                                innerPadding = innerPadding
+                                innerPadding = innerPadding,
+                                onPostedProductClick = {
+                                    navController.navigate(Screen.PostedProductsScreen)
+                                }
                             )
                         }
 
@@ -651,6 +645,17 @@ class MainActivity : ComponentActivity() {
                             ReplyScreen(
                                 onClose = {
                                     navController.popBackStack()
+                                }
+                            )
+                        }
+
+                        composable<Screen.PostedProductsScreen> {
+                            PostedProductsScreen(
+                                onBack = {
+                                    navController.popBackStack()
+                                },
+                                onProductClick = {
+                                    navController.navigate(Screen.ProductScreen)
                                 }
                             )
                         }

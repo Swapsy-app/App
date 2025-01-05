@@ -41,7 +41,6 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
@@ -52,7 +51,6 @@ import com.example.freeupcopy.ui.presentation.sell_screen.SellUiEvent
 import com.example.freeupcopy.ui.presentation.sell_screen.SellViewModel
 import com.example.freeupcopy.ui.theme.CardShape
 import com.example.freeupcopy.ui.theme.NoteContainerLight
-import com.example.freeupcopy.ui.theme.SwapsyTheme
 
 
 @OptIn(ExperimentalMaterial3Api::class)

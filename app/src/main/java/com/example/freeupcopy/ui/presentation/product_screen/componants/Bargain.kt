@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -35,7 +34,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -62,13 +60,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.freeupcopy.R
-import com.example.freeupcopy.common.Constants
 import com.example.freeupcopy.common.Constants.MAX_BARGAIN_MESSAGE_LENGTH
 import com.example.freeupcopy.domain.enums.Currency
 import com.example.freeupcopy.domain.model.BargainOffer
 import com.example.freeupcopy.ui.theme.ButtonShape
 import com.example.freeupcopy.ui.theme.CardShape
-import com.example.freeupcopy.ui.theme.SwapsyTheme
+import com.example.freeupcopy.ui.theme.SwapGoTheme
 import com.example.freeupcopy.ui.theme.TextFieldContainerColor
 import com.example.freeupcopy.ui.theme.TextFieldShape
 import com.example.freeupcopy.utils.clearFocusOnKeyboardDismiss
@@ -653,7 +650,7 @@ fun BargainCurrencyType(
 )
 @Composable
 fun BargainPopupPreview() {
-    SwapsyTheme {
+    SwapGoTheme {
         BargainOptionsSheet(
             listedPrice = "200",
             mrp = "300",

@@ -34,7 +34,7 @@ import com.example.freeupcopy.R
 import com.example.freeupcopy.ui.theme.ButtonShape
 import com.example.freeupcopy.ui.theme.CashColor1
 import com.example.freeupcopy.ui.theme.CustomOrangeColor
-import com.example.freeupcopy.ui.theme.SwapsyTheme
+import com.example.freeupcopy.ui.theme.SwapGoTheme
 import com.example.freeupcopy.utils.dashedBorder
 
 @Composable
@@ -166,7 +166,7 @@ fun ProductScreenBottomBar(
 @Preview (showBackground = true)
 @Composable
 fun ProductScreenBottomBarPreview() {
-    SwapsyTheme {
+    SwapGoTheme {
         ProductScreenBottomBar(
             specialOffer = Pair("100", "50"),
             coinsOffered = "100",

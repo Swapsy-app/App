@@ -1,7 +1,7 @@
 package com.example.freeupcopy.ui.presentation.profile_screen.posted_products_screen
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,197 +10,250 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.example.freeupcopy.R
-import com.example.freeupcopy.domain.model.Weight
-import com.example.freeupcopy.ui.presentation.sell_screen.SellUiEvent
-import com.example.freeupcopy.ui.presentation.sell_screen.SellViewModel
-import com.example.freeupcopy.ui.presentation.sell_screen.weight_screen.AnnouncementComposable
-import com.example.freeupcopy.ui.presentation.sell_screen.weight_screen.WeightComposable
-import com.example.freeupcopy.ui.theme.NoteContainerLight
+import com.example.freeupcopy.ui.presentation.home_screen.componants.FlexibleTopBar
+import com.example.freeupcopy.ui.presentation.home_screen.componants.FlexibleTopBarDefaults
+import com.example.freeupcopy.ui.presentation.home_screen.componants.SearchBar
+import com.example.freeupcopy.ui.presentation.profile_screen.componants.ProfileProductTabRow
+import com.example.freeupcopy.ui.presentation.profile_screen.posted_products_screen.components.ConfirmDialog
+import com.example.freeupcopy.ui.presentation.profile_screen.posted_products_screen.components.DeliveredList
+import com.example.freeupcopy.ui.presentation.profile_screen.posted_products_screen.components.ListedList
+import com.example.freeupcopy.ui.presentation.profile_screen.posted_products_screen.components.PendingList
+import com.example.freeupcopy.ui.presentation.profile_screen.posted_products_screen.components.ProductActionsBottomSheet
+import com.example.freeupcopy.ui.theme.SwapGoTheme
+import com.example.freeupcopy.ui.theme.TextFieldContainerColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostedProductsScreen(
     modifier: Modifier = Modifier,
-    selectedWeightType: String,
-    onWeightClick: () -> Unit,
-    onClose: () -> Unit,
-    sellViewModel: SellViewModel
+    onBack: () -> Unit,
+    onProductClick: () -> Unit,
+    viewModel: PostedProductsViewModel = hiltViewModel()
 ) {
+    var showBottomSheet by remember { mutableStateOf(false) }
+    var showConfirmDialog by remember { mutableStateOf(false) }
+
+    val state by viewModel.state.collectAsState()
+
     val lifeCycleOwner = LocalLifecycleOwner.current
-    //val state by weightViewModel.state.collectAsState()
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+
+    val pagerState = rememberPagerState(initialPage = 0) { 3 }
+
+    LaunchedEffect(key1 = state.currentTabIndex) {
+        pagerState.animateScrollToPage(state.currentTabIndex)
+    }
+    LaunchedEffect(pagerState.currentPage, pagerState.isScrollInProgress) {
+        if (!pagerState.isScrollInProgress) {
+            viewModel.onEvent(PostedProductsUiEvent.OnTabSelected(pagerState.currentPage))
+        }
+    }
 
     Scaffold(
         modifier = modifier
             .fillMaxSize()
-            .navigationBarsPadding(),
-        containerColor = MaterialTheme.colorScheme.surface,
+            .nestedScroll(scrollBehavior.nestedScrollConnection)
+            //.navigationBarsPadding()
+        ,
+        containerColor = MaterialTheme.colorScheme.primaryContainer,
         topBar = {
-            TopAppBar(
-                title = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Spacer(modifier = Modifier.size(8.dp))
-                        Text(text = "Weight")
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        val currentState = lifeCycleOwner.lifecycle.currentState
-                        if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                            onClose()
+            Column {
+                TopAppBar(
+                    scrollBehavior = scrollBehavior,
+                    title = {
+                        if (state.isSearching) {
+                            SearchBar(
+                                value = "",
+                                isFocused = remember {
+                                    mutableStateOf(false)
+                                },
+                                onFocusChange = {},
+                                onValueChange = {},
+                                onSearch = {  },
+                                onCancel = {  },
+                                containerColor = TextFieldContainerColor,
+                                modifier = Modifier.padding(end = 16.dp)
+                            )
+                        } else {
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Spacer(modifier = Modifier.size(8.dp))
+                                Text(
+                                    text = "Posted Products",
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.W500,
+                                )
+                            }
                         }
-                    }) {
-                        Icon(
-                            imageVector = Icons.Rounded.Close,
-                            contentDescription = "close"
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = {
+                            val currentState = lifeCycleOwner.lifecycle.currentState
+                            if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                                onBack()
+                            }
+                        }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
+                                contentDescription = "back"
+                            )
+                        }
+                    },
+                    actions = {
+                        IconButton(
+                            onClick = {
+                                viewModel.onEvent(PostedProductsUiEvent.OnSearchButtonClicked)
+                            }
+                        ) {
+                            if (state.isSearching) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Close,
+                                    contentDescription = "close"
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Rounded.Search,
+                                    contentDescription = "search"
+                                )
+                            }
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        scrolledContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    )
+                )
+
+                FlexibleTopBar(
+                    colors = FlexibleTopBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    )
+                ) {
+                    Column {
+                        ProfileProductTabRow(
+                            selectedTabIndex = state.currentTabIndex,
+                            onClick = {
+                                viewModel.onEvent(PostedProductsUiEvent.OnTabSelected(it))
+                            },
+                            tabData = state.tabData,
+                            selectedSubCategoryIndex = when (state.currentTabIndex) {
+                                0 -> state.listingFilterIndex
+                                1 -> state.pendingFilterIndex
+                                2 -> state.deliveredFilterIndex
+                                else -> null
+                            },
+                            onSubCategoryClick = {
+                                when (state.currentTabIndex) {
+                                    0 -> viewModel.onEvent(PostedProductsUiEvent.OnListingFilterSelected(it))
+                                    1 -> viewModel.onEvent(PostedProductsUiEvent.OnPendingFilterSelected(it))
+                                    2 -> viewModel.onEvent(PostedProductsUiEvent.OnDeliveredFilterSelected(it))
+                                }
+                            }
+                        )
+                        HorizontalDivider(
+                            thickness = 1.dp,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
                         )
                     }
                 }
-            )
+            }
+
         }
     ) { innerPadding ->
-
-        //Using courier bags can significantly reduce weight compared to boxes, saving on shipping costs.
-        //var selectedWeight by remember { mutableStateOf(Weight.predefinedWeight) }
-        val items = listOf(
-            Weight(
-                type = "cat0",
-                "Under 500g",
-                "Ideal for lighter items like watch, phone, book, jewelry or notebook"
-            ),
-            Weight(
-                type = "cat1",
-                "500g - 1kg",
-                "Suitable for items like dress, shirt, tablet, shoes or hairdryer"
-            ),
-            Weight(
-                type = "cat2",
-                "1 - 5kg",
-                "Perfect for bulkier items such as blender, suit or cookware Set"
-            ),
-            Weight(
-                type = "cat3",
-                "5 - 10kg",
-                "Recommended for heavier products like chair, small microwave or bridal lehengas"
-            )
-        )
-//        LazyColumn(
-//            modifier = modifier
-//                .fillMaxWidth()
-//                .padding(innerPadding)
-//        ) {
-
-        Column(
-            modifier = modifier
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .padding(start = 16.dp, end = 16.dp)
-                .padding(innerPadding),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+        Box(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.primaryContainer)
         ) {
-            AnnouncementComposable(
-                text = stringResource(id = R.string.weight_announcement),
-                painter = painterResource(id = R.drawable.ic_campaign)
-            )
-            Spacer(modifier = Modifier.size(8.dp))
 
-            items.forEach {
-                WeightComposable(
-                    weight = it,
-                    isSelected = it.type == selectedWeightType,
-                    onClick = { weight ->
-                        val currentState = lifeCycleOwner.lifecycle.currentState
-                        if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                            //selectedWeight = it
-                            //onWeightClick(weight)
-                            sellViewModel.onEvent(SellUiEvent.WeightChange(weight))
-                            onWeightClick()
-                        }
-                    }
-                )
-            }
-
-            Column(
+            HorizontalPager(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(Color.LightGray.copy(alpha = 0.25f))
-                    .padding(16.dp)
-            ) {
-                Text(
-                    text = "Above 10kg",
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
-                )
-                Spacer(modifier = Modifier.size(4.dp))
-                Text(
-                    fontSize = 13.5.sp,
-                    lineHeight = 18.sp,
-                    text = "Items over 10 kg are not eligible for shipping.",
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
-                )
-            }
+                    .fillMaxSize(),
+                state = pagerState,
+            ) { index ->
+                when (index) {
 
-            Spacer(modifier = Modifier.size(8.dp))
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(NoteContainerLight.copy(alpha = 0.6f))
-                    .padding(16.dp),
-            ) {
-                val annotatedString = buildAnnotatedString {
-                    withStyle(
-                        style = SpanStyle(
-                            color = Color.Red,
-                            fontWeight = FontWeight.SemiBold
+                    0 -> {
+                        ListedList(
+                            onProductClick = { onProductClick() },
+                            onActionClick = { showBottomSheet = true }
                         )
-                    ) {
-                        append("*")
                     }
-                    withStyle(
-                        style = SpanStyle(
-                            fontSize = 13.sp,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f)
-                        )
-                    ) {
-                        append(stringResource(id = R.string.weight_note))
+
+                    1 -> {
+                        PendingList()
+                    }
+
+                    2 -> {
+                        DeliveredList()
                     }
                 }
-                Text(text = annotatedString, lineHeight = 18.sp)
             }
         }
 
-//        }
+        ProductActionsBottomSheet(
+            isVisible = showBottomSheet,
+            onDismiss = { showBottomSheet = false },
+            onHide = { /* Handle hide action */ },
+            onDelete = {
+                showBottomSheet = false
+                showConfirmDialog = true
+            }
+        )
+
+        if (showConfirmDialog) {
+            ConfirmDialog(
+                onConfirmDelete = { /* Handle confirm delete action */ },
+                onDismiss = { showConfirmDialog = false }
+            )
+        }
+
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PostedProductsScreenPreview() {
+    SwapGoTheme {
+        PostedProductsScreen(
+            onBack = {},
+            onProductClick = {}
+        )
     }
 }

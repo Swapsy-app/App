@@ -34,7 +34,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.freeupcopy.ui.presentation.home_screen.componants.SearchBar
 import com.example.freeupcopy.ui.presentation.sell_screen.weight_screen.CustomRadioButton
-import com.example.freeupcopy.ui.theme.SwapsyTheme
+import com.example.freeupcopy.ui.theme.SwapGoTheme
 
 @Composable
 fun BrandScreen(
@@ -161,7 +161,7 @@ fun BrandItem(
 @Preview(showBackground = true)
 @Composable
 fun BrandScreenPreview() {
-    SwapsyTheme {
+    SwapGoTheme {
         BrandScreen (
             navigatedBrand = "Apple",
             onBrandClick = {  },

@@ -18,6 +18,9 @@ sealed class Screen {
     data object ProfileScreen : Screen()
 
     @Serializable
+    data object PostedProductsScreen : Screen()
+
+    @Serializable
     data class SellScreen(
         val selectedCategory: String?,
         val selectedWeight: String?,
