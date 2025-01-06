@@ -30,6 +30,7 @@ import com.example.freeupcopy.ui.theme.SwapGoTheme
 fun ProfileScreen(
     profileViewModel: ProfileViewModel = viewModel(),
     onPostedProductClick: () -> Unit,
+    onViewProfileClick: () -> Unit,
     innerPadding: PaddingValues
 ) {
     val state by profileViewModel.state.collectAsState()
@@ -49,7 +50,9 @@ fun ProfileScreen(
                 onSettingsClick = {
 
                 },
-                onViewProfileClick = {}
+                onViewProfileClick = {
+                    onViewProfileClick()
+                }
             )
         }
     ) { paddingValues ->
@@ -209,7 +212,8 @@ fun ProfileScreenPreview() {
     SwapGoTheme {
         ProfileScreen(
             innerPadding = PaddingValues(0.dp),
-            onPostedProductClick = {}
+            onPostedProductClick = {},
+            onViewProfileClick = {}
         )
     }
 }

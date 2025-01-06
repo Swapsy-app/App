@@ -44,6 +44,7 @@ import com.example.freeupcopy.ui.presentation.inbox_screen.InboxScreen
 import com.example.freeupcopy.ui.presentation.product_screen.ProductScreen
 import com.example.freeupcopy.ui.presentation.profile_screen.ProfileScreen
 import com.example.freeupcopy.ui.presentation.profile_screen.posted_products_screen.PostedProductsScreen
+import com.example.freeupcopy.ui.presentation.profile_screen.seller_profile_screen.SellerProfileScreen
 import com.example.freeupcopy.ui.presentation.reply_screen.ReplyScreen
 import com.example.freeupcopy.ui.presentation.search_screen.SearchScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.SellScreen
@@ -413,6 +414,9 @@ class MainActivity : ComponentActivity() {
                                 innerPadding = innerPadding,
                                 onPostedProductClick = {
                                     navController.navigate(Screen.PostedProductsScreen)
+                                },
+                                onViewProfileClick = {
+                                    navController.navigate(Screen.SellerProfileScreen)
                                 }
                             )
                         }
@@ -656,6 +660,14 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onProductClick = {
                                     navController.navigate(Screen.ProductScreen)
+                                },
+                            )
+                        }
+
+                        composable<Screen.SellerProfileScreen> {
+                            SellerProfileScreen(
+                                onBack = {
+                                    navController.popBackStack()
                                 }
                             )
                         }
