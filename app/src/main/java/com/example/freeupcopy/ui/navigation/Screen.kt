@@ -80,4 +80,6 @@ sealed class Screen {
     data object PostedProductsScreen : Screen()
     @Serializable
     data object SellerProfileScreen : Screen()
+    @Serializable
+    data object EditProfileScreen : Screen()
 }

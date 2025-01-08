@@ -16,7 +16,7 @@ data class SellerProfileUiState(
     val rating: String = "4.5",
     val numberOfReviews: String = "8",
     val cancelled: String = "2",
-    val isMyProfile: Boolean = false,
+    val isMyProfile: Boolean = true,
     val isFollowing: Boolean = false,
 
     val isProfileActionSheetOpen: Boolean = false,

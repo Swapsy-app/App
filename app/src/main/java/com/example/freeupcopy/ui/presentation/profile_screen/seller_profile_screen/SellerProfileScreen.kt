@@ -63,8 +63,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.freeupcopy.R
-import com.example.freeupcopy.ui.presentation.profile_screen.posted_products_screen.components.ConfirmDialog
-import com.example.freeupcopy.ui.presentation.profile_screen.posted_products_screen.components.ProductActionsBottomSheet
 import com.example.freeupcopy.ui.presentation.profile_screen.seller_profile_screen.components.SellerProfileActionsBottomSheet
 import com.example.freeupcopy.ui.theme.ButtonShape
 import com.example.freeupcopy.ui.theme.SwapGoTheme
@@ -75,6 +73,7 @@ import com.example.freeupcopy.ui.theme.TextFieldContainerColor
 fun SellerProfileScreen(
     modifier: Modifier = Modifier,
     onBack: () -> Unit,
+    onEditProfile: () -> Unit,
     viewModel: SellerProfileViewModel = hiltViewModel()
 ) {
     val lifeCycleOwner = LocalLifecycleOwner.current
@@ -299,7 +298,7 @@ fun SellerProfileScreen(
                         modifier = Modifier
                             .weight(1f)
                             .height(50.dp),
-                        onClick = {},
+                        onClick = { onEditProfile() },
                         shape = ButtonShape,
                         border = BorderStroke(
                             width = 1.dp,
@@ -517,7 +516,8 @@ fun SellerInfoButton(
 private fun SellerProfileScreenPreview() {
     SwapGoTheme {
         SellerProfileScreen(
-            onBack = {}
+            onBack = {},
+            onEditProfile = {}
         )
     }
 }

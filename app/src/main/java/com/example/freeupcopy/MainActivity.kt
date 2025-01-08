@@ -43,6 +43,7 @@ import com.example.freeupcopy.ui.presentation.home_screen.componants.SwapGoNavig
 import com.example.freeupcopy.ui.presentation.inbox_screen.InboxScreen
 import com.example.freeupcopy.ui.presentation.product_screen.ProductScreen
 import com.example.freeupcopy.ui.presentation.profile_screen.ProfileScreen
+import com.example.freeupcopy.ui.presentation.profile_screen.edit_profile_screen.EditProfileScreen
 import com.example.freeupcopy.ui.presentation.profile_screen.posted_products_screen.PostedProductsScreen
 import com.example.freeupcopy.ui.presentation.profile_screen.seller_profile_screen.SellerProfileScreen
 import com.example.freeupcopy.ui.presentation.reply_screen.ReplyScreen
@@ -667,6 +668,17 @@ class MainActivity : ComponentActivity() {
                         composable<Screen.SellerProfileScreen> {
                             SellerProfileScreen(
                                 onBack = {
+                                    navController.popBackStack()
+                                },
+                                onEditProfile = {
+                                    navController.navigate(Screen.EditProfileScreen)
+                                }
+                            )
+                        }
+
+                        composable<Screen.EditProfileScreen> {
+                            EditProfileScreen(
+                                onClose = {
                                     navController.popBackStack()
                                 }
                             )
