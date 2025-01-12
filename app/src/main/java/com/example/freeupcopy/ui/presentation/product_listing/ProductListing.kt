@@ -56,7 +56,7 @@ import com.example.freeupcopy.ui.presentation.product_card.ProductCard
 import com.example.freeupcopy.ui.presentation.product_listing.componants.BottomPopup
 import com.example.freeupcopy.ui.presentation.product_listing.componants.SelectedOptionsRow
 import com.example.freeupcopy.ui.theme.ButtonShape
-import com.example.freeupcopy.ui.theme.SwapsyTheme
+import com.example.freeupcopy.ui.theme.SwapGoTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -351,7 +351,7 @@ fun ProductListing(
 
 @Preview(showBackground = true) @Composable
 fun PreviewProductListing(){
-    SwapsyTheme {
+    SwapGoTheme {
         ProductListing(
             onBack = { }
         )
