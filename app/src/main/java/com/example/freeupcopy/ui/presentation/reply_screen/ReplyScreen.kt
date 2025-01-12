@@ -57,11 +57,10 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.example.freeupcopy.domain.model.Comment
 import com.example.freeupcopy.ui.presentation.product_screen.componants.ReplyTextField
 import com.example.freeupcopy.ui.presentation.reply_screen.components.CommentRow
 import com.example.freeupcopy.ui.theme.ButtonShape
-import com.example.freeupcopy.ui.theme.SwapsyTheme
+import com.example.freeupcopy.ui.theme.SwapGoTheme
 import com.example.freeupcopy.utils.clearFocusOnKeyboardDismiss
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -218,7 +217,7 @@ fun ReplyScreen(
 @Preview
 @Composable
 fun PreviewReplyScreen() {
-    SwapsyTheme {
+    SwapGoTheme {
 
         ReplyScreen(
             onClose = {}

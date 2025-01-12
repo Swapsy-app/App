@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.freeupcopy.R
 import com.example.freeupcopy.ui.theme.CardShape
-import com.example.freeupcopy.ui.theme.SwapsyTheme
+import com.example.freeupcopy.ui.theme.SwapGoTheme
 
 //@Composable
 //fun SellerHub(
@@ -127,6 +127,7 @@ fun SellerHub(
     isBundleOffersOn: Boolean,
     isOnlineModeOn: Boolean,
     onPackingMaterialClick: () -> Unit,
+    onShippingGuideClick: () -> Unit,
     onBundleOffersClick: () -> Unit,
     onRanksClick: () -> Unit,
     onOnlineModeClick: () -> Unit
@@ -165,6 +166,21 @@ fun SellerHub(
                 onClick = onPackingMaterialClick,
                 tint = Color(0xFF21C2F3),
                 description = "Request Supplies",
+            )
+
+            HorizontalDivider(
+                thickness = 1.dp,
+                //color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.12f)
+                color = Color.LightGray.copy(0.3f)
+            )
+
+            SellingToolsButton(
+                painter = painterResource(id = R.drawable.ic_shipping_guide),
+                label = "Shipping Guide",
+//                isTurnedOn = isPackingMaterialOn,
+                onClick = onShippingGuideClick,
+                tint = Color(0xFFE8D115),
+                description = "Steps to ship your products",
             )
 
             HorizontalDivider(
@@ -229,7 +245,7 @@ fun SellerHub(
                 Icon(
                     painter = painterResource(R.drawable.ic_ranks),
                     contentDescription = "ranks",
-                    tint = Color(0xFFF1C900)
+                    tint = Color(0xFFFFA400)
                 )
 
                 Spacer(modifier = Modifier.size(16.dp))
@@ -376,7 +392,7 @@ fun SellingToolsButton(
 @Preview(showBackground = true)
 @Composable
 fun SellingToolsPreview() {
-    SwapsyTheme {
+    SwapGoTheme {
         SellerHub(
             isCodOn = true,
             isBundleOffersOn = false,
@@ -384,7 +400,8 @@ fun SellingToolsPreview() {
             onPackingMaterialClick = {},
             onBundleOffersClick = {},
             onRanksClick = {},
-            onOnlineModeClick = {}
+            onOnlineModeClick = {},
+            onShippingGuideClick = {}
         )
     }
 }

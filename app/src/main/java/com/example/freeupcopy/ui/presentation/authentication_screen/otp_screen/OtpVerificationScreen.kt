@@ -33,7 +33,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.freeupcopy.ui.presentation.authentication_screen.otp_screen.componants.OtpSection
 import com.example.freeupcopy.ui.presentation.authentication_screen.otp_screen.componants.PageDescriptionOtp
-import com.example.freeupcopy.ui.theme.SwapsyTheme
+import com.example.freeupcopy.ui.theme.SwapGoTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -170,7 +170,7 @@ fun OtpVerificationScreen(
 @Preview
 @Composable
 fun OtpVerificationScreenPreview() {
-    SwapsyTheme {
+    SwapGoTheme {
         OtpVerificationScreen(
             onBackClick = {},
             onSuccessfulVerification = {},

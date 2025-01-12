@@ -29,12 +29,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.freeupcopy.R
 import com.example.freeupcopy.ui.theme.BadgeLight
 import com.example.freeupcopy.ui.theme.ButtonShape
 import com.example.freeupcopy.ui.theme.CashColor2
 import com.example.freeupcopy.ui.theme.LinkColor
-import com.example.freeupcopy.ui.theme.SwapsyTheme
+import com.example.freeupcopy.ui.theme.SwapGoTheme
 
 @Composable
 fun YourPostedProducts(
@@ -50,6 +52,7 @@ fun YourPostedProducts(
     onPendingClick: () -> Unit,
     onDeliveredClick: () -> Unit
 ) {
+    val lifeCycleOwner = LocalLifecycleOwner.current
     Column(
         modifier = modifier
             .padding(start = 16.dp, end =  16.dp, top = 10.dp),
@@ -60,7 +63,12 @@ fun YourPostedProducts(
                 containerColor = Color.Black
             ),
             //elevation = CardDefaults.cardElevation(4.dp),
-            onClick = onPostedProductClick
+            onClick = {
+                val currentState = lifeCycleOwner.lifecycle.currentState
+                if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                    onPostedProductClick()
+                }
+            }
         ) {
             Column(
                 modifier = Modifier
@@ -187,7 +195,7 @@ fun ListedButton(
 @Preview(showBackground = true)
 @Composable
 fun YourStoreItemsSectionPreview() {
-    SwapsyTheme {
+    SwapGoTheme {
         YourPostedProducts(
             listedCount = "10",
             pendingCount = "5",

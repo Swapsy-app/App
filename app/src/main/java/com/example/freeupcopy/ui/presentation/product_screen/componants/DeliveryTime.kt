@@ -34,17 +34,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.freeupcopy.R
-import com.example.freeupcopy.ui.presentation.sell_screen.location_screen.add_location_screen.AddLocationUiEvent
 import com.example.freeupcopy.ui.theme.CardShape
-import com.example.freeupcopy.ui.theme.CashColor1
-import com.example.freeupcopy.ui.theme.CashColor2
-import com.example.freeupcopy.ui.theme.SwapsyTheme
+import com.example.freeupcopy.ui.theme.SwapGoTheme
 import com.example.freeupcopy.ui.theme.TextFieldShape
 import com.example.freeupcopy.utils.clearFocusOnKeyboardDismiss
 
@@ -195,7 +191,7 @@ fun ExpectedDeliveryRow(
 @Preview(showBackground = true)
 @Composable
 fun PreviewDeliveryTime() {
-    SwapsyTheme {
+    SwapGoTheme {
         DeliveryTime(
             pinCode = "",
             onPinCodeChange = {},

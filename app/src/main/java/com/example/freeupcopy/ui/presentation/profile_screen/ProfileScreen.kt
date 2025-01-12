@@ -1,6 +1,5 @@
 package com.example.freeupcopy.ui.presentation.profile_screen
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,24 +15,23 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.freeupcopy.ui.presentation.profile_screen.componants.BalanceSection
 import com.example.freeupcopy.ui.presentation.profile_screen.componants.ProfileBanner
 import com.example.freeupcopy.ui.presentation.profile_screen.componants.ProfileTopBar
 import com.example.freeupcopy.ui.presentation.profile_screen.componants.SellerHub
 import com.example.freeupcopy.ui.presentation.profile_screen.componants.YourPostedProducts
-import com.example.freeupcopy.ui.theme.SwapsyTheme
+import com.example.freeupcopy.ui.theme.SwapGoTheme
 
 @Composable
 fun ProfileScreen(
-    profileViewModel: ProfileViewModel = viewModel(),
-    innerPadding: PaddingValues
+    profileViewModel: ProfileViewModel = hiltViewModel(),
+    onPostedProductClick: () -> Unit,
+    onViewProfileClick: () -> Unit
 ) {
     val state by profileViewModel.state.collectAsState()
 
@@ -52,17 +50,16 @@ fun ProfileScreen(
                 onSettingsClick = {
 
                 },
-                onViewProfileClick = {}
+                onViewProfileClick = {
+                    onViewProfileClick()
+                }
             )
         }
     ) { paddingValues ->
         Column(
             Modifier
-                .padding(
-                    top = paddingValues.calculateTopPadding()
-                )
+                .padding(top = paddingValues.calculateTopPadding())
                 .fillMaxSize()
-                .padding(bottom = innerPadding.calculateBottomPadding())
         ) {
             LazyColumn(
                 modifier = Modifier
@@ -97,7 +94,7 @@ fun ProfileScreen(
                         onDeliveredClick = {},
                         onListedClick = {},
                         onPendingClick = {},
-                        onPostedProductClick = {}
+                        onPostedProductClick = onPostedProductClick
                     )
                 }
 
@@ -110,7 +107,8 @@ fun ProfileScreen(
                         onPackingMaterialClick = {},
                         onBundleOffersClick = {},
                         onRanksClick = {},
-                        onOnlineModeClick = {}
+                        onOnlineModeClick = {},
+                        onShippingGuideClick = {}
                     )
                 }
 
@@ -208,9 +206,10 @@ fun ProfileScreen(
 @Preview
 @Composable
 fun ProfileScreenPreview() {
-    SwapsyTheme {
+    SwapGoTheme {
         ProfileScreen(
-            innerPadding = PaddingValues(0.dp)
+            onPostedProductClick = {},
+            onViewProfileClick = {}
         )
     }
 }

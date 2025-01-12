@@ -2,7 +2,6 @@ package com.example.freeupcopy.ui.presentation.authentication_screen.connect_scr
 
 import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
@@ -42,8 +41,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -61,9 +58,8 @@ import com.example.freeupcopy.ui.presentation.authentication_screen.componants.G
 import com.example.freeupcopy.ui.presentation.authentication_screen.componants.OrText
 import com.example.freeupcopy.ui.presentation.authentication_screen.connect_screen.componants.DescriptionPart
 import com.example.freeupcopy.ui.theme.Lobster
-import com.example.freeupcopy.ui.theme.SwapsyTheme
+import com.example.freeupcopy.ui.theme.SwapGoTheme
 import com.example.freeupcopy.utils.clearFocusOnKeyboardDismiss
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -288,7 +284,7 @@ fun ConnectSection(
 @Preview
 @Composable
 fun ConnectScreenPreview() {
-    SwapsyTheme {
+    SwapGoTheme {
 
         ConnectScreen(
             onBackClick = {},

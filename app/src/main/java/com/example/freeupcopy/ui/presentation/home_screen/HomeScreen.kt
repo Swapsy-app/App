@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -41,7 +42,7 @@ import com.example.freeupcopy.ui.presentation.home_screen.componants.SearchTopSe
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    innerPadding: PaddingValues,
+    lazyColumnState: LazyListState,
     onSearchBarClick: () -> Unit,
     onInboxClick: () -> Unit,
     onCartClick: () -> Unit,
@@ -54,8 +55,6 @@ fun HomeScreen(
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
-//            .navigationBarsPadding()
-            //.padding(bottom = )
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.surface,
         contentWindowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
@@ -133,18 +132,17 @@ fun HomeScreen(
                 }
             }
         }
-    ) { innerPadding2->
+    ) { innerPadding->
         //if remove offset int the content of the home screen then add the
         // bottom padding that is commented out SearchTopSection
 
         LazyColumn(
+            state = lazyColumnState,
             modifier = Modifier
                 //.offset(y = 12.dp)
                 //.navigationBarsPadding()
-                .padding(top = innerPadding2.calculateTopPadding())
+                .padding(top = innerPadding.calculateTopPadding())
                 .fillMaxSize()
-                .padding()
-                .padding(bottom = innerPadding.calculateBottomPadding())
         ) {
             items(50) { index ->
                 Text(

@@ -133,6 +133,7 @@ fun CustomBottomBar(
             .background(MaterialTheme.colorScheme.primaryContainer)
             //.navigationBarsPadding()
             .windowInsetsPadding(windowInsets)
+            .padding(vertical = 4.dp)
             //.defaultMinSize(minHeight = 70.dp)
         ,
         horizontalArrangement = Arrangement.SpaceEvenly,

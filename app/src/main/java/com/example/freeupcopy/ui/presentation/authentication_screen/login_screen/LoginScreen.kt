@@ -47,7 +47,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.freeupcopy.R
 import com.example.freeupcopy.ui.presentation.authentication_screen.login_screen.componants.LoginSection
 import com.example.freeupcopy.ui.theme.Lobster
-import com.example.freeupcopy.ui.theme.SwapsyTheme
+import com.example.freeupcopy.ui.theme.SwapGoTheme
 import com.example.freeupcopy.utils.clearFocusOnKeyboardDismiss
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -237,7 +237,7 @@ fun LoginScreen(
 @Preview
 @Composable
 fun LoginScreenPreview() {
-    SwapsyTheme {
+    SwapGoTheme {
         LoginScreen(
             onBackClick = {},
             onCloseClick = {},
