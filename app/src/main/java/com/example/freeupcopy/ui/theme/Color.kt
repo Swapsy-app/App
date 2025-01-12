@@ -48,6 +48,9 @@ val CashColor2 = Color(0xFF00B800)
 val BadgeLight = Color(0xFFFF3B30)
 val BadgeDark = Color(0xFFFF4F38)
 
+val OfferColor1 = Color(0xFFF38FE3)
+val OfferColor2 = Color(0xFFE015EE)
+
 //val TertiaryContainerLight = Color(0xFFD1E7DF)
 val TertiaryContainerDark = Color(0xFF566660)
 
