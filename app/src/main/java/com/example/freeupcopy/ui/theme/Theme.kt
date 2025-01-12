@@ -49,7 +49,7 @@ private val LightColorScheme = lightColorScheme(
 )
 
 @Composable
-fun SwapsyTheme(
+fun SwapGoTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {

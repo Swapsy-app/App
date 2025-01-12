@@ -2,6 +2,7 @@ package com.example.freeupcopy.ui.presentation.home_screen.componants
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,7 +11,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
@@ -39,7 +42,7 @@ import androidx.navigation.NavController
 import com.example.freeupcopy.R
 
 @Composable
-fun CustomNavigationBar(
+fun SwapGoNavigationBar(
     modifier: Modifier = Modifier,
     windowInsets: WindowInsets = NavigationBarDefaults.windowInsets,
     onHomeClick: () -> Unit,
@@ -52,6 +55,7 @@ fun CustomNavigationBar(
     Box(modifier = modifier.fillMaxWidth()) {
 
         CustomBottomBar(
+            modifier = Modifier.align(Alignment.BottomCenter),
             windowInsets = windowInsets,
             onHomeClick = onHomeClick,
             onWishListClick = onWishListClick,
@@ -61,8 +65,8 @@ fun CustomNavigationBar(
         )
         Box(
             modifier = Modifier
-                .size(80.dp)
-                .offset(y = (-18).dp)
+                .size(70.dp)
+                .offset(y = (-12).dp)
                 .shadow(6.dp, shape = CircleShape)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.primary)
@@ -127,8 +131,11 @@ fun CustomBottomBar(
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp, 20.dp, 0.dp, 0.dp))
             .background(MaterialTheme.colorScheme.primaryContainer)
+            //.navigationBarsPadding()
             .windowInsetsPadding(windowInsets)
-            .defaultMinSize(minHeight = 70.dp),
+            .padding(vertical = 4.dp)
+            //.defaultMinSize(minHeight = 70.dp)
+        ,
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -144,7 +151,7 @@ fun CustomBottomBar(
                 selectedIcon = item.selectedIcon,
                 contentDescription = item.contentDescription
             )
-            if (index == 1) Spacer(modifier = Modifier.size(80.dp)) // Leave space for the FAB
+            if (index == 1) Spacer(modifier = Modifier.size(60.dp)) // Leave space for the FAB
         }
     }
 }
@@ -159,23 +166,33 @@ fun CustomNavigationBarItem(
     contentDescription: String
 ) {
     Column(
+        modifier = modifier
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onClick
+            ),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Box(
-            modifier = modifier
-                .clip(CircleShape)
-                .size(50.dp)
-                .clickable { onClick() },
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                modifier = Modifier.size(30.dp),
-                tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
-                painter = if (selected) selectedIcon else icon,
-                contentDescription = contentDescription
-            )
-        }
+//        Box(
+//            modifier = modifier
+//                .clip(CircleShape)
+//                //.size(4.dp)
+//
+//                .clickable { onClick() }
+////                .padding(10.dp)
+//            ,
+//            contentAlignment = Alignment.Center
+//        ) {
+//
+//        }
+        Icon(
+            modifier = Modifier.size(24.dp),
+            tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+            painter = if (selected) selectedIcon else icon,
+            contentDescription = contentDescription
+        )
 
         Text(
             modifier = Modifier.offset(y=(-3).dp),

@@ -2,7 +2,7 @@ package com.example.freeupcopy.ui.presentation.sell_screen.advance_setting_scree
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.freeupcopy.data.pref.SellPref
+import com.example.freeupcopy.data.pref.SwapGoPref
 import com.example.freeupcopy.utils.ValidationResult
 import com.example.freeupcopy.utils.Validator
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,7 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AdvanceSettingViewModel @Inject constructor(
-    private val sellPref: SellPref
+    private val swapGoPref: SwapGoPref
 ): ViewModel() {
     private val _state = MutableStateFlow(AdvanceSettingUiState())
     val state: StateFlow<AdvanceSettingUiState> = _state
@@ -32,9 +32,9 @@ class AdvanceSettingViewModel @Inject constructor(
             AdvanceSettingUiEvent.OnSave -> {
                 viewModelScope.launch {
                     if (_state.value.gst.isNotBlank()) {
-                        sellPref.saveGSTIN(_state.value.gst)
+                        swapGoPref.saveGSTIN(_state.value.gst)
                     } else {
-                        sellPref.clearGSTIN()
+                        swapGoPref.clearGSTIN()
                     }
                 }
             }
@@ -45,7 +45,7 @@ class AdvanceSettingViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = "") }
             try {
-                val savedGst = sellPref.getGSTIN().first()
+                val savedGst = swapGoPref.getGSTIN().first()
                 _state.update {
                     it.copy(
                         gst = savedGst ?: "",

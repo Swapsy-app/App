@@ -10,3 +10,8 @@ val CardShape = Shapes(
 
 val TextFieldShape = RoundedCornerShape(12.dp)
 val ButtonShape = RoundedCornerShape(12.dp)
+
+val BottomSheetShape = RoundedCornerShape(
+    topStart = 16.dp,
+    topEnd = 16.dp
+)

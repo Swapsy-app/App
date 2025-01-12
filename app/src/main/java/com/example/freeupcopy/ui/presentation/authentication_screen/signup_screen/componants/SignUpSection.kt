@@ -1,5 +1,6 @@
 package com.example.freeupcopy.ui.presentation.authentication_screen.signup_screen.componants
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -26,6 +27,7 @@ import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,18 +46,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.freeupcopy.R
+import com.example.freeupcopy.domain.enums.SignUpStatus
 import com.example.freeupcopy.ui.presentation.authentication_screen.componants.GoogleButton
 import com.example.freeupcopy.ui.presentation.authentication_screen.componants.OrText
 import com.example.freeupcopy.ui.presentation.authentication_screen.signup_screen.SignUpUiEvent
 import com.example.freeupcopy.ui.presentation.authentication_screen.signup_screen.SignUpUiState
 import com.example.freeupcopy.ui.presentation.authentication_screen.signup_screen.SignUpViewModel
+import com.example.freeupcopy.ui.theme.ButtonShape
+import com.example.freeupcopy.ui.theme.TextFieldShape
 
 @Composable
 fun SignUpSection(
     modifier: Modifier = Modifier,
     state: SignUpUiState,
     onLoginClick: () -> Unit,
-    onSuccessfulSignUp: () -> Unit,
     signUpViewModel: SignUpViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -64,7 +68,7 @@ fun SignUpSection(
     Column(
         modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+            .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
             .background(MaterialTheme.colorScheme.surface)
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .padding(NavigationBarDefaults.windowInsets.asPaddingValues()),
@@ -86,7 +90,7 @@ fun SignUpSection(
             },
             maxLines = 1,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-            shape = RoundedCornerShape(12.dp)
+            shape = TextFieldShape
         )
 
         Spacer(modifier = Modifier.size(8.dp))
@@ -107,7 +111,7 @@ fun SignUpSection(
             },
             maxLines = 1,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-            shape = RoundedCornerShape(12.dp)
+            shape = TextFieldShape
         )
         Spacer(modifier = Modifier.size(8.dp))
 
@@ -127,7 +131,7 @@ fun SignUpSection(
             },
             maxLines = 1,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-            shape = RoundedCornerShape(12.dp)
+            shape = TextFieldShape
         )
 
         Spacer(modifier = Modifier.size(8.dp))
@@ -159,7 +163,7 @@ fun SignUpSection(
             },
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            shape = RoundedCornerShape(12.dp)
+            shape = TextFieldShape
         )
         Spacer(modifier = Modifier.size(8.dp))
 
@@ -180,19 +184,19 @@ fun SignUpSection(
             singleLine = true,
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            shape = RoundedCornerShape(12.dp),
-
-            )
+            shape = TextFieldShape
+        )
 
         Spacer(modifier = Modifier.size(24.dp))
 
         Button(
             onClick = {
-                if(!state.isLoading) {
+                if (!state.isLoading) {
                     val validate = signUpViewModel.validateAll()
                     if (validate.isValid) {
-                        onSuccessfulSignUp()
-                        Toast.makeText(context, "Sign up successful", Toast.LENGTH_SHORT).show()
+                        signUpViewModel.onEvent(SignUpUiEvent.SignUp)
+//                        onSuccessfulSignUp()
+//                        Toast.makeText(context, "Sign up successful", Toast.LENGTH_SHORT).show()
                     } else {
                         Toast.makeText(
                             context,
@@ -203,9 +207,9 @@ fun SignUpSection(
                 }
             },
             modifier = Modifier.width(200.dp),
-            shape = RoundedCornerShape(12.dp),
+            shape = ButtonShape,
             colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.8f),
+                containerColor = MaterialTheme.colorScheme.tertiary,
                 contentColor = MaterialTheme.colorScheme.onTertiary
             )
         ) {

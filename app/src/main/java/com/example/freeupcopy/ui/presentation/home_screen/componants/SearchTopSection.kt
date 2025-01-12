@@ -119,7 +119,8 @@ fun SearchBar(
     onFocusChange: (Boolean) -> Unit,
     onValueChange: (String) -> Unit,
     onSearch: () -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
+    containerColor: Color = MaterialTheme.colorScheme.primaryContainer
 ) {
     Box(
         modifier = modifier
@@ -191,8 +192,8 @@ fun SearchBar(
                 colors = TextFieldDefaults.colors(
                     unfocusedIndicatorColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                    focusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    unfocusedContainerColor = containerColor,
+                    focusedContainerColor = containerColor,
                     disabledIndicatorColor = Color.Transparent,
                     disabledContainerColor = MaterialTheme.colorScheme.primaryContainer,
                     disabledTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),

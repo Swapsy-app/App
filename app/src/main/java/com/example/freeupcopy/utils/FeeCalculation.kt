@@ -29,3 +29,13 @@ fun validateCash(cashValue: String?): Boolean {
     }
     return false
 }
+
+fun calculateFifteenPercent(value: String): String {
+    val amount = value.toDouble()
+    return (amount - ceil(value.toDouble() * 0.15)).toLong().toString()
+}
+
+fun calculateTenPercent(value: String): String {
+    val amount = value.toDouble()
+    return (amount - ceil(value.toDouble() * 0.10)).toLong().toString()
+}

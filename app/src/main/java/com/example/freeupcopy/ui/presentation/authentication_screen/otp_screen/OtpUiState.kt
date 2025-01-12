@@ -7,4 +7,8 @@ data class OtpUiState(
     val cooldownTime: Int = 60,
     val isLoading: Boolean = false,
     val error: String = "",
+
+    val isSuccessfulOtpResend: Boolean = false,
+
+    val shouldNavigateToLogin: Boolean = false
 )

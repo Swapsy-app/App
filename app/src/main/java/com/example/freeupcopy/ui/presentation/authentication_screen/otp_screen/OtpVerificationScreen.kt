@@ -1,5 +1,6 @@
 package com.example.freeupcopy.ui.presentation.authentication_screen.otp_screen
 
+import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -21,11 +22,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -33,19 +33,45 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.freeupcopy.ui.presentation.authentication_screen.otp_screen.componants.OtpSection
 import com.example.freeupcopy.ui.presentation.authentication_screen.otp_screen.componants.PageDescriptionOtp
-import com.example.freeupcopy.ui.theme.SwapsyTheme
+import com.example.freeupcopy.ui.theme.SwapGoTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OtpVerificationScreen(
+    email: String,
     modifier: Modifier = Modifier,
     onBackClick: () -> Unit,
     onSuccessfulVerification: () -> Unit,
     otpViewModel: OtpViewModel = hiltViewModel()
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
-
+    val context = LocalContext.current
     val state by otpViewModel.state.collectAsState()
+
+    LaunchedEffect(state.error) {
+        state.error.takeIf { it.isNotBlank() }?.let {
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    LaunchedEffect(
+        state.shouldNavigateToLogin
+    ) {
+        if (state.shouldNavigateToLogin) {
+            Toast.makeText(context, "Email verified. You can now login.", Toast.LENGTH_SHORT).show()
+            onSuccessfulVerification()
+        }
+    }
+
+    LaunchedEffect(
+        state.isSuccessfulOtpResend
+    ) {
+        if (state.isSuccessfulOtpResend) {
+            Toast.makeText(context, "OTP sent successfully.", Toast.LENGTH_SHORT).show()
+        }
+
+    }
+
 
     // Handle the timer for resend button
     LaunchedEffect(state.cooldownTime) {
@@ -113,6 +139,7 @@ fun OtpVerificationScreen(
                 PageDescriptionOtp()
 
                 OtpSection(
+                    email = email,
                     otpValues = state.otpValues, // List of otp values
                     //isVerifyEnabled = state.isVerifyEnabled, // Enable the verify button
                     isResendEnabled = state.isResendEnabled, // Enable the resend button
@@ -124,12 +151,13 @@ fun OtpVerificationScreen(
                         otpViewModel.onEvent(OtpUiEvent.OtpChange(index, value))
                     },
                     onResendClick = {
-                        otpViewModel.onEvent(OtpUiEvent.ResendOtp)
+                        otpViewModel.onEvent(OtpUiEvent.ResendOtp(email))
                     },
                     onSuccessfulVerification = {
                         val currentState = lifecycleOwner.lifecycle.currentState
                         if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                            onSuccessfulVerification()
+                            //onSuccessfulVerification()
+                            otpViewModel.onEvent(OtpUiEvent.VerifyOtp(email))
                         }
                     }
                 )
@@ -142,10 +170,11 @@ fun OtpVerificationScreen(
 @Preview
 @Composable
 fun OtpVerificationScreenPreview() {
-    SwapsyTheme {
+    SwapGoTheme {
         OtpVerificationScreen(
             onBackClick = {},
-            onSuccessfulVerification = {}
+            onSuccessfulVerification = {},
+            email = "sksahilislam0123@gmail.com"
         )
     }
 }

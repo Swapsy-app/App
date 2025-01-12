@@ -1,6 +1,7 @@
 package com.example.freeupcopy.ui.presentation.authentication_screen.signup_screen
 
 import android.annotation.SuppressLint
+import android.widget.Toast
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -26,12 +27,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -44,7 +47,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.freeupcopy.R
 import com.example.freeupcopy.ui.presentation.authentication_screen.signup_screen.componants.SignUpSection
 import com.example.freeupcopy.ui.theme.Lobster
-import com.example.freeupcopy.ui.theme.SwapsyTheme
+import com.example.freeupcopy.ui.theme.SwapGoTheme
 import com.example.freeupcopy.utils.clearFocusOnKeyboardDismiss
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -55,11 +58,28 @@ fun SignUpScreen(
     onBackClick: () -> Unit,
     onCloseClick: () -> Unit,
     onLoginClick: () -> Unit,
-    onSuccessfulSignUp: () -> Unit,
+    onSuccessfulSignUp: (String) -> Unit,
     signUpViewModel: SignUpViewModel = hiltViewModel()
 ) {
     val lifeCycleOwner = LocalLifecycleOwner.current
     val state by signUpViewModel.state.collectAsState()
+    val context = LocalContext.current
+
+    LaunchedEffect(state.error) {
+        state.error.takeIf { it.isNotBlank() }?.let {
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    LaunchedEffect(state.shouldNavigateToOtp) {
+        if (state.shouldNavigateToOtp) {
+            val current = lifeCycleOwner.lifecycle.currentState
+            if (current.isAtLeast(Lifecycle.State.RESUMED)) {
+                Toast.makeText(context, "Check mail to complete sign up", Toast.LENGTH_LONG).show()
+                onSuccessfulSignUp(state.email)
+            }
+        }
+    }
 
     Scaffold(
         modifier = modifier
@@ -183,12 +203,6 @@ fun SignUpScreen(
                             if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
                                 onLoginClick()
                             }
-                        },
-                        onSuccessfulSignUp = {
-                            val currentState = lifeCycleOwner.lifecycle.currentState
-                            if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                                onSuccessfulSignUp()
-                            }
                         }
                     )
                 }
@@ -200,7 +214,7 @@ fun SignUpScreen(
 @Preview
 @Composable
 fun SignUpPreview() {
-    SwapsyTheme {
+    SwapGoTheme {
         SignUpScreen(
             onBackClick = {},
             onCloseClick = {},

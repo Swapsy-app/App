@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -52,6 +53,9 @@ import com.example.freeupcopy.ui.presentation.authentication_screen.login_screen
 import com.example.freeupcopy.ui.presentation.authentication_screen.login_screen.LoginUiState
 import com.example.freeupcopy.ui.theme.LinkColor
 import com.example.freeupcopy.ui.presentation.authentication_screen.login_screen.LoginViewModel
+import com.example.freeupcopy.ui.theme.BottomSheetShape
+import com.example.freeupcopy.ui.theme.ButtonShape
+import com.example.freeupcopy.ui.theme.TextFieldShape
 import com.example.freeupcopy.utils.noRippleClickable
 
 @Composable
@@ -59,7 +63,7 @@ fun LoginSection(
     modifier: Modifier = Modifier,
     state: LoginUiState,
     onForgotPasswordClick: () -> Unit,
-    onSuccessfulLogin: () -> Unit,
+//    onSuccessfulLogin: () -> Unit,
     onSignUpClick: () -> Unit,
     loginViewModel: LoginViewModel = hiltViewModel()
 ) {
@@ -69,10 +73,10 @@ fun LoginSection(
     Column(
         modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+            .clip(BottomSheetShape)
             .background(MaterialTheme.colorScheme.surface)
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .padding(NavigationBarDefaults.windowInsets.asPaddingValues()),
+            .navigationBarsPadding(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         OutlinedTextField(
@@ -91,7 +95,7 @@ fun LoginSection(
             },
             maxLines = 1,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-            shape = RoundedCornerShape(12.dp)
+            shape = TextFieldShape
         )
 
         Spacer(modifier = Modifier.size(8.dp))
@@ -123,7 +127,7 @@ fun LoginSection(
             },
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            shape = RoundedCornerShape(12.dp)
+            shape = TextFieldShape
         )
 
         TextButton(
@@ -145,21 +149,18 @@ fun LoginSection(
                 if(!state.isLoading) {
                     val validate = loginViewModel.validateAll()
                     if (validate.isValid) {
-                        Toast.makeText(context, "Login Successful", Toast.LENGTH_SHORT).show()
-                        onSuccessfulLogin()
+                        loginViewModel.onEvent(LoginUiEvent.Login)
+//                        Toast.makeText(context, "Login Successful", Toast.LENGTH_SHORT).show()
+//                        onSuccessfulLogin()
                     } else {
-                        Toast.makeText(
-                            context,
-                            validate.errorMessage.orEmpty(),
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        Toast.makeText(context, validate.errorMessage.orEmpty(), Toast.LENGTH_SHORT).show()
                     }
                 }
             },
             modifier = Modifier.width(200.dp),
-            shape = RoundedCornerShape(12.dp),
+            shape = ButtonShape,
             colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.8f),
+                containerColor = MaterialTheme.colorScheme.tertiary,
                 contentColor = MaterialTheme.colorScheme.onTertiary
             )
         ) {

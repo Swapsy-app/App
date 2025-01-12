@@ -7,7 +7,7 @@ sealed class SignUpUiEvent {
     data class PasswordChange(val password: String): SignUpUiEvent()
     data class ConfirmPasswordChange(val confirmPassword: String): SignUpUiEvent()
 //    data object ValidateAll: SignUpUiEvent()
-//    object SignUp: SignUpUiEvent()
+    object SignUp: SignUpUiEvent()
 //    object NavigateToLogin: SignUpUiEvent()
 //    object NavigateToHome: SignUpUiEvent()
 }

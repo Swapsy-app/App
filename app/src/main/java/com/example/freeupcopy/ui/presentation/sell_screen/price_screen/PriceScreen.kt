@@ -61,6 +61,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -94,7 +95,7 @@ import com.example.freeupcopy.ui.theme.LinkColor
 import com.example.freeupcopy.ui.theme.NoteContainerLight
 import com.example.freeupcopy.ui.theme.RecommendedContainerColor
 import com.example.freeupcopy.ui.theme.RecommendedTextColor
-import com.example.freeupcopy.ui.theme.SwapsyTheme
+import com.example.freeupcopy.ui.theme.SwapGoTheme
 import com.example.freeupcopy.utils.Validator
 import com.example.freeupcopy.utils.calculateDeliveryFee
 import com.example.freeupcopy.utils.calculatePlatformFee
@@ -183,9 +184,7 @@ fun PriceScreen(
                                 if (!state.isLoading) {
                                     val validate = priceViewModel.validateAll()
                                     if (validate.isValid) {
-                                        Toast
-                                            .makeText(context, "Successful", Toast.LENGTH_SHORT)
-                                            .show()
+                                        Toast.makeText(context, "Successful", Toast.LENGTH_SHORT).show()
                                         val newPrice = Price(
                                             pricingModel = state.pricingModel,
                                             mrp = state.mrp,
@@ -193,33 +192,21 @@ fun PriceScreen(
                                             earningCash = state.earningCash,
                                             earningCoin = state.earningCoin,
                                             sellingCoin = state.sellingCoin,
-                                            sellingCashCoin = Pair(
-                                                state.combinedCash,
-                                                state.combinedCoin
-                                            ),
-                                            earningCashCoin = Pair(
-                                                state.earningccCash,
-                                                state.earningccCoin
-                                            )
+                                            sellingCashCoin = Pair(state.combinedCash, state.combinedCoin),
+                                            earningCashCoin = Pair(state.earningccCash, state.earningccCoin)
                                         )
                                         sellViewModel.onEvent(SellUiEvent.PriceChange(price = newPrice))
                                         onConfirmClick()
                                     } else {
-                                        Toast
-                                            .makeText(
-                                                context,
-                                                validate.errorMessage.orEmpty(),
-                                                Toast.LENGTH_SHORT
-                                            )
-                                            .show()
+                                        Toast.makeText(context, validate.errorMessage.orEmpty(), Toast.LENGTH_SHORT).show()
                                     }
                                 }
                             }
-                            .background(MaterialTheme.colorScheme.tertiary),
+                            .background(Color.Black),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "Confirm", color = MaterialTheme.colorScheme.onTertiary,
+                            text = "Confirm", color = Color.White,
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp
                         )
@@ -332,8 +319,8 @@ fun PriceScreen(
                     PaymentOption(
                         modifier = Modifier.weight(1f),
                         icon = when (pricingModel) {
-                            PricingModel.CASH -> R.drawable.ic_cash
-                            PricingModel.COINS -> R.drawable.ic_coin
+                            PricingModel.CASH -> R.drawable.ic_rupee
+                            PricingModel.COINS -> R.drawable.coin
                             else -> null
                         },
                         selected = state.pricingModel.contains(pricingModel),
@@ -602,7 +589,7 @@ fun PaymentOption(
     icon: Int? = null,
     text: String,
     onClick: () -> Unit,
-    tint: Color = MaterialTheme.colorScheme.onPrimaryContainer
+    tint: Color = Color.Unspecified
 ) {
     Column(
         modifier = modifier
@@ -611,13 +598,10 @@ fun PaymentOption(
                 width = 1.dp,
                 color = if (selected) MaterialTheme.colorScheme.primary else
                     MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.4f),
-                shape = RoundedCornerShape(10.dp)
+                shape = ButtonShape
             )
-            .background(
-                color = if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
-                shape = RoundedCornerShape(10.dp)
-            )
-            .clip(RoundedCornerShape(10.dp))
+            .clip(ButtonShape)
+            .background(if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent)
             .clickable { onClick() }
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -625,9 +609,11 @@ fun PaymentOption(
     ) {
         icon?.let {
             Icon(
+                modifier = Modifier.size(24.dp).alpha(if (selected) 1f else 0.4f),
                 painter = painterResource(id = icon),
                 contentDescription = text,
-                tint = if (selected) tint else tint.copy(alpha = 0.3f)
+                tint = tint
+
             )
             Spacer(modifier = Modifier.size(8.dp))
         }
@@ -892,15 +878,15 @@ fun CommissionDetails(
             modifier = Modifier
                 .fillMaxWidth(0.75f)
                 .align(Alignment.CenterHorizontally),
-            shape = RoundedCornerShape(10.dp),
+            shape = ButtonShape,
             colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                containerColor = MaterialTheme.colorScheme.tertiary
             )
         ) {
             Text(
                 text = "Got it",
                 fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
+                color = MaterialTheme.colorScheme.onTertiary
             )
         }
     }
@@ -958,15 +944,15 @@ fun CoinsDetails(
             modifier = Modifier
                 .fillMaxWidth(0.75f)
                 .align(Alignment.CenterHorizontally),
-            shape = RoundedCornerShape(10.dp),
+            shape = ButtonShape,
             colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                containerColor = MaterialTheme.colorScheme.tertiary
             )
         ) {
             Text(
                 text = "Got it",
                 fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
+                color = MaterialTheme.colorScheme.onTertiary
             )
         }
     }
@@ -1206,7 +1192,7 @@ fun UsageItem(
 @Preview(showBackground = true)
 @Composable
 fun PriceScreenPreview() {
-    SwapsyTheme {
+    SwapGoTheme {
         CoinsDetails(
             onClick = {}
         )
