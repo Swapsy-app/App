@@ -12,6 +12,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -41,6 +42,7 @@ import com.example.freeupcopy.ui.presentation.community_screen.CommunityScreen
 import com.example.freeupcopy.ui.presentation.home_screen.HomeScreen
 import com.example.freeupcopy.ui.presentation.home_screen.componants.SwapGoNavigationBar
 import com.example.freeupcopy.ui.presentation.inbox_screen.InboxScreen
+import com.example.freeupcopy.ui.presentation.main_screen.MainScreen
 import com.example.freeupcopy.ui.presentation.product_screen.ProductScreen
 import com.example.freeupcopy.ui.presentation.profile_screen.ProfileScreen
 import com.example.freeupcopy.ui.presentation.profile_screen.edit_profile_screen.EditProfileScreen
@@ -81,59 +83,57 @@ class MainActivity : ComponentActivity() {
             SwapGoTheme(darkTheme = false) {
 
                 val navController = rememberNavController()
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentRoute = navBackStackEntry?.destination
 
                 Scaffold(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(MaterialTheme.colorScheme.surface),
                     containerColor = MaterialTheme.colorScheme.surface,
-                    bottomBar = {
-                        currentRoute?.let { route ->
-                            if (
-                                route.hasRoute(Screen.HomeScreen::class)
-                                || route.hasRoute(Screen.CommunityScreen::class)
-                                || route.hasRoute(Screen.ProfileScreen::class)
-                                || route.hasRoute(Screen.InboxScreen::class)
-                            ) {
-                                SwapGoNavigationBar(
-                                    navController = navController,
-                                    onHomeClick = {
-                                        navController.navigate(Screen.HomeScreen) {
-                                            popUpTo(Screen.HomeScreen) { inclusive = true }
-                                        }
-                                    },
-                                    onCommunityClick = {
-                                        navController.navigate(Screen.CommunityScreen) {
-                                            popUpTo(Screen.HomeScreen) { inclusive = false }
-                                        }
-                                    },
-                                    onWishListClick = {
-                                        navController.navigate(Screen.WishListScreen) {
-                                            popUpTo(Screen.HomeScreen) { inclusive = false }
-                                        }
-                                    },
-                                    onProfileClick = {
-                                        navController.navigate(Screen.ProfileScreen) {
-                                            popUpTo(Screen.HomeScreen) { inclusive = false }
-                                        }
-                                        //navController.navigate(Screen.ConnectScreen)
-                                    },
-                                    onSellClick = {
-                                        navController.navigate(Screen.SellScreen(null, null)) {
-                                            popUpTo(Screen.HomeScreen) { inclusive = false }
-                                        }
-                                    }
-                                )
-                            }
-                        }
-                    }
+//                    bottomBar = {
+//                        currentRoute?.let { route ->
+//                            if (
+//                                route.hasRoute(Screen.HomeScreen::class)
+//                                || route.hasRoute(Screen.CommunityScreen::class)
+//                                || route.hasRoute(Screen.ProfileScreen::class)
+//                                || route.hasRoute(Screen.InboxScreen::class)
+//                            ) {
+//                                SwapGoNavigationBar(
+//                                    navController = navController,
+//                                    onHomeClick = {
+//                                        navController.navigate(Screen.HomeScreen) {
+//                                            popUpTo(Screen.HomeScreen) { inclusive = true }
+//                                        }
+//                                    },
+//                                    onCommunityClick = {
+//                                        navController.navigate(Screen.CommunityScreen) {
+//                                            popUpTo(Screen.HomeScreen) { inclusive = false }
+//                                        }
+//                                    },
+//                                    onWishListClick = {
+//                                        navController.navigate(Screen.WishListScreen) {
+//                                            popUpTo(Screen.HomeScreen) { inclusive = false }
+//                                        }
+//                                    },
+//                                    onProfileClick = {
+//                                        navController.navigate(Screen.ProfileScreen) {
+//                                            popUpTo(Screen.HomeScreen) { inclusive = false }
+//                                        }
+//                                        //navController.navigate(Screen.ConnectScreen)
+//                                    },
+//                                    onSellClick = {
+//                                        navController.navigate(Screen.SellScreen(null, null)) {
+//                                            popUpTo(Screen.HomeScreen) { inclusive = false }
+//                                        }
+//                                    }
+//                                )
+//                            }
+//                        }
+//                    }
                 ) { innerPadding ->
 
                     NavHost(
                         navController = navController,
-                        startDestination = Screen.HomeScreen,
+                        startDestination = Screen.MainScreen,
                         enterTransition = {
                             slideIntoContainer(
                                 towards = AnimatedContentTransitionScope.SlideDirection.Left,
@@ -377,6 +377,7 @@ class MainActivity : ComponentActivity() {
                             exitTransition = { fadeOut(tween(700)) }
                         ) {
                             HomeScreen(
+                                lazyColumnState = rememberLazyListState(),
                                 innerPadding = innerPadding,
                                 onSearchBarClick = {
                                     navController.navigate(Screen.SearchScreen)
@@ -683,6 +684,27 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
+
+                        composable<Screen.MainScreen>(
+                            enterTransition = { fadeIn(tween(700)) },
+                            exitTransition = { fadeOut(tween(700)) }
+                        ) {
+                            MainScreen(
+                                onWishListClick = {
+                                    navController.navigate(Screen.WishListScreen)
+                                },
+                                onSellClick = {
+                                    navController.navigate(Screen.SellScreen)
+                                },
+                                onViewProfileClick = {
+                                    navController.navigate(Screen.SellerProfileScreen)
+                                },
+                                onPostedProductClick = {
+                                    navController.navigate(Screen.PostedProductsScreen)
+                                },
+                            )
+                        }
+
                     }
                 }
             }

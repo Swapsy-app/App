@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -41,6 +42,7 @@ import com.example.freeupcopy.ui.presentation.home_screen.componants.SearchTopSe
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
+    lazyColumnState: LazyListState,
     innerPadding: PaddingValues,
     onSearchBarClick: () -> Unit,
     onInboxClick: () -> Unit,
@@ -138,6 +140,7 @@ fun HomeScreen(
         // bottom padding that is commented out SearchTopSection
 
         LazyColumn(
+            state = lazyColumnState,
             modifier = Modifier
                 //.offset(y = 12.dp)
                 //.navigationBarsPadding()

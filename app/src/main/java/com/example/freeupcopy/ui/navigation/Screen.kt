@@ -15,10 +15,7 @@ sealed class Screen {
     data object WishListScreen : Screen()
 
     @Serializable
-    data class SellScreen(
-        val selectedCategory: String?,
-        val selectedWeight: String?,
-    ) : Screen()
+    data object SellScreen : Screen()
 
     @Serializable
     data object SearchScreen : Screen()
@@ -82,4 +79,7 @@ sealed class Screen {
     data object SellerProfileScreen : Screen()
     @Serializable
     data object EditProfileScreen : Screen()
+
+    @Serializable
+    data object MainScreen : Screen()
 }
