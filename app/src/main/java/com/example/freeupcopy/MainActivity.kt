@@ -1,5 +1,6 @@
 package com.example.freeupcopy
 
+import android.annotation.SuppressLint
 import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -12,17 +13,13 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
 import androidx.navigation.toRoute
@@ -38,13 +35,9 @@ import com.example.freeupcopy.ui.presentation.authentication_screen.signup_scree
 import com.example.freeupcopy.ui.presentation.cart_screen.CartScreen
 import com.example.freeupcopy.ui.presentation.cash_screen.CashScreen
 import com.example.freeupcopy.ui.presentation.coin_screen.CoinScreen
-import com.example.freeupcopy.ui.presentation.community_screen.CommunityScreen
-import com.example.freeupcopy.ui.presentation.home_screen.HomeScreen
-import com.example.freeupcopy.ui.presentation.home_screen.componants.SwapGoNavigationBar
 import com.example.freeupcopy.ui.presentation.inbox_screen.InboxScreen
 import com.example.freeupcopy.ui.presentation.main_screen.MainScreen
 import com.example.freeupcopy.ui.presentation.product_screen.ProductScreen
-import com.example.freeupcopy.ui.presentation.profile_screen.ProfileScreen
 import com.example.freeupcopy.ui.presentation.profile_screen.edit_profile_screen.EditProfileScreen
 import com.example.freeupcopy.ui.presentation.profile_screen.posted_products_screen.PostedProductsScreen
 import com.example.freeupcopy.ui.presentation.profile_screen.seller_profile_screen.SellerProfileScreen
@@ -71,6 +64,7 @@ import kotlin.reflect.typeOf
 class MainActivity : ComponentActivity() {
 
     @ExperimentalMaterial3Api
+    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -89,46 +83,6 @@ class MainActivity : ComponentActivity() {
                         .fillMaxSize()
                         .background(MaterialTheme.colorScheme.surface),
                     containerColor = MaterialTheme.colorScheme.surface,
-//                    bottomBar = {
-//                        currentRoute?.let { route ->
-//                            if (
-//                                route.hasRoute(Screen.HomeScreen::class)
-//                                || route.hasRoute(Screen.CommunityScreen::class)
-//                                || route.hasRoute(Screen.ProfileScreen::class)
-//                                || route.hasRoute(Screen.InboxScreen::class)
-//                            ) {
-//                                SwapGoNavigationBar(
-//                                    navController = navController,
-//                                    onHomeClick = {
-//                                        navController.navigate(Screen.HomeScreen) {
-//                                            popUpTo(Screen.HomeScreen) { inclusive = true }
-//                                        }
-//                                    },
-//                                    onCommunityClick = {
-//                                        navController.navigate(Screen.CommunityScreen) {
-//                                            popUpTo(Screen.HomeScreen) { inclusive = false }
-//                                        }
-//                                    },
-//                                    onWishListClick = {
-//                                        navController.navigate(Screen.WishListScreen) {
-//                                            popUpTo(Screen.HomeScreen) { inclusive = false }
-//                                        }
-//                                    },
-//                                    onProfileClick = {
-//                                        navController.navigate(Screen.ProfileScreen) {
-//                                            popUpTo(Screen.HomeScreen) { inclusive = false }
-//                                        }
-//                                        //navController.navigate(Screen.ConnectScreen)
-//                                    },
-//                                    onSellClick = {
-//                                        navController.navigate(Screen.SellScreen(null, null)) {
-//                                            popUpTo(Screen.HomeScreen) { inclusive = false }
-//                                        }
-//                                    }
-//                                )
-//                            }
-//                        }
-//                    }
                 ) { innerPadding ->
 
                     NavHost(
@@ -372,55 +326,8 @@ class MainActivity : ComponentActivity() {
                             }
                         }
 
-                        composable<Screen.HomeScreen>(
-                            enterTransition = { fadeIn(tween(700)) },
-                            exitTransition = { fadeOut(tween(700)) }
-                        ) {
-                            HomeScreen(
-                                lazyColumnState = rememberLazyListState(),
-                                innerPadding = innerPadding,
-                                onSearchBarClick = {
-                                    navController.navigate(Screen.SearchScreen)
-                                },
-                                onInboxClick = {
-                                    navController.navigate(Screen.InboxScreen)
-                                },
-                                onCartClick = {
-                                    navController.navigate(Screen.CartScreen)
-                                },
-                                onCoinClick = {
-                                    navController.navigate(Screen.CoinScreen)
-                                },
-                                onCashClick = {
-                                    navController.navigate(Screen.CashScreen)
-                                }
-                            )
-                        }
-
-                        composable<Screen.CommunityScreen>(
-                            enterTransition = { fadeIn(tween(700)) },
-                            exitTransition = { fadeOut(tween(700)) }
-                        ) {
-                            CommunityScreen()
-                        }
-
                         composable<Screen.WishListScreen> {
                             WishListScreen()
-                        }
-
-                        composable<Screen.ProfileScreen>(
-                            enterTransition = { fadeIn(tween(700)) },
-                            exitTransition = { fadeOut(tween(700)) }
-                        ) {
-                            ProfileScreen(
-                                innerPadding = innerPadding,
-                                onPostedProductClick = {
-                                    navController.navigate(Screen.PostedProductsScreen)
-                                },
-                                onViewProfileClick = {
-                                    navController.navigate(Screen.SellerProfileScreen)
-                                }
-                            )
                         }
 
                         composable<Screen.SearchScreen> {
@@ -482,8 +389,8 @@ class MainActivity : ComponentActivity() {
                                     navController.popBackStack()
                                 },
                                 onCloseClick = {
-                                    navController.navigate(Screen.HomeScreen) {
-                                        popUpTo(Screen.HomeScreen) { inclusive = true }
+                                    navController.navigate(Screen.MainScreen) {
+                                        popUpTo(Screen.MainScreen) { inclusive = true }
                                     }
                                 },
                                 onLoginClick = {
@@ -530,8 +437,8 @@ class MainActivity : ComponentActivity() {
                                     navController.popBackStack()
                                 },
                                 onCloseClick = {
-                                    navController.navigate(Screen.HomeScreen) {
-                                        popUpTo(Screen.HomeScreen) { inclusive = true }
+                                    navController.navigate(Screen.MainScreen) {
+                                        popUpTo(Screen.MainScreen) { inclusive = true }
                                     }
                                 },
                                 onSignUpClick = {
@@ -543,8 +450,8 @@ class MainActivity : ComponentActivity() {
                                     navController.navigate(Screen.ForgotPasswordScreen)
                                 },
                                 onSuccessfulLogin = {
-                                    navController.navigate(Screen.HomeScreen) {
-                                        popUpTo(Screen.HomeScreen) { inclusive = true }
+                                    navController.navigate(Screen.MainScreen) {
+                                        popUpTo(Screen.MainScreen) { inclusive = true }
                                     }
                                 },
                             )
@@ -690,18 +597,9 @@ class MainActivity : ComponentActivity() {
                             exitTransition = { fadeOut(tween(700)) }
                         ) {
                             MainScreen(
-                                onWishListClick = {
-                                    navController.navigate(Screen.WishListScreen)
-                                },
-                                onSellClick = {
-                                    navController.navigate(Screen.SellScreen)
-                                },
-                                onViewProfileClick = {
-                                    navController.navigate(Screen.SellerProfileScreen)
-                                },
-                                onPostedProductClick = {
-                                    navController.navigate(Screen.PostedProductsScreen)
-                                },
+                                onNavigate = { screen ->
+                                    navController.navigate(screen)
+                                }
                             )
                         }
 

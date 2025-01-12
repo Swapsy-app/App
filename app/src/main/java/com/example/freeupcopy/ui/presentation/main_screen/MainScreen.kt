@@ -42,6 +42,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.freeupcopy.R
+import com.example.freeupcopy.ui.navigation.Screen
 import com.example.freeupcopy.ui.presentation.community_screen.CommunityScreen
 import com.example.freeupcopy.ui.presentation.home_screen.HomeScreen
 import com.example.freeupcopy.ui.presentation.home_screen.componants.BottomNavigationItem
@@ -52,10 +53,7 @@ import com.example.freeupcopy.ui.theme.SwapGoTheme
 @Composable
 fun MainScreen(
     modifier: Modifier = Modifier,
-    onWishListClick: () -> Unit,
-    onSellClick: () -> Unit,
-    onPostedProductClick: () -> Unit,
-    onViewProfileClick: () -> Unit,
+    onNavigate: (Screen) -> Unit,
     viewModel: MainViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -94,13 +92,13 @@ fun MainScreen(
                 onWishListClick = {
                     val currentState = lifecycleOwner.lifecycle.currentState
                     if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                        onWishListClick()
+                        onNavigate(Screen.WishListScreen)
                     }
                 },
                 onSellClick = {
                     val currentState = lifecycleOwner.lifecycle.currentState
                     if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                        onSellClick()
+                        onNavigate(Screen.SellScreen)
                     }
                 }
             )
@@ -125,7 +123,6 @@ fun MainScreen(
                     0 -> {
                         HomeScreen(
                             lazyColumnState = lazyState,
-                            innerPadding = PaddingValues(),
                             onSearchBarClick = {},
                             onInboxClick = {},
                             onCartClick = {},
@@ -147,16 +144,15 @@ fun MainScreen(
                             onPostedProductClick = {
                                 val currentState = lifecycleOwner.lifecycle.currentState
                                 if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                                    onPostedProductClick()
+                                    onNavigate(Screen.PostedProductsScreen)
                                 }
                             },
                             onViewProfileClick = {
                                 val currentState = lifecycleOwner.lifecycle.currentState
                                 if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                                    onViewProfileClick()
+                                    onNavigate(Screen.SellerProfileScreen)
                                 }
-                            },
-                            innerPadding = PaddingValues()
+                            }
                         )
                     }
                 }
@@ -171,10 +167,7 @@ fun SwapGoNavigationBar1(
     windowInsets: WindowInsets = NavigationBarDefaults.windowInsets,
     selectedIndex: Int,
     onSelectedChange: (Int) -> Unit,
-//    onHomeClick: () -> Unit,
-//    onCommunityClick: () -> Unit,
     onWishListClick: () -> Unit,
-//    onProfileClick: () -> Unit,
     onSellClick: () -> Unit,
 ) {
     Box(modifier = modifier.fillMaxWidth()) {
@@ -182,10 +175,7 @@ fun SwapGoNavigationBar1(
         CustomBottomBar1(
             modifier = Modifier.align(Alignment.BottomCenter),
             windowInsets = windowInsets,
-//            onHomeClick = onHomeClick,
             onWishListClick = onWishListClick,
-//            onCommunityClick = onCommunityClick,
-//            onProfileClick = onProfileClick,
             selectedIndex = selectedIndex,
             onSelectedChange = onSelectedChange
         )
@@ -219,41 +209,33 @@ fun CustomBottomBar1(
     selectedIndex: Int,
     onSelectedChange: (Int) -> Unit,
     windowInsets: WindowInsets = NavigationBarDefaults.windowInsets,
-//    onHomeClick: () -> Unit,
-//    onCommunityClick: () -> Unit,
     onWishListClick: () -> Unit,
-//    onProfileClick: () -> Unit,
 ) {
-    //var selectedItem by remember { mutableIntStateOf(0) }
 
     val items = listOf(
         BottomNavigationItem(
             contentDescription = "Home",
             selectedIcon = painterResource(id = R.drawable.ic_home),
             unselectedIcon = painterResource(id = R.drawable.ic_home),
-//            onClick = onHomeClick
-            onClick = { }
+            onClick = {  }
         ),
         BottomNavigationItem(
             contentDescription = "Community",
             selectedIcon = painterResource(id = R.drawable.ic_community_selected),
             unselectedIcon = painterResource(id = R.drawable.ic_community),
-//            onClick = onCommunityClick
-            onClick = { }
+            onClick = {  }
         ),
         BottomNavigationItem(
             contentDescription = "WishList",
             selectedIcon = painterResource(id = R.drawable.ic_favorite_selected),
             unselectedIcon = painterResource(id = R.drawable.ic_favorite),
-//            onClick = {}
             onClick = onWishListClick
         ),
         BottomNavigationItem(
             contentDescription = "Profile",
             selectedIcon = painterResource(id = R.drawable.ic_person_selected),
             unselectedIcon = painterResource(id = R.drawable.ic_person),
-            onClick = {}
-//            onClick = onProfileClick
+            onClick = {  }
         )
     )
 
@@ -335,10 +317,7 @@ fun rememberScrollPositionListState(
 private fun PreviewMainScreen() {
     SwapGoTheme {
         MainScreen(
-            onWishListClick = {},
-            onSellClick = {},
-            onPostedProductClick = {},
-            onViewProfileClick = {}
+            onNavigate = {},
         )
     }
 }

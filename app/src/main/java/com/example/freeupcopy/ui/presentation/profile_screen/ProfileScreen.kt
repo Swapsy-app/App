@@ -18,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.freeupcopy.ui.presentation.profile_screen.componants.BalanceSection
 import com.example.freeupcopy.ui.presentation.profile_screen.componants.ProfileBanner
@@ -28,10 +29,9 @@ import com.example.freeupcopy.ui.theme.SwapGoTheme
 
 @Composable
 fun ProfileScreen(
-    profileViewModel: ProfileViewModel = viewModel(),
+    profileViewModel: ProfileViewModel = hiltViewModel(),
     onPostedProductClick: () -> Unit,
-    onViewProfileClick: () -> Unit,
-    innerPadding: PaddingValues
+    onViewProfileClick: () -> Unit
 ) {
     val state by profileViewModel.state.collectAsState()
 
@@ -58,11 +58,8 @@ fun ProfileScreen(
     ) { paddingValues ->
         Column(
             Modifier
-                .padding(
-                    top = paddingValues.calculateTopPadding()
-                )
+                .padding(top = paddingValues.calculateTopPadding())
                 .fillMaxSize()
-                .padding(bottom = innerPadding.calculateBottomPadding())
         ) {
             LazyColumn(
                 modifier = Modifier
@@ -211,7 +208,6 @@ fun ProfileScreen(
 fun ProfileScreenPreview() {
     SwapGoTheme {
         ProfileScreen(
-            innerPadding = PaddingValues(0.dp),
             onPostedProductClick = {},
             onViewProfileClick = {}
         )

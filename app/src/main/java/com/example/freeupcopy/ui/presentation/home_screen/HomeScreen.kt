@@ -43,7 +43,6 @@ import com.example.freeupcopy.ui.presentation.home_screen.componants.SearchTopSe
 @Composable
 fun HomeScreen(
     lazyColumnState: LazyListState,
-    innerPadding: PaddingValues,
     onSearchBarClick: () -> Unit,
     onInboxClick: () -> Unit,
     onCartClick: () -> Unit,
@@ -56,8 +55,6 @@ fun HomeScreen(
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
-//            .navigationBarsPadding()
-            //.padding(bottom = )
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.surface,
         contentWindowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
@@ -135,7 +132,7 @@ fun HomeScreen(
                 }
             }
         }
-    ) { innerPadding2->
+    ) { innerPadding->
         //if remove offset int the content of the home screen then add the
         // bottom padding that is commented out SearchTopSection
 
@@ -144,10 +141,8 @@ fun HomeScreen(
             modifier = Modifier
                 //.offset(y = 12.dp)
                 //.navigationBarsPadding()
-                .padding(top = innerPadding2.calculateTopPadding())
+                .padding(top = innerPadding.calculateTopPadding())
                 .fillMaxSize()
-                .padding()
-                .padding(bottom = innerPadding.calculateBottomPadding())
         ) {
             items(50) { index ->
                 Text(
