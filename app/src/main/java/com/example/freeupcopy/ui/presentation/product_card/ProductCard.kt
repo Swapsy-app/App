@@ -26,6 +26,7 @@ import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardElevation
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -56,6 +57,9 @@ import com.example.freeupcopy.ui.theme.OfferColor2
 
 @Composable
 fun ProductCard(
+    modifier: Modifier = Modifier,
+    productImageModifier: Modifier = Modifier,
+    isBigCard : Boolean,
     containerColor: Color = Color.White,
     companyName : String?,
     productName : String,
@@ -72,279 +76,283 @@ fun ProductCard(
     priorityPriceType : Int?,
     isClothes : Boolean
 ) {
-    Card(
-        modifier = Modifier
-            .padding(8.dp)
-            .width(180.dp),
-        shape = RoundedCornerShape(8.dp),
-        colors = CardColors(
-            contentColor = Color.Black,
-            containerColor = containerColor,
-            disabledContentColor = Color.Gray,
-            disabledContainerColor = Color.LightGray
-        )
-    ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            // Image Section
-            Box(modifier = Modifier.height(180.dp)) {
-                Image(
-                    painter = productThumbnail ?: painterResource(id = R.drawable.add_image),
-                    contentDescription = "Product Image",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-                IconButton(
-                    onClick = { onLikeClick() },
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(8.dp)
-                        .background(Color.White.copy(alpha = 0.7f), CircleShape)
-                        .size(36.dp)
-                ) {
-                    Icon(
-                        imageVector = if(isLiked) Icons.Default.Favorite else Icons.Rounded.FavoriteBorder,
-                        contentDescription = "Favorite Icon",
-                        tint = if(isLiked) Color.Red else Color.Gray
+    Box(modifier = modifier){
+        ElevatedCard(
+            modifier = Modifier
+                .padding(8.dp)
+                .width(180.dp),
+            shape = RoundedCornerShape(8.dp),
+            colors = CardColors(
+                contentColor = Color.Black,
+                containerColor = containerColor,
+                disabledContentColor = Color.Gray,
+                disabledContainerColor = Color.LightGray
+            )
+        ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                // Image Section
+                Box(modifier = if(isBigCard)Modifier.height(180.dp) else productImageModifier) {
+                    Image(
+                        painter = productThumbnail ?: painterResource(id = R.drawable.add_image),
+                        contentDescription = "Product Image",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
                     )
-                }
-            }
-
-            // Product Details Section
-            Column(modifier = Modifier.padding(8.dp)) {
-                if(companyName != null){
-                    Text(
-                        text = companyName.toString(), // Replace with product name
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 2,
-                        color = Color.Gray,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-                Text(
-                    text = productName, // Replace with product name
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-                if(isClothes){
-                    Text(
-                        text = size, // Replace with product details
-                        color = Color.Gray
-                    )
-                }
-                Spacer(modifier = Modifier.height(4.dp))
-                if(priorityPriceType != null){
-                    if (priorityPriceType == 0){
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = "₹${priceOffered}", // Replace with discounted price
-                                color = Color.Black
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Row{
-                                Text(
-                                    text = "₹$priceOriginal", // Replace with discounted price
-                                    color = Color.Gray,
-                                    textDecoration = TextDecoration.LineThrough
-                                )
-                            }
-                        }
-                    }
-                    else{
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                modifier = Modifier.size(16.dp),
-                                painter = painterResource(id = R.drawable.ic_coin),
-                                contentDescription = "coin",
-                                tint = CoinColor2
-                            )
-                            Spacer(modifier = Modifier.size(4.dp))
-                            Text(
-                                text = "${coinsOffered}", // Replace with discounted price
-                                color = Color.Black
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Row{
-                                Text(
-                                    text = "₹$priceOriginal", // Replace with discounted price
-                                    color = Color.Gray,
-                                    textDecoration = TextDecoration.LineThrough
-                                )
-                            }
-                        }
-                    }
-                }
-                else{
-                    if (availablePurchaseOptions[0]){
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = "₹${priceOffered}", // Replace with discounted price
-                                color = Color.Black
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Row{
-                                Text(
-                                    text = "₹$priceOriginal", // Replace with discounted price
-                                    color = Color.Gray,
-                                    textDecoration = TextDecoration.LineThrough
-                                )
-                            }
-                        }
-                    }
-                    else if(availablePurchaseOptions[1]){
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                modifier = Modifier.size(16.dp),
-                                painter = painterResource(id = R.drawable.ic_coin),
-                                contentDescription = "coin",
-                                tint = CoinColor2
-                            )
-                            Spacer(modifier = Modifier.size(4.dp))
-                            Text(
-                                text = "${coinsOffered}", // Replace with discounted price
-                                color = Color.Black
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Row{
-                                Text(
-                                    text = "₹$priceOriginal", // Replace with discounted price
-                                    color = Color.Gray,
-                                    textDecoration = TextDecoration.LineThrough
-                                )
-                            }
-                        }
-                    }
-                    else if(availablePurchaseOptions[2]){
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = "₹${specialOffer?.get(0)}", // Replace with discounted price
-                                color = Color.Black
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Icon(
-                                modifier = Modifier.size(16.dp),
-                                imageVector = Icons.Rounded.Add,
-                                contentDescription = "coin",
-                                tint = OfferColor2
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Icon(
-                                modifier = Modifier.size(16.dp),
-                                painter = painterResource(id = R.drawable.ic_coin),
-                                contentDescription = "coin",
-                                tint = CoinColor2
-                            )
-                            Spacer(modifier = Modifier.size(4.dp))
-                            Text(
-                                text = "${specialOffer?.get(1)}", // Replace with discounted price
-                                color = Color.Black
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(4.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    if(badge != null){
-                        Text(
-                            text = badge.toString(), // Replace with tag
-                            color = Color.Green
+                    IconButton(
+                        onClick = { onLikeClick() },
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(8.dp)
+                            .background(Color.White.copy(alpha = 0.7f), CircleShape)
+                            .size(36.dp)
+                    ) {
+                        Icon(
+                            imageVector = if(isLiked) Icons.Default.Favorite else Icons.Rounded.FavoriteBorder,
+                            contentDescription = "Favorite Icon",
+                            tint = if(isLiked) Color.Red else Color.Gray
                         )
                     }
                 }
-                Spacer(modifier = Modifier.size(8.dp))
-                Row {
-                    if(availablePurchaseOptions[0]){
-                        Row(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(100))
-                                .border(
-                                    2.5.dp,
-                                    Brush.linearGradient(
-                                        colors = listOf(
-                                            CashColor1,
-                                            CashColor2
-                                        ),
-                                        start = Offset(0f, 0f),
-                                        end = Offset(100f, 100f) // Adjust these offsets for tilt
-                                    ),
-                                    shape = CircleShape
-                                )
-                                .padding(horizontal = 8.dp, vertical = 5.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Icon(
-                                modifier = Modifier.size(16.dp),
-                                painter = painterResource(id = R.drawable.ic_cash),
-                                contentDescription = "cash",
-                                tint = CashColor2
-                            )
-                        }
-                        Spacer(modifier = Modifier.size(8.dp))
+
+                // Product Details Section
+                Column(modifier = Modifier.padding(8.dp)) {
+                    if(isBigCard && companyName != null){
+                        Text(
+                            text = companyName.toString(), // Replace with product name
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            color = Color.Gray,
+                            overflow = TextOverflow.Ellipsis
+                        )
                     }
-                    if(availablePurchaseOptions[1]){
-                        Row(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(100))
-                                .border(
-                                    2.5.dp,
-                                    Brush.linearGradient(
-                                        colors = listOf(CoinColor1, CoinColor2),
-                                        start = Offset(0f, 0f),
-                                        end = Offset(100f, 100f) // Adjust these offsets for tilt
-                                    ),
-                                    shape = CircleShape
-                                )
-                                .padding(horizontal = 8.dp, vertical = 5.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Icon(
-                                modifier = Modifier.size(16.dp),
-                                painter = painterResource(id = R.drawable.ic_coin),
-                                contentDescription = "coin",
-                                tint = CoinColor2
-                            )
-                        }
-                        Spacer(modifier = Modifier.size(8.dp))
+                    Text(
+                        text = productName,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    if(isBigCard && isClothes){
+                        Text(
+                            text = size, // Replace with product details
+                            color = Color.Gray
+                        )
                     }
-                    if(availablePurchaseOptions[2]){
-                        Row(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(100))
-                                .border(
-                                    2.5.dp,
-                                    Brush.linearGradient(
-                                        colors = listOf(OfferColor1, OfferColor2),
-                                        start = Offset(0f, 0f),
-                                        end = Offset(100f, 100f) // Adjust these offsets for tilt
-                                    ),
-                                    shape = CircleShape
+                    Spacer(modifier = Modifier.height(4.dp))
+                    if(priorityPriceType != null){
+                        if (priorityPriceType == 0){
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "₹${priceOffered}", // Replace with discounted price
+                                    color = Color.Black
                                 )
-                                .padding(horizontal = 8.dp, vertical = 5.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Row {
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Row{
+                                    Text(
+                                        text = "₹$priceOriginal", // Replace with discounted price
+                                        color = Color.Gray,
+                                        textDecoration = TextDecoration.LineThrough
+                                    )
+                                }
+                            }
+                        }
+                        else{
+                            Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(
                                     modifier = Modifier.size(16.dp),
                                     painter = painterResource(id = R.drawable.ic_coin),
                                     contentDescription = "coin",
                                     tint = CoinColor2
                                 )
+                                Spacer(modifier = Modifier.size(4.dp))
+                                Text(
+                                    text = "${coinsOffered}", // Replace with discounted price
+                                    color = Color.Black
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Row{
+                                    Text(
+                                        text = "₹$priceOriginal", // Replace with discounted price
+                                        color = Color.Gray,
+                                        textDecoration = TextDecoration.LineThrough
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    else{
+                        if (availablePurchaseOptions[0]){
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "₹${priceOffered}", // Replace with discounted price
+                                    color = Color.Black
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Row{
+                                    Text(
+                                        text = "₹$priceOriginal", // Replace with discounted price
+                                        color = Color.Gray,
+                                        textDecoration = TextDecoration.LineThrough
+                                    )
+                                }
+                            }
+                        }
+                        else if(availablePurchaseOptions[1]){
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    modifier = Modifier.size(16.dp),
+                                    painter = painterResource(id = R.drawable.ic_coin),
+                                    contentDescription = "coin",
+                                    tint = CoinColor2
+                                )
+                                Spacer(modifier = Modifier.size(4.dp))
+                                Text(
+                                    text = "${coinsOffered}", // Replace with discounted price
+                                    color = Color.Black
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Row{
+                                    Text(
+                                        text = "₹$priceOriginal", // Replace with discounted price
+                                        color = Color.Gray,
+                                        textDecoration = TextDecoration.LineThrough
+                                    )
+                                }
+                            }
+                        }
+                        else if(availablePurchaseOptions[2]){
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "₹${specialOffer?.get(0)}", // Replace with discounted price
+                                    color = Color.Black
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
                                 Icon(
                                     modifier = Modifier.size(16.dp),
                                     imageVector = Icons.Rounded.Add,
-                                    contentDescription = "plus",
+                                    contentDescription = "coin",
                                     tint = OfferColor2
                                 )
+                                Spacer(modifier = Modifier.width(4.dp))
                                 Icon(
                                     modifier = Modifier.size(16.dp),
-                                    painter = painterResource(id = R.drawable.ic_cash),
-                                    contentDescription = "cash",
-                                    tint = CashColor2
+                                    painter = painterResource(id = R.drawable.ic_coin),
+                                    contentDescription = "coin",
+                                    tint = CoinColor2
                                 )
+                                Spacer(modifier = Modifier.size(4.dp))
+                                Text(
+                                    text = "${specialOffer?.get(1)}", // Replace with discounted price
+                                    color = Color.Black
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if(isBigCard && badge != null){
+                            Text(
+                                text = badge.toString(), // Replace with tag
+                                color = Color.Green
+                            )
+                        }
+                    }
+                    if (isBigCard){
+                        Spacer(modifier = Modifier.size(8.dp))
+                        Row {
+                            if(availablePurchaseOptions[0]){
+                                Row(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(100))
+                                        .border(
+                                            2.5.dp,
+                                            Brush.linearGradient(
+                                                colors = listOf(
+                                                    CashColor1,
+                                                    CashColor2
+                                                ),
+                                                start = Offset(0f, 0f),
+                                                end = Offset(100f, 100f) // Adjust these offsets for tilt
+                                            ),
+                                            shape = CircleShape
+                                        )
+                                        .padding(horizontal = 8.dp, vertical = 5.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    Icon(
+                                        modifier = Modifier.size(16.dp),
+                                        painter = painterResource(id = R.drawable.ic_cash),
+                                        contentDescription = "cash",
+                                        tint = CashColor2
+                                    )
+                                }
+                                Spacer(modifier = Modifier.size(8.dp))
+                            }
+                            if(availablePurchaseOptions[1]){
+                                Row(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(100))
+                                        .border(
+                                            2.5.dp,
+                                            Brush.linearGradient(
+                                                colors = listOf(CoinColor1, CoinColor2),
+                                                start = Offset(0f, 0f),
+                                                end = Offset(100f, 100f) // Adjust these offsets for tilt
+                                            ),
+                                            shape = CircleShape
+                                        )
+                                        .padding(horizontal = 8.dp, vertical = 5.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    Icon(
+                                        modifier = Modifier.size(16.dp),
+                                        painter = painterResource(id = R.drawable.ic_coin),
+                                        contentDescription = "coin",
+                                        tint = CoinColor2
+                                    )
+                                }
+                                Spacer(modifier = Modifier.size(8.dp))
+                            }
+                            if(availablePurchaseOptions[2]){
+                                Row(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(100))
+                                        .border(
+                                            2.5.dp,
+                                            Brush.linearGradient(
+                                                colors = listOf(OfferColor1, OfferColor2),
+                                                start = Offset(0f, 0f),
+                                                end = Offset(100f, 100f) // Adjust these offsets for tilt
+                                            ),
+                                            shape = CircleShape
+                                        )
+                                        .padding(horizontal = 8.dp, vertical = 5.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    Row {
+                                        Icon(
+                                            modifier = Modifier.size(16.dp),
+                                            painter = painterResource(id = R.drawable.ic_coin),
+                                            contentDescription = "coin",
+                                            tint = CoinColor2
+                                        )
+                                        Icon(
+                                            modifier = Modifier.size(16.dp),
+                                            imageVector = Icons.Rounded.Add,
+                                            contentDescription = "plus",
+                                            tint = OfferColor2
+                                        )
+                                        Icon(
+                                            modifier = Modifier.size(16.dp),
+                                            painter = painterResource(id = R.drawable.ic_cash),
+                                            contentDescription = "cash",
+                                            tint = CashColor2
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
@@ -359,6 +367,7 @@ fun ProductCard(
 @Preview(showBackground = true) @Composable
 fun PreviewProductCard(){
     ProductCard(
+        isBigCard = true,
         companyName = "Adidas",
         productName = "Adidas Bomber Jacket",
         size = "40 inches",

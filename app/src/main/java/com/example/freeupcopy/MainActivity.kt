@@ -1,5 +1,6 @@
 package com.example.freeupcopy
 
+import InboxScreen
 import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -37,11 +38,12 @@ import com.example.freeupcopy.ui.presentation.coin_screen.CoinScreen
 import com.example.freeupcopy.ui.presentation.community_screen.CommunityScreen
 import com.example.freeupcopy.ui.presentation.home_screen.HomeScreen
 import com.example.freeupcopy.ui.presentation.home_screen.componants.CustomNavigationBar
-import com.example.freeupcopy.ui.presentation.inbox_screen.InboxScreen
+
 import com.example.freeupcopy.ui.navigation.CustomNavType
 import com.example.freeupcopy.ui.navigation.Screen
 import com.example.freeupcopy.ui.presentation.product_listing.ProductListing
 import com.example.freeupcopy.ui.presentation.profile_screen.ProfileScreen
+import com.example.freeupcopy.ui.presentation.profile_screen.badges.BadgesScreen
 import com.example.freeupcopy.ui.presentation.search_screen.SearchScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.SellScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.SellViewModel
@@ -77,7 +79,6 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination
-
                 Scaffold(
                     modifier = Modifier
                         .fillMaxSize()

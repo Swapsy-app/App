@@ -241,6 +241,7 @@ fun ProductListing(
             ) {
                 items(10) { index ->
                     ProductCard(
+                        isBigCard = true,
                         containerColor = MaterialTheme.colorScheme.background,
                         companyName = listOf(
                             "Adidas", "Nike", "Puma", null, "Under Armour",

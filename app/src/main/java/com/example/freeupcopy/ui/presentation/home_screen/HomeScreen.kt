@@ -153,6 +153,7 @@ fun HomeScreen(
         ) {
             items(10) { index ->
                 ProductCard(
+                    isBigCard = true,
                     companyName = listOf(
                         "Adidas", "Nike", "Puma", null, "Under Armour",
                         "Levi's", "Calvin Klein", "Tommy Hilfiger", "Lacoste", null
