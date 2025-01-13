@@ -1,0 +1,85 @@
+package com.example.freeupcopy.domain.model
+
+enum class CATEGORY {
+    MEN,
+    WOMEN,
+    BABY_AND_KIDS,
+    BEAUTY_AND_CARE,
+    BOOKS,
+    HOME_AND_KITCHEN,
+    GADGETS,
+    None
+}
+
+enum class MEN{
+    T_SHIRTS_AND_SHIRTS,
+    SWEATS_AND_HOODIES,
+    SWEATERS,
+    JEANS_AND_PANTS,
+    SHORTS,
+    COATS_AND_JACKETS,
+    SUITS_AND_BLAZERS,
+    ETHNIC_WEAR,
+    FOOTWEAR,
+    BAGS_AND_BACKPACKS,
+    ACCESSORIES,
+    ATHLETIC_WEAR,
+    OTHER
+}
+
+enum class WOMEN{
+    ETHNIC,
+    WESTERN,
+    JEWELLERY,
+    ACCESSORIES,
+    BAGS,
+    FOOTWEAR,
+    INNER_WEAR_AND_SLEEPWEAR
+}
+
+enum class BABY_AND_KIDS{
+    BOYS_CLOTHING,
+    GIRLS_CLOTHING,
+    BOYS_FOOTWEAR,
+    GIRLS_FOOTWEAR,
+    BATH_AND_SKIN_CARE,
+    ACCESSORIES,
+    TOYS_AND_GAMES,
+    OTHER
+}
+
+enum class BEAUTY_AND_CARE{
+    SKIN_CARE,
+    HAIR_CARE,
+    MAKEUP_AND_NAILS,
+    OTHER
+}
+
+enum class BOOKS{
+    FICTION,
+    NON_FICTION,
+    ACADEMIC,
+    CHILDREN,
+    COMICS_AND_GRAPHIC_NOVELS,
+    OTHER
+}
+
+enum class HOME_AND_KITCHEN{
+    FURNITURE,
+    DECOR,
+    KITCHENWARE,
+    BEDDING,
+    BATH,
+    APPLIANCES,
+    OTHER
+}
+
+enum class GADGETS{
+    MOBILE_PHONES,
+    LAPTOPS,
+    TABLETS,
+    CAMERAS,
+    WEARABLES,
+    ACCESSORIES,
+    OTHER
+}
