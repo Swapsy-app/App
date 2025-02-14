@@ -11,6 +11,7 @@ data class SignUpUiState(
     val isLoading: Boolean = false,
     val error: String = "",
 
-    val shouldNavigateToOtp: Boolean = false,
+    val successMessage: String = "",
+//    val shouldNavigateToOtp: Boolean = false,
 //    val status: SignUpStatus? = null
 )

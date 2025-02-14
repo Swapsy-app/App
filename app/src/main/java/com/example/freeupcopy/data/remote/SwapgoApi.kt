@@ -4,10 +4,16 @@ import com.example.freeupcopy.data.remote.dto.AuthResponse
 import com.example.freeupcopy.data.remote.dto.ForgotPasswordRequest
 import com.example.freeupcopy.data.remote.dto.LoginRequest
 import com.example.freeupcopy.data.remote.dto.LoginResponse
+import com.example.freeupcopy.data.remote.dto.LoginStatusResponse
 import com.example.freeupcopy.data.remote.dto.OtpRequest
 import com.example.freeupcopy.data.remote.dto.OtpResendRequest
+import com.example.freeupcopy.data.remote.dto.RefreshTokenRequest
+import com.example.freeupcopy.data.remote.dto.RefreshTokenResponse
+import com.example.freeupcopy.data.remote.dto.SignUpOtpVerifyResponse
 import com.example.freeupcopy.data.remote.dto.SignUpRequest
+import okhttp3.Response
 import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.POST
 
 interface SwapgoApi {
@@ -20,7 +26,7 @@ interface SwapgoApi {
     @POST("signup/otp/verify")
     suspend fun verifyOtp(
         @Body otpRequest: OtpRequest
-    ): AuthResponse
+    ): SignUpOtpVerifyResponse
 
     @POST("resend-otp")
     suspend fun resendOtp(
@@ -46,4 +52,12 @@ interface SwapgoApi {
     suspend fun forgotPassword(
         @Body forgotPasswordRequest: ForgotPasswordRequest
     ): AuthResponse
+
+    @POST("refresh")
+    suspend fun refreshToken(
+        @Body refreshTokenRequest: RefreshTokenRequest
+    ): retrofit2.Response<RefreshTokenResponse>
+
+    @GET("check-login-status")
+    suspend fun checkLoginStatus(): LoginStatusResponse
 }

@@ -18,4 +18,5 @@
     <string name="location_announcement">Click on the three vertical dots  to change the default location or delete it</string>
 
     <string name="permission_text">Location access denied. To enable it, go to App Info> Permissions> Location and allow access.</string>
+    <string name="size_filter_text">Choose a relevant category to view available size options.</string>
 </resources>

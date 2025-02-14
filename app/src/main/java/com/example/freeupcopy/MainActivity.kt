@@ -37,6 +37,7 @@ import com.example.freeupcopy.ui.presentation.cash_screen.CashScreen
 import com.example.freeupcopy.ui.presentation.coin_screen.CoinScreen
 import com.example.freeupcopy.ui.presentation.inbox_screen.InboxScreen
 import com.example.freeupcopy.ui.presentation.main_screen.MainScreen
+import com.example.freeupcopy.ui.presentation.product_listing.ProductListing
 import com.example.freeupcopy.ui.presentation.product_screen.ProductScreen
 import com.example.freeupcopy.ui.presentation.profile_screen.edit_profile_screen.EditProfileScreen
 import com.example.freeupcopy.ui.presentation.profile_screen.posted_products_screen.PostedProductsScreen
@@ -87,7 +88,7 @@ class MainActivity : ComponentActivity() {
 
                     NavHost(
                         navController = navController,
-                        startDestination = Screen.MainScreen,
+                        startDestination = Screen.ConnectScreen,
                         enterTransition = {
                             slideIntoContainer(
                                 towards = AnimatedContentTransitionScope.SlideDirection.Left,
@@ -334,6 +335,9 @@ class MainActivity : ComponentActivity() {
                             SearchScreen(
                                 onBack = {
                                     navController.popBackStack()
+                                },
+                                onSearch = {
+                                    navController.navigate(Screen.ProductListingScreen)
                                 }
                             )
                         }
@@ -350,11 +354,19 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable<Screen.CashScreen> {
-                            CashScreen()
+                            CashScreen(
+                                onBack = {
+                                    navController.popBackStack()
+                                }
+                            )
                         }
 
                         composable<Screen.CoinScreen> {
-                            CoinScreen()
+                            CoinScreen(
+                                onBack = {
+                                    navController.popBackStack()
+                                }
+                            )
                         }
 
                         composable<Screen.SignUpScreen>(
@@ -539,8 +551,11 @@ class MainActivity : ComponentActivity() {
                                     navController.popBackStack()
                                 },
                                 onSuccessfulVerification = {
-                                    navController.navigate(Screen.LoginScreen) {
-                                        popUpTo(Screen.ConnectScreen) { inclusive = true }
+//                                    navController.navigate(Screen.LoginScreen) {
+//                                        popUpTo(Screen.ConnectScreen) { inclusive = true }
+//                                    }
+                                    navController.navigate(Screen.MainScreen) {
+                                        popUpTo(Screen.MainScreen) { inclusive = true }
                                     }
                                 }
                             )
@@ -599,6 +614,14 @@ class MainActivity : ComponentActivity() {
                             MainScreen(
                                 onNavigate = { screen ->
                                     navController.navigate(screen)
+                                }
+                            )
+                        }
+
+                        composable<Screen.ProductListingScreen> {
+                            ProductListing(
+                                onBack = {
+                                    navController.popBackStack()
                                 }
                             )
                         }

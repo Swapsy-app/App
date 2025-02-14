@@ -32,13 +32,11 @@ class OtpViewModel @Inject constructor(
                 }
             }
             is OtpUiEvent.VerifyChange -> {
-                //_state.value = state.value.copy(isVerifyEnabled = event.isVerifyEnabled)
                 _state.update {
                     it.copy(isVerifyEnabled = event.isVerifyEnabled)
                 }
             }
             is OtpUiEvent.ResendChange -> {
-                //_state.value = state.value.copy(isResendEnabled = event.isResendEnabled)
                 _state.update {
                     it.copy(isResendEnabled = event.isResendEnabled)
                 }
@@ -95,7 +93,6 @@ class OtpViewModel @Inject constructor(
                 }
             }
             is OtpUiEvent.VerifyOtp -> {
-                //_state.value = state.value.copy(isLoading = true)
                 viewModelScope.launch {
                     val otpRequest = OtpRequest(
                         otp = _state.value.otpValues.joinToString(""),
@@ -108,7 +105,7 @@ class OtpViewModel @Inject constructor(
                                     it.copy(
                                         isLoading = true,
                                         error = "",
-                                        shouldNavigateToLogin = false
+                                        signUpOtpVerifyResponse = null
                                     )
                                 }
                             }
@@ -116,7 +113,7 @@ class OtpViewModel @Inject constructor(
                                 _state.update {
                                     it.copy(
                                         isLoading = false,
-                                        shouldNavigateToLogin = true,
+                                        signUpOtpVerifyResponse = result.data,
                                         error = ""
                                     )
                                 }
@@ -125,7 +122,7 @@ class OtpViewModel @Inject constructor(
                                 _state.update {
                                     it.copy(
                                         isLoading = false,
-                                        shouldNavigateToLogin = false,
+                                        signUpOtpVerifyResponse = null,
                                         error = result.message ?: "An unexpected error occurred"
                                     )
                                 }

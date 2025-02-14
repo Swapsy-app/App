@@ -8,9 +8,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -22,16 +25,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.freeupcopy.R
+import com.example.freeupcopy.ui.presentation.home_screen.HomeScreen
+import com.example.freeupcopy.ui.theme.CardShape
 import com.example.freeupcopy.ui.theme.CashColor1
 import com.example.freeupcopy.ui.theme.CashColor2
 import com.example.freeupcopy.ui.theme.CoinColor1
 import com.example.freeupcopy.ui.theme.CoinColor2
+import com.example.freeupcopy.ui.theme.SwapGoTheme
 
 @Composable
 fun AppNameTopSection(
@@ -44,16 +52,23 @@ fun AppNameTopSection(
             .fillMaxWidth()
             .offset()
             //.background(MaterialTheme.colorScheme.surface)
-            .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 20.dp),
+            .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 10.dp),
         verticalAlignment = Alignment.Bottom
     ) {
-        Spacer(modifier = Modifier.size(8.dp))
-        Text(
-            text = stringResource(id = R.string.app_name),
-            color = MaterialTheme.colorScheme.onSurface,
-            fontWeight = FontWeight.Bold,
-            fontSize = 24.sp
-        )
+//        Box(
+//            modifier = Modifier
+//                .clip(CardShape.medium)
+//                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.9f))
+//                .padding(horizontal = 12.dp, vertical = 4.dp),
+//            contentAlignment = Alignment.Center
+//        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_logo_full),
+                contentDescription = "SwapGo",
+                tint = Color.Unspecified,
+                modifier = Modifier.width(120.dp)
+            )
+//        }
         Spacer(modifier = Modifier.weight(1f))
         CoinButton {
             onCoinClick()
@@ -74,37 +89,46 @@ fun CoinButton(
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(100))
-            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.75f))
+            .background(
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        Color(0xFFFFFAAB).copy(0.15f),
+                        CoinColor2.copy(0.2f)
+                    ),
+                    start = Offset(0f, 0f),
+                    end = Offset(100f, 100f) // Adjust these offsets for tilt
+                ),
+            )
     ){
         Row(
             modifier = Modifier
                 .clip(RoundedCornerShape(100))
                 .clickable { onClick() }
-                .border(
-                    2.5.dp,
-                    Brush.linearGradient(
-                        colors = listOf(CoinColor1, CoinColor2),
-                        start = Offset(0f, 0f),
-                        end = Offset(100f, 100f) // Adjust these offsets for tilt
-                    ),
-                    shape = CircleShape
-                )
-                .padding(horizontal = 8.dp, vertical = 5.dp),
+//                .border(
+//                    1.dp,
+//                    Brush.linearGradient(
+//                        colors = listOf(CoinColor1, CoinColor2),
+//                        start = Offset(0f, 0f),
+//                        end = Offset(100f, 100f) // Adjust these offsets for tilt
+//                    ),
+//                    shape = CircleShape
+//                )
+                .padding(horizontal = 10.dp, vertical = 5.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "Coin",
+                text = "Coins",
                 fontSize = 15.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = CoinColor2
+                color = Color(0xFFAF7100)
             )
             Spacer(modifier = Modifier.size(3.5.dp))
             Icon(
                 modifier = Modifier.size(22.dp),
-                painter = painterResource(id = R.drawable.ic_coin),
+                painter = painterResource(id = R.drawable.coin),
                 contentDescription = "coin",
-                tint = CoinColor2
+                tint = Color.Unspecified
             )
         }
     }
@@ -119,24 +143,33 @@ fun CashButton(
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(100))
-            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.75f))
+            .background(
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        Color(0xFFE2FF9D).copy(0.15f),
+                        CashColor2.copy(0.15f)
+                    ),
+                    start = Offset(0f, 0f),
+                    end = Offset(100f, 100f) // Adjust these offsets for tilt
+                )
+            )
     ){
         Row(
             modifier = Modifier
                 .clip(RoundedCornerShape(100))
                 .clickable { onClick() }
-                .border(
-                    2.5.dp,
-                    Brush.linearGradient(
-                        colors = listOf(
-                            CashColor1,
-                            CashColor2
-                        ),
-                        start = Offset(0f, 0f),
-                        end = Offset(100f, 100f) // Adjust these offsets for tilt
-                    ),
-                    shape = CircleShape
-                )
+//                .border(
+//                    1.dp,
+//                    Brush.linearGradient(
+//                        colors = listOf(
+//                            CashColor1,
+//                            CashColor2
+//                        ),
+//                        start = Offset(0f, 0f),
+//                        end = Offset(100f, 100f) // Adjust these offsets for tilt
+//                    ),
+//                    shape = CircleShape
+//                )
                 .padding(horizontal = 8.dp, vertical = 5.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
@@ -145,7 +178,7 @@ fun CashButton(
                 text = "Cash",
                 fontSize = 15.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = CashColor2
+                color = Color(0xFF008300)
             )
             Spacer(modifier = Modifier.size(3.5.dp))
             Icon(
@@ -156,5 +189,20 @@ fun CashButton(
             )
         }
 
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun PreviewHomeScreen() {
+    SwapGoTheme {
+        HomeScreen(
+            lazyColumnState = LazyListState(),
+            onSearchBarClick = {},
+            onInboxClick = {},
+            onCartClick = {},
+            onCoinClick = {},
+            onCashClick = {}
+        )
     }
 }

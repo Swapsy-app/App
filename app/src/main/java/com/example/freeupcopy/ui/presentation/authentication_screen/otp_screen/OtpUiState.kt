@@ -1,5 +1,7 @@
 package com.example.freeupcopy.ui.presentation.authentication_screen.otp_screen
 
+import com.example.freeupcopy.data.remote.dto.SignUpOtpVerifyResponse
+
 data class OtpUiState(
     val otpValues: List<String> = List(6) { "" },
     val isVerifyEnabled: Boolean = false,
@@ -10,5 +12,6 @@ data class OtpUiState(
 
     val isSuccessfulOtpResend: Boolean = false,
 
-    val shouldNavigateToLogin: Boolean = false
+//    val shouldNavigateToLogin: Boolean = false
+    val signUpOtpVerifyResponse: SignUpOtpVerifyResponse? = null
 )

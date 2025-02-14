@@ -6,19 +6,16 @@ import kotlinx.serialization.Serializable
 @Serializable
 sealed class Screen {
     @Serializable
-    data object HomeScreen : Screen()
-
-    @Serializable
-    data object CommunityScreen : Screen()
-
-    @Serializable
     data object WishListScreen : Screen()
 
     @Serializable
     data object SellScreen : Screen()
 
+    //Sell Screens
     @Serializable
     data object SearchScreen : Screen()
+    @Serializable
+    data object ProductListingScreen : Screen()
 
     @Serializable
     data object InboxScreen : Screen()
@@ -71,8 +68,6 @@ sealed class Screen {
     data object ReplyScreen : Screen()
 
     //Profile Screens
-    @Serializable
-    data object ProfileScreen : Screen()
     @Serializable
     data object PostedProductsScreen : Screen()
     @Serializable

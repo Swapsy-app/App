@@ -104,8 +104,11 @@ fun SellScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth(),
                     ) {
-                        Spacer(modifier = Modifier.size(8.dp))
-                        Text(text = "Selling Details")
+                        Text(
+                            text = "Selling Details",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
                         if (state.isLoading) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(24.dp),
@@ -609,7 +612,7 @@ fun SpecificationSection(
             )
 
 
-            state.specialOptions.forEachIndexed() { i, option ->
+            state.specialOptions.forEachIndexed { i, option ->
                 if(i == 0) {
                     SpecificationDivider()
                 }

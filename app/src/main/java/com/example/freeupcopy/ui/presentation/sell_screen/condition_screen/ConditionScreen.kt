@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.freeupcopy.R
+import com.example.freeupcopy.domain.enums.ConditionOption
 import com.example.freeupcopy.domain.model.Condition
 import com.example.freeupcopy.ui.presentation.sell_screen.SellUiEvent
 import com.example.freeupcopy.ui.presentation.sell_screen.SellViewModel
@@ -49,24 +50,27 @@ fun ConditionScreen(
 ) {
 
     val lifeCycleOwner = LocalLifecycleOwner.current
-    val conditionList = listOf(
-        Condition(
-            tag = "New with Price Tag",
-            description = "Completely unused, original price tag still attached, perfect condition"
-        ),
-        Condition(
-            tag = "Almost New",
-            description = "Without price tag, never used or used a few times, minimal signs of wear, looks nearly new"
-        ),
-        Condition(
-            tag = "Nice",
-            description = "Gently used, well-maintained, great for continued use"
-        ),
-        Condition(
-            tag = "Used",
-            description = "Clearly shows wear and tear with flaws"
-        ),
-    )
+//    val conditionList = listOf(
+//        Condition(
+//            tag = "New with Price Tag",
+//            description = "Completely unused, original price tag still attached, perfect condition"
+//        ),
+//        Condition(
+//            tag = "Almost New",
+//            description = "Without price tag, never used or used a few times, minimal signs of wear, looks nearly new"
+//        ),
+//        Condition(
+//            tag = "Nice",
+//            description = "Gently used, well-maintained, great for continued use"
+//        ),
+//        Condition(
+//            tag = "Used",
+//            description = "Clearly shows wear and tear with flaws"
+//        ),
+//    )
+    val conditionList = ConditionOption.entries.map {
+        Condition(it.displayValue, it.description)
+    }
 
     Scaffold(
         modifier = modifier

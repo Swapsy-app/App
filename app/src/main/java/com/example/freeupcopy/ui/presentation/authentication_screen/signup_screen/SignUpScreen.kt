@@ -71,11 +71,11 @@ fun SignUpScreen(
         }
     }
 
-    LaunchedEffect(state.shouldNavigateToOtp) {
-        if (state.shouldNavigateToOtp) {
+    LaunchedEffect(state.successMessage) {
+        if (state.successMessage.isNotBlank()) {
             val current = lifeCycleOwner.lifecycle.currentState
             if (current.isAtLeast(Lifecycle.State.RESUMED)) {
-                Toast.makeText(context, "Check mail to complete sign up", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, state.successMessage, Toast.LENGTH_LONG).show()
                 onSuccessfulSignUp(state.email)
             }
         }

@@ -60,7 +60,7 @@ class SignUpViewModel @Inject constructor(
                                     it.copy(
                                         isLoading = true,
                                         error = "",
-                                        shouldNavigateToOtp = false
+                                        successMessage = ""
                                     )
                                 }
                             }
@@ -69,7 +69,7 @@ class SignUpViewModel @Inject constructor(
                                 _state.update {
                                     it.copy(
                                         isLoading = false,
-                                        shouldNavigateToOtp = true,
+                                        successMessage = result.data?.message ?: "",
                                         error = ""
                                     )
                                 }
@@ -80,7 +80,7 @@ class SignUpViewModel @Inject constructor(
                                     it.copy(
                                         error = result.message ?: "An unexpected error occurred",
                                         isLoading = false,
-                                        shouldNavigateToOtp = false
+                                        successMessage = ""
                                     )
                                 }
                             }
