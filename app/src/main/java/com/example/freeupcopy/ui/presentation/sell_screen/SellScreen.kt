@@ -1,5 +1,9 @@
 package com.example.freeupcopy.ui.presentation.sell_screen
 
+import android.content.Context
+import android.net.Uri
+import android.util.Log
+import android.webkit.MimeTypeMap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -17,6 +21,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -26,6 +31,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.rounded.Add
@@ -35,6 +41,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarDefaults
@@ -45,6 +52,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -53,7 +61,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
@@ -65,6 +76,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import coil.compose.SubcomposeAsyncImage
+import coil.decode.VideoFrameDecoder
+import coil.request.ImageRequest
+import coil.request.videoFrameMillis
 import com.example.freeupcopy.R
 import com.example.freeupcopy.domain.enums.SpecialOption
 import com.example.freeupcopy.domain.model.Price
@@ -84,14 +99,30 @@ fun SellScreen(
     onWeightClick: (String) -> Unit,
     onManufacturingClick: (String) -> Unit,
     onPriceClick: (Price?) -> Unit,
-    onLocationClick: (Int?) -> Unit,
-    onAdvanceSettingClick: () -> Unit,
+    onLocationClick: (String?) -> Unit,
+    onAdvanceSettingClick: (String) -> Unit,
     onClose: () -> Unit,
     onSpecificationClick: (SpecialOption) -> Unit,
-    sellViewModel: SellViewModel
+    onAddImageVideoClick: (Int) -> Unit,
+    sellViewModel: SellViewModel,
+    uploadedImages: List<String>,
+    uploadedVideo: String
 ) {
     val lifeCycleOwner = LocalLifecycleOwner.current
     val state by sellViewModel.state.collectAsState()
+
+    // When uploadedImages changes, dispatch the event to add them.
+    LaunchedEffect(uploadedImages) {
+        if (uploadedImages.isNotEmpty()) {
+            sellViewModel.onEvent(SellUiEvent.AddUploadedImages(uploadedImages))
+        }
+    }
+    LaunchedEffect(uploadedVideo) {
+        if (uploadedVideo.isNotEmpty()) {
+            Log.e("SellScreen: ", uploadedVideo)
+            sellViewModel.onEvent(SellUiEvent.AddUploadedVideo(uploadedVideo))
+        }
+    }
 
     Scaffold(
         modifier = modifier
@@ -174,7 +205,9 @@ fun SellScreen(
                             .heightIn(min = 50.dp)
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(10.dp))
-                            .clickable { }
+                            .clickable {
+                                sellViewModel.onEvent(SellUiEvent.AddProduct)
+                            }
                             .background(MaterialTheme.colorScheme.primary),
                         contentAlignment = Alignment.Center
                     ) {
@@ -196,7 +229,7 @@ fun SellScreen(
         ) {
             item {
                 CategorySection(
-                    chosenCategory = state.leafCategory ?: "",
+                    chosenCategory = state.tertiaryCategory ?: "",
                     onClick = {
                         val currentState = lifeCycleOwner.lifecycle.currentState
                         if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
@@ -209,11 +242,22 @@ fun SellScreen(
                 DetailsSection(
                     title = state.title,
                     description = state.description,
+                    images = state.images,
+                    video = state.video,
                     onTitleValueChange = { title ->
                         sellViewModel.onEvent(SellUiEvent.TitleChange(title))
                     },
                     onDescriptionValueChange = { description ->
                         sellViewModel.onEvent(SellUiEvent.DescriptionChange(description))
+                    },
+                    onAddImageVideoClick = { numberOfUploadedImages ->
+                        onAddImageVideoClick(numberOfUploadedImages)
+                                           },
+                    onRemoveImageUrl = { imageUrl ->
+                        sellViewModel.onEvent(SellUiEvent.RemoveImage(imageUrl))
+                    },
+                    onRemoveVideo = {
+                        sellViewModel.onEvent(SellUiEvent.RemoveVideo)
                     }
                 )
             }
@@ -224,7 +268,7 @@ fun SellScreen(
                     onClick = {
                         val currentState = lifeCycleOwner.lifecycle.currentState
                         if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                            onLocationClick(state.address?.id ?: 0)
+                            onLocationClick(state.address?._id ?: "")
                         }
                     }
                 )
@@ -288,7 +332,7 @@ fun SellScreen(
                     onClick = {
                         val currentState = lifeCycleOwner.lifecycle.currentState
                         if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                            onAdvanceSettingClick()
+                            onAdvanceSettingClick(state.gst)
                         }
                     }
                 )
@@ -336,10 +380,14 @@ fun DetailsSection(
     modifier: Modifier = Modifier,
     title: String,
     description: String,
+    images: List<String>,
+    video: String?, // New parameter for the video URL.
     onTitleValueChange: (String) -> Unit,
-    onDescriptionValueChange: (String) -> Unit
+    onDescriptionValueChange: (String) -> Unit,
+    onAddImageVideoClick: (Int) -> Unit,
+    onRemoveImageUrl: (String) -> Unit,
+    onRemoveVideo: () -> Unit // Callback for deleting video.
 ) {
-    val items = listOf(7)
 
     Box(
         modifier = modifier
@@ -363,36 +411,46 @@ fun DetailsSection(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                items.forEachIndexed { index, i ->
-                    AddPhotoBox()
-                }
-                if (items.size != 11) {
-                    AddMoreBox(
-                        onClick = {
+                images.forEachIndexed { index, image ->
+                    PreviewImageBox(
+                        imageUrl = image,
+                        onRemoveClick = {
+                            onRemoveImageUrl(image)
                         }
                     )
                 }
-            }
-            if (items.size == 1) {
-                Spacer(modifier = Modifier.size(16.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Info,
-                        contentDescription = "info",
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
-                    )
-                    Spacer(modifier = Modifier.size(8.dp))
-                    Text(
-                        fontSize = 13.5.sp,
-                        lineHeight = 16.sp,
-                        text = "Add clear and attractive photos to showcase your product and attract more buyers.",
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                if (video != null) {
+                    PreviewVideoBox(
+                        videoUrl = video,
+                        onRemoveClick = onRemoveVideo
                     )
                 }
+                if (images.size != 7) {
+                    AddPhotoBox()
+                    AddMoreBox(
+                        onClick = { onAddImageVideoClick(images.size) }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.size(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Info,
+                    contentDescription = "info",
+                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                )
+                Spacer(modifier = Modifier.size(8.dp))
+                Text(
+                    fontSize = 13.5.sp,
+                    lineHeight = 16.sp,
+                    text = "Add clear and attractive photos to showcase your product and attract more buyers.",
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                )
             }
 
             Spacer(modifier = Modifier.size(22.dp))
@@ -471,6 +529,109 @@ fun AddMoreBox(
         )
     }
 }
+
+@Composable
+fun PreviewImageBox(
+    modifier: Modifier = Modifier,
+    imageUrl: String,
+    onRemoveClick: () -> Unit
+) {
+    Box(modifier = modifier.size(100.dp)) {
+        SubcomposeAsyncImage(
+            model = imageUrl,
+            contentDescription = "Photo",
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(RoundedCornerShape(16.dp)),
+            loading = {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+        )
+
+        IconButton(
+            onClick = { onRemoveClick() },
+            modifier = Modifier
+                .offset(x = 6.dp, y = (-6).dp)
+                .align(Alignment.TopEnd)
+                .size(20.dp),
+            colors = IconButtonDefaults.iconButtonColors(
+                contentColor = Color.White,
+                containerColor = Color.Red
+            )
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.Close,
+                contentDescription = "Remove Image",
+                tint = Color.White,
+                modifier = Modifier.size(14.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun PreviewVideoBox(
+    modifier: Modifier = Modifier,
+    videoUrl: String,
+    onRemoveClick: () -> Unit
+) {
+    val context = LocalContext.current
+
+    Box(modifier = modifier.size(100.dp)) {
+        // Load the video thumbnail using SubcomposeAsyncImage.
+        SubcomposeAsyncImage(
+            model = ImageRequest.Builder(context)
+                .data(videoUrl)
+                .videoFrameMillis(10)
+                .decoderFactory{ result, options, _ ->
+                    VideoFrameDecoder(
+                        result.source,
+                        options
+                    )
+                }
+                .build(),
+            contentDescription = "Video Preview",
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(RoundedCornerShape(16.dp))
+        )
+        // Center overlay: video icon.
+        Icon(
+            imageVector = Icons.Default.PlayArrow,
+            contentDescription = "Video",
+            tint = Color.White.copy(alpha = 0.7f),
+            modifier = Modifier
+                .align(Alignment.Center)
+                .size(40.dp)
+        )
+        // Delete icon in the top-right corner.
+        IconButton(
+            onClick = { onRemoveClick() },
+            modifier = Modifier
+                .offset(x = 6.dp, y = (-6).dp)
+                .align(Alignment.TopEnd)
+                .size(20.dp),
+            colors = IconButtonDefaults.iconButtonColors(
+                contentColor = Color.White,
+                containerColor = Color.Red
+            )
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.Close,
+                contentDescription = "Remove Video",
+                tint = Color.White,
+                modifier = Modifier.size(14.dp)
+            )
+        }
+    }
+}
+
 
 @Composable
 fun AddPhotoBox(
@@ -552,7 +713,7 @@ fun SpecificationSection(
             )
             SpecificationDivider()
 
-            if (!state.specialOptions.contains(SpecialOption.BRAND) && !state.leafCategory.isNullOrEmpty()) {
+            if (!state.specialOptions.contains(SpecialOption.BRAND) && !state.tertiaryCategory.isNullOrEmpty()) {
                 Column(
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 10.dp)
                 ) {
@@ -613,7 +774,7 @@ fun SpecificationSection(
 
 
             state.specialOptions.forEachIndexed { i, option ->
-                if(i == 0) {
+                if (i == 0) {
                     SpecificationDivider()
                 }
 
@@ -628,7 +789,7 @@ fun SpecificationSection(
                 }
             }
 
-            if (!state.specialOptions.contains(SpecialOption.SIZE) && !state.leafCategory.isNullOrEmpty()) {
+            if (!state.specialOptions.contains(SpecialOption.SIZE) && !state.tertiaryCategory.isNullOrEmpty()) {
                 SpecificationDivider()
 
                 Column(
@@ -1001,3 +1162,11 @@ private fun SpecificationDivider() {
         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f)
     )
 }
+
+// Helper function: Extracts the file extension from a Uri.
+fun getFileExtension(context: Context, uri: Uri): String? {
+    val contentResolver = context.contentResolver
+    val mime = contentResolver.getType(uri)
+    return MimeTypeMap.getSingleton().getExtensionFromMimeType(mime)
+}
+

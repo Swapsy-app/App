@@ -2,7 +2,6 @@ package com.example.freeupcopy.di
 
 import android.app.Application
 import android.content.Context
-import android.content.SharedPreferences
 import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
@@ -17,23 +16,23 @@ import com.example.freeupcopy.data.local.RecentSearchesDao
 import com.example.freeupcopy.data.pref.SwapGoPref
 import com.example.freeupcopy.data.pref.SwapGoPrefImpl
 import com.example.freeupcopy.data.remote.SwapgoApi
-import com.example.freeupcopy.data.remote.dto.RefreshTokenRequest
-import com.example.freeupcopy.data.remote.dto.RefreshTokenResponse
+import com.example.freeupcopy.data.remote.dto.auth.RefreshTokenRequest
+import com.example.freeupcopy.data.remote.dto.auth.RefreshTokenResponse
 import com.example.freeupcopy.data.repository.AuthRepositoryImpl
 import com.example.freeupcopy.data.repository.LocationRepositoryImpl
+import com.example.freeupcopy.data.repository.SellRepositoryImpl
+import com.example.freeupcopy.data.repository.SellerProfileRepositoryImpl
 import com.example.freeupcopy.db.SwapsyDatabase
 import com.example.freeupcopy.domain.repository.AuthRepository
 import com.example.freeupcopy.domain.repository.LocationRepository
+import com.example.freeupcopy.domain.repository.SellRepository
+import com.example.freeupcopy.domain.repository.SellerProfileRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import okhttp3.Authenticator
 import okhttp3.Interceptor
@@ -42,26 +41,38 @@ import okhttp3.Request
 import okhttp3.Response
 import okhttp3.Route
 import okhttp3.logging.HttpLoggingInterceptor
-import retrofit2.HttpException
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Inject
-import javax.inject.Named
-import javax.inject.Qualifier
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
+    @Singleton
+    @Provides
+    fun provideAuthInterceptor(swapGoPref: SwapGoPref): AuthInterceptor =
+        AuthInterceptor(swapGoPref)
+
+    @Singleton
+    @Provides
+    fun provideAuthAuthenticator(swapGoPref: SwapGoPref): AuthAuthenticator =
+        AuthAuthenticator(swapGoPref)
+
     @Provides
     @Singleton
-    fun provideOkHttpClient(): OkHttpClient {
+    fun provideOkHttpClient(
+        authInterceptor: AuthInterceptor,
+        authAuthenticator: AuthAuthenticator
+    ): OkHttpClient {
         val loggingInterceptor = HttpLoggingInterceptor()
         loggingInterceptor.level = HttpLoggingInterceptor.Level.BODY
 
         return OkHttpClient.Builder()
+            .addInterceptor(authInterceptor)
             .addInterceptor(loggingInterceptor)
+            .authenticator(authAuthenticator)
             .build()
     }
 
@@ -86,6 +97,18 @@ object AppModule {
     @Singleton
     fun providesLocationRepository(addressDao: AddressDao, swapGoPref: SwapGoPref): LocationRepository {
         return LocationRepositoryImpl(addressDao = addressDao, swapGoPref = swapGoPref)
+    }
+
+    @Provides
+    @Singleton
+    fun providesSellerProfileRepository(api: SwapgoApi): SellerProfileRepository {
+        return SellerProfileRepositoryImpl(api)
+    }
+
+    @Provides
+    @Singleton
+    fun providesSellRepository(api: SwapgoApi): SellRepository {
+        return SellRepositoryImpl(api)
     }
 
     @Provides
@@ -122,37 +145,59 @@ object AppModule {
     fun providesSellPref(dataStore: DataStore<Preferences>): SwapGoPref = SwapGoPrefImpl(dataStore)
 }
 
-// Add this annotation class
-@Retention(AnnotationRetention.RUNTIME)
-@Qualifier
-annotation class ApplicationScope
+class AuthInterceptor @Inject constructor(
+    private val swapGoPref: SwapGoPref,
+): Interceptor {
+    override fun intercept(chain: Interceptor.Chain): Response {
+        val token = runBlocking {
+            swapGoPref.getAccessToken().first()
+        }
+        val request = chain.request().newBuilder()
+//        Log.e("ForgotViewModel", token.toString())
+        request.addHeader("Authorization", "Bearer $token")
+        return chain.proceed(request.build())
+    }
+}
 
-class TokenAuthenticator(
-    private val apiService: SwapgoApi,
-    private val prefs: SwapGoPref,
-    private val scope: CoroutineScope
-) : Authenticator {
+class AuthAuthenticator @Inject constructor(
+    private val swapGoPref: SwapGoPref,
+): Authenticator {
 
     override fun authenticate(route: Route?, response: Response): Request? {
-//        val refreshToken = prefs.getRefreshToken() ?: return null
-//
-//        val newTokenResponse = runBlocking {
-//            try {
-//                apiService.refreshToken(RefreshTokenRequest(refreshToken.first() ?: ""))
-//            } catch (e: Exception) {
-//                return@runBlocking null
-//            }
-//        } ?: return null
-//
-//        // Save new tokens
-//        runBlocking {
-//            prefs.saveAccessToken(token = newTokenResponse.body()?.accessToken ?: "")
-//        }
-//
-//        // Retry the request with the new token
-//        return response.request.newBuilder()
-//            .header("Authorization", "Bearer ${newTokenResponse.body()?.accessToken}")
-//            .build()
-        return null
+
+        Log.e("ForgotViewModel", "AuthAuthenticator")
+
+        val token = runBlocking {
+            swapGoPref.getRefreshToken().first()
+        }
+        return runBlocking {
+            val newToken = getNewToken(token)
+
+            if (!newToken.isSuccessful || newToken.body() == null) { //Couldn't refresh the token, so restart the login process
+                swapGoPref.clearRefreshToken()
+                swapGoPref.clearAccessToken()
+            }
+
+            newToken.body()?.let {
+                swapGoPref.saveAccessToken(it.accessToken)
+                response.request.newBuilder()
+                    .header("Authorization", "Bearer ${it.accessToken}")
+                    .build()
+            }
+        }
+    }
+
+    private suspend fun getNewToken(refreshToken: String?): retrofit2.Response<RefreshTokenResponse> {
+        val loggingInterceptor = HttpLoggingInterceptor()
+        loggingInterceptor.level = HttpLoggingInterceptor.Level.BODY
+        val okHttpClient = OkHttpClient.Builder().addInterceptor(loggingInterceptor).build()
+
+        val retrofit = Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .client(okHttpClient)
+            .build()
+        val service = retrofit.create(SwapgoApi::class.java)
+        return service.refreshToken(RefreshTokenRequest(refreshToken ?: ""))
     }
 }

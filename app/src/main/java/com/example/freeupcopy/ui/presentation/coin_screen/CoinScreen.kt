@@ -250,7 +250,7 @@ fun CoinShop(
                     "40 inches", "L", "M", "XL", "L",
                     "32 inches", "S", "M", "XL", "L"
                 )[index],
-                productThumbnail = painterResource(id = R.drawable.bomber_jacket), // Assuming R.drawable.bomber_jacket is a placeholder
+                productThumbnail = "painterResource(id = R.drawable.bomber_jacket)", // Assuming R.drawable.bomber_jacket is a placeholder
                 cashPrice = listOf(
                     null, "499", "399", null, "799",
                     "1999", null, "1499", "1299", null
@@ -272,7 +272,8 @@ fun CoinShop(
                     "Classic", "Trendy", "Luxury", "Iconic", null
                 )[index],
                 isLiked = false,
-                onLikeClick = {}
+                onLikeClick = {},
+                onClick = {}
             )
         }
     }

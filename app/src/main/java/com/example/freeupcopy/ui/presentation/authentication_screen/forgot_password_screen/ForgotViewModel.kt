@@ -1,18 +1,16 @@
 package com.example.freeupcopy.ui.presentation.authentication_screen.forgot_password_screen
 
 import android.util.Log
-import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.freeupcopy.common.Resource
 import com.example.freeupcopy.data.pref.SwapGoPref
-import com.example.freeupcopy.data.remote.dto.ForgotPasswordRequest
+import com.example.freeupcopy.data.remote.dto.auth.ForgotPasswordRequest
 import com.example.freeupcopy.domain.repository.AuthRepository
 import com.example.freeupcopy.utils.ValidationResult
 import com.example.freeupcopy.utils.Validator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update

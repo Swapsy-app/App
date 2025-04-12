@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -20,7 +21,9 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
+import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -35,10 +38,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
@@ -56,13 +61,15 @@ import com.example.freeupcopy.R
 import com.example.freeupcopy.ui.presentation.home_screen.componants.SearchBar
 import com.example.freeupcopy.ui.theme.ButtonShape
 import com.example.freeupcopy.ui.theme.SwapGoTheme
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchScreen(
     modifier: Modifier = Modifier,
     onBack: () -> Unit,
-    onSearch: () -> Unit,
+    onSearch: (String) -> Unit,
     searchViewModel: SearchViewModel = hiltViewModel()
 ) {
     val state by searchViewModel.state.collectAsState()
@@ -71,6 +78,7 @@ fun SearchScreen(
     }
 
     val lifeCycleOwner = LocalLifecycleOwner.current
+    val scope = rememberCoroutineScope()
 
     Scaffold(
         modifier = modifier
@@ -89,10 +97,18 @@ fun SearchScreen(
                             searchViewModel.onEvent(SearchUiEvent.SearchQueryChanged(it))
                         },
                         onSearch = {
-//                            onSearch()
-                            searchViewModel.onEvent(SearchUiEvent.OnSearch)
+                            val currentState = lifeCycleOwner.lifecycle.currentState
+                            if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                                scope.launch {
+                                    searchViewModel.onEvent(SearchUiEvent.OnSearch)
+                                    onSearch(state.searchQuery)
+                                }
+                            }
                         },
-                        onCancel = { },
+                        onCancel = {
+                            searchViewModel.onEvent(SearchUiEvent.OnClearSearch)
+                            isFocused.value = false
+                        },
                         modifier = Modifier.padding(end = 16.dp),
                         containerColor = MaterialTheme.colorScheme.primaryContainer
                     )
@@ -119,12 +135,38 @@ fun SearchScreen(
         Column {
             Column(
                 modifier = Modifier
-//                    .fillMaxWidth()
                     .weight(1f)
                     .padding(innerPadding)
-                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                    .padding(start = 16.dp, end = 16.dp, top = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
+
+                if (state.suggestions.isNotEmpty()) {
+                    Text(
+                        text = "Suggestions",
+                        fontSize = 18.sp,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.W500,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        items(state.suggestions.take(4)) { suggestion ->
+                            SuggestionItem(
+                                text = suggestion,
+                                onClick = {
+                                    searchViewModel.onEvent(SearchUiEvent.SearchQueryChanged(suggestion))
+                                    searchViewModel.onEvent(SearchUiEvent.OnSearch)
+                                    onSearch(suggestion)
+                                }
+                            )
+                        }
+                    }
+                    Spacer(Modifier.height(16.dp))
+                }
+
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = "Recent Searches (${state.recentSearches.size})",
@@ -134,46 +176,45 @@ fun SearchScreen(
                         fontWeight = FontWeight.W500
                     )
                     Spacer(Modifier.weight(1f))
-                    Text(
-                        text = "Clear All",
-                        fontSize = 14.sp,
-                        color = Color(0xFF007AFF),
-                        modifier = Modifier.clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                            onClick = {
-                                //TODO()
-                            }
-                        ),
-                        fontWeight = FontWeight.W500
-                    )
-                }
-                LazyColumn(
-//                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(2.dp)
-                ) {
-                    items(state.recentSearches) {
-                        RecentSearchItem(
-                            text = it.recentSearch,
-                            onClick = {},
-                            onDelete = { }
+                    if(state.recentSearches.isNotEmpty()) {
+                        Text(
+                            text = "Clear All",
+                            fontSize = 14.sp,
+                            color = Color(0xFF007AFF),
+                            modifier = Modifier.clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                                onClick = {
+                                    searchViewModel.onEvent(SearchUiEvent.ClearAllRecentSearches)
+                                }
+                            ),
+                            fontWeight = FontWeight.W500
                         )
                     }
                 }
-//                recentSearches.forEach {
-//                    RecentSearchItem(
-//                        text = it,
-//                        onClick = {},
-//                        onDelete = { }
-//                    )
-//                }
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    items(state.recentSearches) { recentSearch ->
+                        RecentSearchItem(
+                            text = recentSearch.recentSearch,
+                            onClick = {
+                                searchViewModel.onEvent(SearchUiEvent.SelectRecentSearch(recentSearch))
+                                onSearch(recentSearch.recentSearch)
+                            },
+                            onDelete = {
+                                searchViewModel.onEvent(SearchUiEvent.DeleteRecentSearch(recentSearch))
+                            }
+                        )
+                    }
+                }
             }
 
             Column {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 20.dp, bottom = 12.dp, start = 16.dp, end = 16.dp),
+                        .padding(bottom = 12.dp, start = 16.dp, end = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
@@ -214,7 +255,7 @@ fun SearchScreen(
                         )
                     }
                 }
-                Spacer(Modifier.size(150.dp))
+                Spacer(Modifier.size(60.dp))
             }
 
         }
@@ -296,6 +337,39 @@ fun RecentlyViewedItem(
             textAlign = TextAlign.Center,
             lineHeight = 17.sp,
             fontWeight = FontWeight.W500
+        )
+    }
+}
+
+@Composable
+fun SuggestionItem(
+    text: String,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(ButtonShape)
+            .background(MaterialTheme.colorScheme.primaryContainer)
+            .clickable { onClick() }
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            modifier = Modifier
+                .rotate(45f)
+                .size(22.dp)
+                .alpha(0.65f),
+            imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }

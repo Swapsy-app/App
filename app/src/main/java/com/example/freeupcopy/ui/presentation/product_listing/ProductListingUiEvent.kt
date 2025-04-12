@@ -11,6 +11,7 @@ import com.example.freeupcopy.domain.enums.SellerBadge
 import com.example.freeupcopy.domain.enums.SellerRatingOption
 
 sealed class ProductListingUiEvent {
+    data class ChangeSearchQuery(val query: String): ProductListingUiEvent()
     data class ToggleBottomSheet(val type: String): ProductListingUiEvent()
     data object BottomSheetDismiss: ProductListingUiEvent()
     data object ClearFilters: ProductListingUiEvent()
@@ -25,6 +26,9 @@ sealed class ProductListingUiEvent {
     data class ChangeSelectedTertiaryCategory(val tertiaryCategory: FilterTertiaryCategory): ProductListingUiEvent()
     data class RemoveSpecialOptions(val tertiaryCategory: FilterTertiaryCategory) : ProductListingUiEvent()
     data class ToggleSelectAll(val selectedFilter: FilterCategoryUiModel) : ProductListingUiEvent()
+
+    data class ChangeSortOption(val sortOption: String): ProductListingUiEvent()
+    data object ApplySortOption: ProductListingUiEvent()
 
     data class SpecialOptionSelectedChange(val filterSpecialOption: FilterSpecialOption) : ProductListingUiEvent()
 }

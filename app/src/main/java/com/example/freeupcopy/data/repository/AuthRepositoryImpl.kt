@@ -4,20 +4,18 @@ import android.util.Log
 import com.example.freeupcopy.common.Resource
 import com.example.freeupcopy.data.pref.SwapGoPref
 import com.example.freeupcopy.data.remote.SwapgoApi
-import com.example.freeupcopy.data.remote.dto.AuthResponse
-import com.example.freeupcopy.data.remote.dto.ForgotPasswordRequest
-import com.example.freeupcopy.data.remote.dto.LoginRequest
-import com.example.freeupcopy.data.remote.dto.LoginResponse
-import com.example.freeupcopy.data.remote.dto.LoginStatusResponse
-import com.example.freeupcopy.data.remote.dto.OtpRequest
-import com.example.freeupcopy.data.remote.dto.OtpResendRequest
-import com.example.freeupcopy.data.remote.dto.SignUpOtpVerifyResponse
-import com.example.freeupcopy.data.remote.dto.SignUpRequest
+import com.example.freeupcopy.data.remote.dto.auth.AuthResponse
+import com.example.freeupcopy.data.remote.dto.auth.ForgotPasswordRequest
+import com.example.freeupcopy.data.remote.dto.auth.LoginRequest
+import com.example.freeupcopy.data.remote.dto.auth.LoginResponse
+import com.example.freeupcopy.data.remote.dto.auth.LoginStatusResponse
+import com.example.freeupcopy.data.remote.dto.auth.OtpRequest
+import com.example.freeupcopy.data.remote.dto.auth.OtpResendRequest
+import com.example.freeupcopy.data.remote.dto.auth.SignUpOtpVerifyResponse
+import com.example.freeupcopy.data.remote.dto.auth.SignUpRequest
 import com.example.freeupcopy.domain.repository.AuthRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import org.json.JSONObject
@@ -161,6 +159,8 @@ class AuthRepositoryImpl(
         emit(Resource.Loading())
         try {
             val response = authApi.login(loginRequest)
+            response.refreshToken.let { pref.saveRefreshToken(it) }
+            response.accessToken.let { pref.saveAccessToken(it) }
 //            response.token?.let { pref.saveUserToken(it) }
             emit(Resource.Success(response))
         }
@@ -172,7 +172,8 @@ class AuthRepositoryImpl(
             e.message ?: "An error occurred during sign up"
 
             emit(Resource.Error(
-                message = errorMessage
+                message = errorMessage,
+                data = LoginResponse(message = e.code().toString(), "", "")
             ))
         }
         catch (e: Exception) {
@@ -229,5 +230,29 @@ class AuthRepositoryImpl(
             ))
         }
     }.flowOn(Dispatchers.IO)
+
+//    override suspend fun getProfile(): Flow<Resource<ProfileResponse>> = flow {
+//        emit(Resource.Loading())
+//        try {
+//            val response = authApi.getProfile()
+//            emit(Resource.Success(response))
+//        }
+//        catch (e: HttpException) {
+//            val errorBody = e.response()?.errorBody()?.string()
+//            val json = errorBody?.let { JSONObject(it) }
+//
+//            val errorMessage = json?.getString("message") ?:
+//            e.message ?: "An error occurred during sign up"
+//
+//            emit(Resource.Error(
+//                message = errorMessage
+//            ))
+//        }
+//        catch (e: Exception) {
+//            emit(Resource.Error(
+//                message = e.message ?: "An unexpected error occurred"
+//            ))
+//        }
+//    }.flowOn(Dispatchers.IO)
 
 }

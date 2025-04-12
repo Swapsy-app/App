@@ -1,4 +1,4 @@
-package com.example.freeupcopy.data.remote.dto
+package com.example.freeupcopy.data.remote.dto.auth
 
 data class SignUpOtpVerifyResponse (
     val message: String,

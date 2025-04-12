@@ -3,8 +3,10 @@ package com.example.freeupcopy.ui.theme
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.ripple.LocalRippleTheme
 import androidx.compose.material.ripple.RippleAlpha
-import androidx.compose.material.ripple.RippleTheme
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LocalRippleConfiguration
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RippleConfiguration
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
@@ -48,33 +50,31 @@ private val LightColorScheme = lightColorScheme(
     */
 )
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SwapGoTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
+    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
 
-    MaterialTheme(
+    val rippleConfiguration = RippleConfiguration(
+        color = PrimaryLight,
+        rippleAlpha = RippleAlpha(
+            pressedAlpha = 0.3f,
+            focusedAlpha = 0.3f,
+            draggedAlpha = 0.2f,
+            hoveredAlpha = 0.3f
+        )
+    )
 
-        colorScheme = colorScheme,
-        typography = Typography
+    CompositionLocalProvider(
+        LocalRippleConfiguration provides rippleConfiguration
     ) {
-        CompositionLocalProvider(
-            LocalRippleTheme provides PrimaryRipple,
-            content = content,
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = Typography,
+            content = content
         )
     }
-}
-
-@Immutable
-object PrimaryRipple : RippleTheme {
-    @Composable
-    override fun defaultColor() = PrimaryLight
-
-    @Composable
-    override fun rippleAlpha(): RippleAlpha = RippleAlpha(0.3f, 0.3f, 0.2f, 0.3f)
 }

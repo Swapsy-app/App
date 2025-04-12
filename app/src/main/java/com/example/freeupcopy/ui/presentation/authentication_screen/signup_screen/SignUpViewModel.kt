@@ -3,8 +3,7 @@ package com.example.freeupcopy.ui.presentation.authentication_screen.signup_scre
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.freeupcopy.common.Resource
-import com.example.freeupcopy.data.remote.dto.SignUpRequest
-import com.example.freeupcopy.domain.enums.SignUpStatus
+import com.example.freeupcopy.data.remote.dto.auth.SignUpRequest
 import com.example.freeupcopy.domain.repository.AuthRepository
 import com.example.freeupcopy.utils.ValidationResult
 import com.example.freeupcopy.utils.Validator

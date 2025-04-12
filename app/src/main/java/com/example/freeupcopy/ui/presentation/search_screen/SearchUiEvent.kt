@@ -7,4 +7,6 @@ sealed class SearchUiEvent {
     data object OnSearch: SearchUiEvent()
     data object OnClearSearch: SearchUiEvent()
     data class DeleteRecentSearch(val recentSearch: RecentSearch): SearchUiEvent()
+    data object ClearAllRecentSearches: SearchUiEvent()
+    data class SelectRecentSearch(val recentSearch: RecentSearch): SearchUiEvent()
 }

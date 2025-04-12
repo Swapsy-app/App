@@ -1,6 +1,6 @@
 package com.example.freeupcopy.ui.presentation.authentication_screen.otp_screen
 
-import com.example.freeupcopy.data.remote.dto.SignUpOtpVerifyResponse
+import com.example.freeupcopy.data.remote.dto.auth.SignUpOtpVerifyResponse
 
 data class OtpUiState(
     val otpValues: List<String> = List(6) { "" },

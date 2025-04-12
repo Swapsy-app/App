@@ -215,7 +215,7 @@ fun WomenWearCard(
         modifier = modifier,
         brand = item.brand,
         title = item.brand,
-        productThumbnail = item.image,
+        productThumbnail = "item.image",
         size = item.size,
         cashPrice = item.listedPrice,
         coinsPrice = null,
@@ -223,7 +223,8 @@ fun WomenWearCard(
         mrp = item.mrp,
         badge = null,
         isLiked = false,
-        onLikeClick = {}
+        onLikeClick = {},
+        onClick = {}
     )
 }
 

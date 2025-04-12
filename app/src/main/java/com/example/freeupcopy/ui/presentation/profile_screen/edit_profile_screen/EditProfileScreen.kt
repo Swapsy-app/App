@@ -1,5 +1,7 @@
 package com.example.freeupcopy.ui.presentation.profile_screen.edit_profile_screen
 
+import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -18,11 +20,13 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.Button
@@ -33,7 +37,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarDefaults
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -41,6 +44,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -49,8 +53,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -61,8 +66,10 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
+import com.example.freeupcopy.R
 import com.example.freeupcopy.domain.enums.Occupation
-import com.example.freeupcopy.ui.presentation.profile_screen.posted_products_screen.PostedProductsViewModel
 import com.example.freeupcopy.ui.theme.ButtonShape
 import com.example.freeupcopy.ui.theme.CardShape
 import com.example.freeupcopy.ui.theme.SwapGoTheme
@@ -74,14 +81,37 @@ import com.example.freeupcopy.ui.theme.TextFieldShape
 fun EditProfileScreen(
     modifier: Modifier = Modifier,
     onClose: () -> Unit,
-    viewModel: EditProfileViewModel = hiltViewModel()
+    viewModel: EditProfileViewModel = hiltViewModel(),
+    profilePhotoUrl: String,
+    userFullName: String,
+    username: String,
+    userBio: String,
+    userGender: String,
+    userOccupation: String,
 ) {
     val state by viewModel.state.collectAsState()
     val scrollState = rememberScrollState()
 
-    var isSelectAvatorDialogOpen by remember { mutableStateOf(false) }
+    var isSelectAvatarDialogOpen by remember { mutableStateOf(false) }
 
     val lifeCycleOwner = LocalLifecycleOwner.current
+
+    LaunchedEffect(Unit) {
+        viewModel.updateProfile(
+            profilePhotoUrl = profilePhotoUrl,
+            userFullName = userFullName,
+            username = username,
+            userBio = userBio,
+            userGender = userGender,
+            userOccupation = userOccupation
+        )
+    }
+    
+    LaunchedEffect(state.navigateBack) {
+        if (state.navigateBack) {
+            onClose()
+        }
+    }
 
     Scaffold(
         modifier = modifier
@@ -163,6 +193,7 @@ fun EditProfileScreen(
 //                                            .show()
 //                                    }
 //                                }
+                                viewModel.onEvent(EditProfileUiEvent.ConfirmProfileChangesClicked)
                             }
                             .background(Color.Black),
                         contentAlignment = Alignment.Center
@@ -242,7 +273,6 @@ fun EditProfileScreen(
                     OutlinedTextField(
                         value = state.username,
                         onValueChange = {
-                            //onTitleValueChange(it)
                             viewModel.onEvent(EditProfileUiEvent.UsernameChanged(it))
                         },
                         modifier = Modifier
@@ -254,12 +284,23 @@ fun EditProfileScreen(
                                 color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f)
                             )
                         },
+                        singleLine = true,
+                        maxLines = 1,
+                        isError = state.usernameError.isNotEmpty(),
                         colors = OutlinedTextFieldDefaults.colors(
                             unfocusedBorderColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(
                                 alpha = 0.4f
                             ),
                             //unfocusedContainerColor = TextFieldContainerColor
                         ),
+                        supportingText = {
+                            if (state.usernameError.isNotEmpty()) {
+                                Text(
+                                    text = state.usernameError,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        },
                         shape = TextFieldShape
                     )
 
@@ -290,12 +331,21 @@ fun EditProfileScreen(
                                 color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f)
                             )
                         },
+                        isError = state.userBioError.isNotEmpty(),
                         colors = OutlinedTextFieldDefaults.colors(
                             unfocusedBorderColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(
                                 alpha = 0.4f
                             ),
                             unfocusedContainerColor = TextFieldContainerColor
                         ),
+                        supportingText = {
+                            if (state.userBioError.isNotEmpty()) {
+                                Text(
+                                    text = state.userBioError,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        },
                         shape = TextFieldShape
                     )
 
@@ -304,21 +354,43 @@ fun EditProfileScreen(
                 Box(
                     modifier = Modifier.align(Alignment.TopCenter)
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(125.dp)
-//                            .shadow(2.dp, CircleShape)
-                            .clip(CircleShape)
-                            .background(Color.Gray)
-                            .align(Alignment.TopCenter)
-                    )
+//                    Box(
+//                        modifier = Modifier
+//                            .size(125.dp)
+////                            .shadow(2.dp, CircleShape)
+//                            .clip(CircleShape)
+//                            .background(Color.Gray)
+//                            .align(Alignment.TopCenter)
+//                    )
+                    if (state.profilePhotoUrl.isNotEmpty()) {
+                        SubcomposeAsyncImage(
+                            modifier = modifier
+                                .size(125.dp)
+                                .clip(CircleShape),
+                            model = state.profilePhotoUrl,
+                            loading = {
+                                painterResource(id = R.drawable.im_user)
+                            },
+                            contentDescription = "profile",
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Image(
+                            modifier = modifier
+                                .size(125.dp)
+                                .clip(CircleShape),
+                            painter = painterResource(id = R.drawable.im_user),
+                            contentDescription = "profile",
+                            contentScale = ContentScale.Crop
+                        )
+                    }
 
                     Box(
                         modifier = Modifier
                             .size(48.dp)
                             .clip(CircleShape)
                             .clickable {
-                                isSelectAvatorDialogOpen = true
+                                isSelectAvatarDialogOpen = true
                             }
                             .border(3.dp, MaterialTheme.colorScheme.onPrimary, CircleShape)
                             .background(MaterialTheme.colorScheme.primary)
@@ -434,13 +506,19 @@ fun EditProfileScreen(
             }
         }
 
-        if(isSelectAvatorDialogOpen) {
+        if(isSelectAvatarDialogOpen) {
             ChooseAvatarsDialog(
-                onConfirmDelete = {
-                    isSelectAvatorDialogOpen = false
+//                modifier = Modifier.heightIn(max = 600.dp),
+                onConfirmSelect = {
+                    isSelectAvatarDialogOpen = false
                 },
                 onDismiss = {
-                    isSelectAvatorDialogOpen = false
+                    isSelectAvatarDialogOpen = false
+                },
+                avatars = state.avatars,
+                selectedAvatar = state.profilePhotoUrl,
+                onSelectedAvatarChange = {
+                    viewModel.onEvent(EditProfileUiEvent.UserProfilePhotoChange(it))
                 }
             )
         }
@@ -477,13 +555,14 @@ fun OptionButton(
     }
 }
 
-
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ChooseAvatarsDialog(
     modifier: Modifier = Modifier,
-    onConfirmDelete: () -> Unit,
-    onDismiss: () -> Unit
+    onConfirmSelect: () -> Unit,
+    onDismiss: () -> Unit,
+    onSelectedAvatarChange: (String) -> Unit,
+    selectedAvatar: String,
+    avatars: List<String>
 ) {
     Dialog(
         onDismissRequest = onDismiss,
@@ -507,32 +586,62 @@ fun ChooseAvatarsDialog(
 
             Spacer(modifier = Modifier.size(16.dp))
 
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                maxItemsInEachRow = 3
+            LazyVerticalGrid(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 400.dp)
+                    .align(Alignment.CenterHorizontally),
+                columns = GridCells.Fixed(4),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                repeat(15) {
-                    Box(
+                items(avatars) {
+                    AsyncImage(
                         modifier = Modifier
-                            .weight(1f),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(90.dp)
-                                .clip(CircleShape)
-                                .background(Color.Gray)
-                        )
-                    }
+                            .clip(CircleShape)
+                            .clickable {
+                                onSelectedAvatarChange(it)
+                            }
+                            .height(72.dp)
+                            .border(
+                                width = 4.dp,
+                                color = if (selectedAvatar == it) MaterialTheme.colorScheme.primary else Color.Transparent,
+                                shape = CircleShape
+                            ),
+                        model = it,
+                        contentDescription = "avatar",
+                        contentScale = ContentScale.Crop
+                    )
                 }
             }
+
+//            FlowRow(
+//                modifier = Modifier.fillMaxWidth(),
+//                horizontalArrangement = Arrangement.spacedBy(8.dp),
+//                verticalArrangement = Arrangement.spacedBy(12.dp),
+//                maxItemsInEachRow = 3
+//            ) {
+//                repeat(30) {
+////                    Box(
+////                        modifier = Modifier
+////                            .weight(1f),
+////                        contentAlignment = Alignment.Center
+////                    ) {
+////                        Box(
+////                            modifier = Modifier
+////                                .size(90.dp)
+////                                .clip(CircleShape)
+////                                .background(Color.Gray)
+////                        )
+////                    }
+//
+//                }
+//            }
 
             Spacer(modifier = Modifier.size(30.dp))
 
             Button(
-                onClick = onConfirmDelete,
+                onClick = onConfirmSelect,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
@@ -558,7 +667,13 @@ fun ChooseAvatarsDialog(
 private fun EditProfileScreenPreview() {
     SwapGoTheme {
         EditProfileScreen(
-            onClose = { }
+            onClose = { },
+            profilePhotoUrl = "",
+            userFullName = "",
+            username = "",
+            userBio = "",
+            userGender = "",
+            userOccupation = ""
         )
     }
 }

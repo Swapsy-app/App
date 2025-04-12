@@ -9,7 +9,8 @@ import com.example.freeupcopy.data.local.RecentSearchesDao
 
 @Database(
     entities = [Address::class, RecentSearch::class],
-    version = 1
+    version = 1,
+    exportSchema = false
 )
 abstract class SwapsyDatabase: RoomDatabase() {
     abstract val addressDao: AddressDao

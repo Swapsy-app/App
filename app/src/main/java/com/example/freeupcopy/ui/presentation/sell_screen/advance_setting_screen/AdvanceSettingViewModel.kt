@@ -2,7 +2,10 @@ package com.example.freeupcopy.ui.presentation.sell_screen.advance_setting_scree
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.freeupcopy.common.Resource
 import com.example.freeupcopy.data.pref.SwapGoPref
+import com.example.freeupcopy.data.remote.dto.sell.GstRequest
+import com.example.freeupcopy.domain.repository.SellRepository
 import com.example.freeupcopy.utils.ValidationResult
 import com.example.freeupcopy.utils.Validator
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,14 +18,14 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AdvanceSettingViewModel @Inject constructor(
-    private val swapGoPref: SwapGoPref
+    private val sellRepository: SellRepository
 ): ViewModel() {
     private val _state = MutableStateFlow(AdvanceSettingUiState())
     val state: StateFlow<AdvanceSettingUiState> = _state
 
-    init {
-        loadGst()
-    }
+//    init {
+//        loadGst()
+//    }
 
     fun onEvent(event: AdvanceSettingUiEvent) {
         when(event) {
@@ -30,38 +33,45 @@ class AdvanceSettingViewModel @Inject constructor(
                 _state.update { it.copy(gst = event.gst) }
             }
             AdvanceSettingUiEvent.OnSave -> {
+//                viewModelScope.launch {
+//                    if (_state.value.gst.isNotBlank()) {
+//                        swapGoPref.saveGSTIN(_state.value.gst)
+//                    } else {
+//                        swapGoPref.clearGSTIN()
+//                    }
+//                }
                 viewModelScope.launch {
-                    if (_state.value.gst.isNotBlank()) {
-                        swapGoPref.saveGSTIN(_state.value.gst)
-                    } else {
-                        swapGoPref.clearGSTIN()
+                    sellRepository.updateGst(GstRequest(_state.value.gst)).collect { response ->
+                        when(response) {
+                            is Resource.Loading -> {
+                                _state.update { it.copy(isLoading = true, error = "", gstResponse = null) }
+                            }
+                            is Resource.Success -> {
+                                _state.update {
+                                    it.copy(
+                                        gst = response.data?.gst ?: "",
+                                        isLoading = false,
+                                        gstResponse = response.data
+                                    )
+                                }
+                            }
+                            is Resource.Error -> {
+                                _state.update {
+                                    it.copy(
+                                        isLoading = false,
+                                        error = response.message ?: "An error occurred",
+                                        gstResponse = null
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
     }
 
-    private fun loadGst() {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true, error = "") }
-            try {
-                val savedGst = swapGoPref.getGSTIN().first()
-                _state.update {
-                    it.copy(
-                        gst = savedGst ?: "",
-                        isLoading = false
-                    )
-                }
-            } catch (e: Exception) {
-                _state.update {
-                    it.copy(
-                        isLoading = false,
-                        error = e.message ?: "An error occurred"
-                    )
-                }
-            }
-        }
-    }
+
 
     fun validateAll(): ValidationResult {
         val validateGst = Validator.validateGstin(_state.value.gst)

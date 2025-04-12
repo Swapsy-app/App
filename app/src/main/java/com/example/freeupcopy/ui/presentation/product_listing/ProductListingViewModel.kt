@@ -1,56 +1,108 @@
 package com.example.freeupcopy.ui.presentation.product_listing
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
 import com.example.freeupcopy.domain.enums.Filter
-import com.example.freeupcopy.domain.enums.FilterCategoryUiModel
+import com.example.freeupcopy.domain.use_case.GetProductCardsUseCase
+import com.example.freeupcopy.domain.use_case.ProductCardsQueryParameters
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 @HiltViewModel
 class ProductListingViewModel @Inject constructor(
-
+    private val getProductCardsUseCase: GetProductCardsUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(ProductListingUiState())
     val state = _state.asStateFlow()
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val productCards = _state
+        .map {
+            Triple(
+                it.searchQuery,
+                it.availabilityOptions,
+                Pair(
+                    Triple(it.conditionOptions, it.selectedTertiaryCategory, it.selectedFilter),
+                    it.appliedSortOption
+                )
+            )
+        }
+        .distinctUntilChanged()
+        .flatMapLatest { (query, availabilityOptions, pairTripleAndSort) ->
+            val (innerTriple, appliedSortOption) = pairTripleAndSort
+            val (conditionOptions, selectedCategories, _) = innerTriple
+
+            // Format the query: Trim and replace spaces with plus signs.
+            val formattedQuery = query.trim().replace("\\s+".toRegex(), "+")
+
+            // Build the status filter based on availability options.
+            val statusFilter = if (availabilityOptions.isEmpty()) {
+                "available,sold"
+            } else {
+                availabilityOptions.joinToString(",") { it.filterName }
+            }
+
+            // Build the condition filter if any condition options exist.
+            val conditionFilter = if (conditionOptions.isEmpty()) {
+                null
+            } else {
+                conditionOptions.joinToString(",") { it.displayValue }
+            }
+
+            // Map the selected tertiary categories to a combined string for the backend.
+            val combinedCategories = selectedCategories
+                .map { "${it.parentCategory.lowercase()}_${it.name.lowercase()}" }
+                .distinct()
+
+            val filters = buildMap {
+                put("status", statusFilter)
+                conditionFilter?.let { put("condition", it) }
+                if (combinedCategories.isNotEmpty()) {
+                    // "combinedCategory" will be processed by your backend.
+                    put("combinedCategory", combinedCategories.joinToString(","))
+                }
+            }
+
+            // Pass the appliedSortOption (set when the user hits "Apply")
+            getProductCardsUseCase(
+                ProductCardsQueryParameters(
+                    search = formattedQuery,
+                    filters = filters,
+                    sort = appliedSortOption
+                )
+            )
+        }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.Lazily,
+            PagingData.empty()
+        )
+
     fun onEvent(event: ProductListingUiEvent) {
-        when(event) {
+        when (event) {
+
+            is ProductListingUiEvent.ChangeSearchQuery -> {
+                _state.update {
+                    it.copy(searchQuery = event.query)
+                }
+            }
+
             is ProductListingUiEvent.ChangeSelectedFilter -> {
                 _state.update {
                     it.copy(selectedFilter = event.filter)
                 }
             }
 
-//            is ProductListingUiEvent.ToggleShowSort -> {
-//                _state.update {
-//                    it.copy(
-//                        isBottomSheetOpen = true,
-//                        isSortBottomSheet = !_state.value.isSortBottomSheet,
-//                        isFilterBottomSheet = false
-//                    )
-//                }
-//            }
-//
-//            is ProductListingUiEvent.ToggleShowFilter -> {
-//                _state.update {
-//                    it.copy(
-//                        isBottomSheetOpen = true,
-//                        isFilterBottomSheet = !_state.value.isFilterBottomSheet,
-//                        isSortBottomSheet = false
-//                    )
-//                }
-//            }
-
-//            is ProductListingUiEvent.ToggleBottomSheet -> {
-//                _state.update {
-//                    it.copy(
-//                        isBottomSheetOpen = !it.isBottomSheetOpen
-//                    )
-//                }
-//            }
             is ProductListingUiEvent.BottomSheetDismiss -> {
                 _state.update {
                     it.copy(
@@ -62,7 +114,7 @@ class ProductListingViewModel @Inject constructor(
             }
 
             is ProductListingUiEvent.ToggleBottomSheet -> {
-                if(event.type == "filter") {
+                if (event.type == "filter") {
                     _state.update {
                         it.copy(
                             isBottomSheetOpen = !_state.value.isBottomSheetOpen,
@@ -70,17 +122,37 @@ class ProductListingViewModel @Inject constructor(
                             isSortBottomSheet = false
                         )
                     }
-                }
-                else {
-                    _state.update {
-                        it.copy(
+                } else {
+                    // When showing the sort bottom sheet, prefill tempSortOption with appliedSortOption.
+                    _state.update { currentState ->
+                        currentState.copy(
                             isBottomSheetOpen = !_state.value.isBottomSheetOpen,
                             isFilterBottomSheet = false,
-                            isSortBottomSheet = true
+                            isSortBottomSheet = true,
+                            tempSortOption = currentState.appliedSortOption
                         )
                     }
                 }
             }
+
+            is ProductListingUiEvent.ChangeSortOption -> {
+                // Instead of directly applying sort, update the temporary sort option.
+                _state.update {
+                    it.copy(tempSortOption = event.sortOption)
+                }
+            }
+
+            is ProductListingUiEvent.ApplySortOption -> {
+                // Apply the temporary sort option so the query uses it.
+                _state.update { currentState ->
+                    currentState.copy(
+                        appliedSortOption = currentState.tempSortOption,
+                        isBottomSheetOpen = false,
+                        isSortBottomSheet = false
+                    )
+                }
+            }
+
 
             is ProductListingUiEvent.ClearFilters -> {
                 _state.update {
@@ -93,7 +165,14 @@ class ProductListingViewModel @Inject constructor(
                         selectedCashRange = null,
                         selectedCoinRange = null,
                         selectedTertiaryCategory = emptyList(),
-                        availableFilters = listOf(Filter.AVAILABILITY, Filter.CONDITION, Filter.SELLER_RATING, Filter.PRICE, Filter.CATEGORY, Filter.BRAND)
+                        availableFilters = listOf(
+                            Filter.AVAILABILITY,
+                            Filter.CONDITION,
+                            Filter.SELLER_RATING,
+                            Filter.PRICE,
+                            Filter.CATEGORY,
+                            Filter.BRAND
+                        )
                     )
                 }
             }
@@ -172,7 +251,8 @@ class ProductListingViewModel @Inject constructor(
 
             is ProductListingUiEvent.ChangeSelectedTertiaryCategory -> {
                 _state.update { currentState ->
-                    val currentSelectedCategories = currentState.selectedTertiaryCategory.toMutableList()
+                    val currentSelectedCategories =
+                        currentState.selectedTertiaryCategory.toMutableList()
                     val currentAvailableFilters = currentState.availableFilters.toMutableList()
 
                     if (currentSelectedCategories.contains(event.tertiaryCategory)) {
@@ -185,7 +265,14 @@ class ProductListingViewModel @Inject constructor(
                                 it.specialFilters.contains(specialFilter)
                             }
                             if (!isFilterUsedByOtherCategories &&
-                                specialFilter !in listOf(Filter.AVAILABILITY, Filter.CONDITION, Filter.SELLER_RATING, Filter.PRICE, Filter.CATEGORY, Filter.BRAND)
+                                specialFilter !in listOf(
+                                    Filter.AVAILABILITY,
+                                    Filter.CONDITION,
+                                    Filter.SELLER_RATING,
+                                    Filter.PRICE,
+                                    Filter.CATEGORY,
+                                    Filter.BRAND
+                                )
                             ) {
                                 currentAvailableFilters.remove(specialFilter)
                             }
@@ -220,7 +307,14 @@ class ProductListingViewModel @Inject constructor(
 
                         // Remove the filter if it's not used by other categories and not a default filter
                         if (!isFilterUsedByOtherCategories &&
-                            specialFilter !in listOf(Filter.AVAILABILITY, Filter.CONDITION, Filter.SELLER_RATING, Filter.PRICE, Filter.CATEGORY, Filter.BRAND)
+                            specialFilter !in listOf(
+                                Filter.AVAILABILITY,
+                                Filter.CONDITION,
+                                Filter.SELLER_RATING,
+                                Filter.PRICE,
+                                Filter.CATEGORY,
+                                Filter.BRAND
+                            )
                         ) {
                             currentAvailableFilters.remove(specialFilter)
                         }
@@ -233,13 +327,16 @@ class ProductListingViewModel @Inject constructor(
             is ProductListingUiEvent.ToggleSelectAll -> {
                 _state.update { currentState ->
                     val category = event.selectedFilter
-                    val currentSelectedCategories = currentState.selectedTertiaryCategory.toMutableList()
+                    val currentSelectedCategories =
+                        currentState.selectedTertiaryCategory.toMutableList()
                     val currentAvailableFilters = currentState.availableFilters.toMutableList()
 
                     // If any tertiary category from this category is not selected, select all
                     // Otherwise, deselect all
-                    val allTertiaryCategories = category.subcategories.flatMap { it.tertiaryCategories }
-                    val areAllSelected = allTertiaryCategories.all { it in currentSelectedCategories }
+                    val allTertiaryCategories =
+                        category.subcategories.flatMap { it.tertiaryCategories }
+                    val areAllSelected =
+                        allTertiaryCategories.all { it in currentSelectedCategories }
 
                     if (!areAllSelected) {
                         // Add all tertiary categories from this category
@@ -259,11 +356,19 @@ class ProductListingViewModel @Inject constructor(
                                 currentSelectedCategories.remove(tertiaryCategory)
                                 // Remove special filters if not used by remaining categories
                                 tertiaryCategory.specialFilters.forEach { specialFilter ->
-                                    val isFilterUsedByOtherCategories = currentSelectedCategories.any {
-                                        it.specialFilters.contains(specialFilter)
-                                    }
+                                    val isFilterUsedByOtherCategories =
+                                        currentSelectedCategories.any {
+                                            it.specialFilters.contains(specialFilter)
+                                        }
                                     if (!isFilterUsedByOtherCategories &&
-                                        specialFilter !in listOf(Filter.AVAILABILITY, Filter.CONDITION, Filter.SELLER_RATING, Filter.PRICE, Filter.CATEGORY, Filter.BRAND)
+                                        specialFilter !in listOf(
+                                            Filter.AVAILABILITY,
+                                            Filter.CONDITION,
+                                            Filter.SELLER_RATING,
+                                            Filter.PRICE,
+                                            Filter.CATEGORY,
+                                            Filter.BRAND
+                                        )
                                     ) {
                                         currentAvailableFilters.remove(specialFilter)
                                     }
@@ -286,7 +391,8 @@ class ProductListingViewModel @Inject constructor(
 
             is ProductListingUiEvent.SpecialOptionSelectedChange -> {
                 _state.update { currentState ->
-                    val currentSelectedSpecialOptions = currentState.selectedSpecialOptions.toMutableList()
+                    val currentSelectedSpecialOptions =
+                        currentState.selectedSpecialOptions.toMutableList()
                     if (currentSelectedSpecialOptions.contains(event.filterSpecialOption)) {
                         currentSelectedSpecialOptions.remove(event.filterSpecialOption)
                     } else {
@@ -295,254 +401,6 @@ class ProductListingViewModel @Inject constructor(
                     currentState.copy(selectedSpecialOptions = currentSelectedSpecialOptions)
                 }
             }
-        }
-    }
-
-    fun onClickFilter() {
-        _state.value = _state.value.copy(
-            isFilterSelected = true,
-            isSortSelected = false
-        )
-    }
-
-    fun onSortClick() {
-        _state.value = _state.value.copy(
-            isFilterSelected = false,
-            isSortSelected = true,
-            isSortApplied = true
-        )
-    }
-
-
-    fun changeSortToRec(){
-        _state.update {
-            it.copy(
-                sortingOption = SortOption.Recommended
-            )
-        }
-    }
-
-    fun changeSortToPriceLoToHi(){
-        _state.update {
-            it.copy(
-                sortingOption = SortOption.PriceLowToHigh
-            )
-        }
-    }
-
-    fun changeSortToPriceHiToLo(){
-        _state.update {
-            it.copy(
-                sortingOption = SortOption.PriceHighToLow
-            )
-        }
-    }
-
-    fun onClickAvailablity() {
-        clrFilterSection()
-        _state.value = _state.value.copy(
-            isAvailablitySelected = !_state.value.isAvailablitySelected,
-            filterSectionOpen = FilterClassOptions.Availiblity
-        )
-    }
-
-    fun onClickAvailable() {
-        _state.value = _state.value.copy(
-            isAvailableSelected = !_state.value.isAvailableSelected
-        )
-    }
-
-    fun onClickSoldOut() {
-        _state.value = _state.value.copy(
-            isSoldOutSelected = !_state.value.isSoldOutSelected
-        )
-    }
-
-    fun onClickCondition() {
-        clrFilterSection()
-        _state.value = _state.value.copy(
-            isConditionSelected = !_state.value.isConditionSelected,
-            filterSectionOpen = FilterClassOptions.Condition
-        )
-    }
-
-    fun onClickNewWithTags() {
-        _state.value = _state.value.copy(
-            isNewWithTagsSelected = !_state.value.isNewWithTagsSelected,
-
-        )
-    }
-
-    fun onClickLikeNew() {
-        _state.value = _state.value.copy(
-            isLikeNewSelected = !_state.value.isLikeNewSelected
-        )
-    }
-
-    fun onClickGood() {
-        _state.value = _state.value.copy(
-            isGoodSelected = !_state.value.isGoodSelected
-        )
-    }
-
-    fun onClickUsed() {
-        _state.value = _state.value.copy(
-            isUsedSelected = !_state.value.isUsedSelected
-        )
-    }
-
-    fun onClickSellerRating() {
-        clrFilterSection()
-        _state.value = _state.value.copy(
-            isSellerRatingSelected = !_state.value.isSellerRatingSelected,
-            filterSectionOpen = FilterClassOptions.SellerRating
-        )
-    }
-
-    fun onClickRating4_0() {
-        _state.value = _state.value.copy(
-            isRating4_0Selected = !_state.value.isRating4_0Selected
-        )
-    }
-
-    fun onClickRating4_5() {
-        _state.value = _state.value.copy(
-            isRating4_5Selected = !_state.value.isRating4_5Selected
-        )
-    }
-
-    fun onClickRating4_7() {
-        _state.value = _state.value.copy(
-            isRating4_7Selected = !_state.value.isRating4_7Selected
-        )
-    }
-
-    fun onClickPrice() {
-        clrFilterSection()
-        _state.value = _state.value.copy(
-            isPriceSelected = !_state.value.isPriceSelected,
-            filterSectionOpen = FilterClassOptions.Price
-        )
-    }
-
-    fun onClickCash(){
-        _state.update {
-            it.copy(
-                isCashSelected = !_state.value.isCashSelected
-            )
-        }
-    }
-
-    fun onClickCoin(){
-        _state.update {
-            it.copy(
-                isCoinSelected = !_state.value.isCoinSelected
-            )
-        }
-    }
-
-    fun onCashChange(value: Float) {
-        _state.value = _state.value.copy(
-            cashSelected = value
-        )
-    }
-
-    fun onCoinsChange(value: Float) {
-        _state.value = _state.value.copy(
-            coinsSelected = value
-        )
-    }
-
-    fun onOfferSelect(value : Boolean){
-        _state.value = _state.value.copy(
-            isOfferSelected = value
-        )
-    }
-
-
-    fun onClickSellerActive() {
-        clrFilterSection()
-        _state.value = _state.value.copy(
-            isSellerActiveSelected = !_state.value.isSellerActiveSelected,
-            filterSectionOpen = FilterClassOptions.SellerActive
-        )
-    }
-
-    fun onClickSellerActiveThisWeek() {
-        _state.value = _state.value.copy(
-            isSellerActiveThisWeekSelected = !_state.value.isSellerActiveThisWeekSelected
-        )
-    }
-
-    fun onClickSellerActiveThisMonth() {
-        _state.value = _state.value.copy(
-            isSellerActiveThisMonthSelected = !_state.value.isSellerActiveThisMonthSelected
-        )
-    }
-
-    fun onClickCategory() {
-        clrFilterSection()
-        _state.value = _state.value.copy(
-            isCategorySelected = !_state.value.isCategorySelected,
-            filterSectionOpen = FilterClassOptions.Category
-        )
-    }
-
-    fun onClickSize() {
-        clrFilterSection()
-        _state.value = _state.value.copy(
-            isSizeSelected = !_state.value.isSizeSelected,
-            filterSectionOpen = FilterClassOptions.Size
-        )
-    }
-
-    fun openBottomSheet(){
-        _state.update{
-            it.copy(
-                isBottomSheetOpen = true
-            )
-        }
-    }
-
-    fun closeBottomSheet(){
-        _state.update {
-            it.copy(
-                isBottomSheetOpen = false
-            )
-        }
-    }
-
-    fun clrFilterSection(){
-        _state.update {
-            it.copy(
-                isAvailablitySelected = false,
-                isConditionSelected = false,
-                isSellerRatingSelected = false,
-                isPriceSelected = false,
-                isSellerActiveSelected = false,
-                isCategorySelected = false,
-                isSizeSelected = false
-            )
-        }
-    }
-
-    fun toggleOption(option: String) {
-        _state.value = when (option) {
-            "New Arrival" -> _state.value.copy(isNewArrivalSelected = !_state.value.isNewArrivalSelected)
-            "Free in Coin" -> _state.value.copy(isFreeInCoinSelected = !_state.value.isFreeInCoinSelected)
-            "New with Tags" -> _state.value.copy(isNewWithTagsSelected = !_state.value.isNewWithTagsSelected)
-            "SwapGo Assured" -> _state.value.copy(isSwapGoAssuredSelected = !_state.value.isSwapGoAssuredSelected)
-            else -> _state.value
-        }
-    }
-
-    fun checkOptionRowState(option: String) : Boolean{
-        return when(option){
-            "New Arrival" -> _state.value.isNewArrivalSelected
-            "Free in Coin" -> _state.value.isFreeInCoinSelected
-            "New with Tags" -> _state.value.isNewWithTagsSelected
-            "SwapGo Assured" -> _state.value.isSwapGoAssuredSelected
-            else -> false
         }
     }
 }

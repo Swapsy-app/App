@@ -1,6 +1,7 @@
 package com.example.freeupcopy.ui.presentation.product_listing
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -8,7 +9,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,8 +17,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -34,6 +38,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -42,14 +47,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.paging.LoadState
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.freeupcopy.R
 import com.example.freeupcopy.common.Constants.MAX_CASH_RANGE
 import com.example.freeupcopy.common.Constants.MAX_COINS_RANGE
@@ -57,20 +68,33 @@ import com.example.freeupcopy.ui.presentation.home_screen.componants.SearchBar
 import com.example.freeupcopy.ui.presentation.product_card.ProductCard
 import com.example.freeupcopy.ui.presentation.product_listing.componants.FiltersBottomSheet
 import com.example.freeupcopy.ui.presentation.product_listing.componants.SelectedOptionsRow
+import com.example.freeupcopy.ui.presentation.product_listing.componants.SortBottomSheet
+import com.example.freeupcopy.ui.presentation.sell_screen.location_screen.location_screen.PleaseWaitLoading
 import com.example.freeupcopy.ui.theme.BottomSheetShape
 import com.example.freeupcopy.ui.theme.ButtonShape
 import com.example.freeupcopy.ui.theme.SwapGoTheme
 import com.example.freeupcopy.ui.theme.TextFieldContainerColor
+import java.net.UnknownHostException
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductListing(
     modifier: Modifier = Modifier,
+    query: String,
     onBack: () -> Unit,
+    onProductClick: (String) -> Unit,
     productListingViewModel: ProductListingViewModel = hiltViewModel()
 ) {
     val state by productListingViewModel.state.collectAsState()
     val lifeCycleOwner = LocalLifecycleOwner.current
+
+    val products = productListingViewModel.productCards.collectAsLazyPagingItems()
+
+    LaunchedEffect(true) {
+        if (query.isNotEmpty() && query != state.searchQuery) {
+            productListingViewModel.onEvent(ProductListingUiEvent.ChangeSearchQuery(query))
+        }
+    }
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var selectedTabIndex by remember { mutableIntStateOf(0) }
@@ -91,54 +115,22 @@ fun ProductListing(
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
                         SearchBar(
-                            value = "",
+                            value = state.searchQuery,
                             isFocused = remember {
                                 mutableStateOf(false)
                             },
                             onFocusChange = {},
-                            onValueChange = {},
+                            onValueChange = {
+                                productListingViewModel.onEvent(ProductListingUiEvent.ChangeSearchQuery(it))
+                            },
                             onSearch = { },
-                            onCancel = { },
+                            onCancel = {
+                                productListingViewModel.onEvent(ProductListingUiEvent.ChangeSearchQuery(""))
+                            },
                             modifier = Modifier
                                 .fillMaxWidth(),
                             containerColor = TextFieldContainerColor,
                         )
-//                        Box(
-//                            modifier = Modifier
-//                                .wrapContentSize(Alignment.TopStart)
-//                        ) {
-//                            val expanded = remember { mutableStateOf(false) }
-//                            val selectedOption = remember { mutableStateOf("Products") } // Default text
-//                            Button(
-//                                onClick = { expanded.value = true },
-//                                shape = RoundedCornerShape(8.dp),
-//                                modifier = Modifier
-//                            ) {
-//                                Text(text = selectedOption.value)
-//                            }
-//
-//                            // Dropdown Menu
-//                            DropdownMenu(
-//                                expanded = expanded.value,
-//                                onDismissRequest = { expanded.value = false }
-//                            ) {
-//                                DropdownMenuItem(
-//                                    text = { Text("Products") },
-//                                    onClick = {
-//                                        selectedOption.value = "Products"
-//                                        expanded.value = false
-//                                    }
-//                                )
-//                                DropdownMenuItem(
-//                                    text = { Text("Sellers") },
-//                                    onClick = {
-//                                        selectedOption.value = "Sellers"
-//                                        expanded.value = false
-//                                    }
-//                                )
-//                            }
-//                        }
-
                     }
                 },
                 navigationIcon = {
@@ -166,7 +158,7 @@ fun ProductListing(
                 .padding(innerPadding)
                 .background(MaterialTheme.colorScheme.surface)
         ) {
-            PrimaryTabRow (
+            PrimaryTabRow(
                 modifier = Modifier.fillMaxWidth(),
                 selectedTabIndex = selectedTabIndex,
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -270,84 +262,14 @@ fun ProductListing(
                 }
             }
 
-//            Row(
-//                modifier = Modifier.fillMaxWidth()
-//            ) {
-//                Row(
-//                    modifier = Modifier
-//                        .weight(0.70f)
-//                        .heightIn(min = 50.dp)
-//                        .fillMaxWidth()
-//                        .clip(ButtonShape)
-//                        .clickable {
-//                            productListingViewModel.openBottomSheet()
-//                            productListingViewModel.onClickFilter()
-//                        }
-//                        .border(
-//                            1.dp,
-//                            MaterialTheme.colorScheme.onPrimaryContainer.copy(0.3f),
-//                            ButtonShape
-//                        ),
-//                    verticalAlignment = Alignment.CenterVertically,
-//                    horizontalArrangement = Arrangement.Center
-//                ) {
-//                    Text(
-//                        text = "Filter",
-//                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-//                        fontSize = 20.sp
-//                    )
-//                    Spacer(modifier = Modifier.size(16.dp))
-//                    Icon(
-//                        imageVector = Icons.Rounded.List,
-//                        contentDescription = "filter icon",
-//                        modifier = Modifier.size(22.dp)
-//                    )
-//                }
-//                Spacer(modifier = Modifier.size(8.dp))
-//                Row(
-//                    modifier = Modifier
-//                        .weight(0.70f)
-//                        .heightIn(min = 50.dp)
-//                        .fillMaxWidth()
-//                        .clip(ButtonShape)
-//                        .border(
-//                            if (state.isSortApplied) 2.dp else 1.dp,
-//                            MaterialTheme.colorScheme.onPrimaryContainer.copy(0.3f),
-//                            ButtonShape
-//                        )
-//                        .clickable { /* No-op for now */ },
-//                    verticalAlignment = Alignment.CenterVertically,
-//                    horizontalArrangement = Arrangement.Center
-//                ) {
-//
-//
-//                    // Sort Button
-//                    Row(
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .clickable {
-//                                productListingViewModel.openBottomSheet()
-//                                productListingViewModel.onSortClick()
-//                            },
-//                        verticalAlignment = Alignment.CenterVertically,
-//                        horizontalArrangement = Arrangement.Center
-//                    ) {
-//                        Text(
-//                            text = "Sort",
-//                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-//                            fontSize = 20.sp,
-//                            modifier = Modifier.padding(8.dp)
-//                        )
-//
-//                    }
-//
-//                }
-//
-//            }
             SelectedOptionsRow(
                 scrollBehavior = scrollBehavior,
                 onOptionClicked = { option ->
-                    productListingViewModel.onEvent(ProductListingUiEvent.SpecialOptionSelectedChange(option))
+                    productListingViewModel.onEvent(
+                        ProductListingUiEvent.SpecialOptionSelectedChange(
+                            option
+                        )
+                    )
                 },
                 selectedFilterSpecialOptions = state.selectedSpecialOptions
             )
@@ -355,62 +277,222 @@ fun ProductListing(
                 thickness = 1.dp,
                 color = MaterialTheme.colorScheme.onPrimaryContainer.copy(0.12f)
             )
-            LazyVerticalStaggeredGrid(
-                columns = StaggeredGridCells.Fixed(2), // 2 items per row
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surface),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalItemSpacing = 12.dp,
-                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
-            ) {
-                items(10) { index ->
-                    ProductCard(
-                        brand = listOf(
-                            "Adidas", "Nike", "Puma", null, "Under Armour",
-                            "Levi's", "Calvin Klein", "Tommy Hilfiger", "Lacoste", null
-                        )[index],
-                        title = listOf(
-                            "Just Herbs Mini Kit limited edition",
-                            "Nike Air Max",
-                            "Puma Suede",
-                            "Reebok Classic",
-                            "Under Armour Hoodie",
-                            "Levi's Jeans",
-                            "Calvin Klein T-shirt",
-                            "Tommy Hilfiger Polo",
-                            "Lacoste L.12.12",
-                            "Ralph Lauren Shirt"
-                        )[index],
-                        size = listOf(
-                            "40 inches", "L", "M", "XL", "L",
-                            "32 inches", "S", "M", "XL", "L"
-                        )[index],
-                        productThumbnail = painterResource(id = R.drawable.bomber_jacket), // Assuming R.drawable.bomber_jacket is a placeholder
-                        cashPrice = listOf(
-                            null, "499", "399", null, "799",
-                            "1999", null, "1499", "1299", null
-                        )[index],
-                        coinsPrice = listOf(
-                            null, "1000", null, "599", null,
-                            null, "999", null, null, "1799"
-                        )[index],
-                        combinedPrice = listOf(
-                            Pair("4000", "2000"), Pair("300", "800"), null, null, null,
-                            null, null, Pair("1000", "500"), null, null
-                        )[index],
-                        mrp = listOf(
-                            "3500", "2999", "1999", "1499", "1999",
-                            "3999", "1999", "2999", "2499", "3499"
-                        )[index],
-                        badge = listOf(
-                            "Trusted", "Sale", "New", null, "Limited Edition",
-                            "Classic", "Trendy", "Luxury", "Iconic", null
-                        )[index],
-                        isLiked = false,
-                        onLikeClick = {}
-                    )
+            Box(modifier = Modifier.weight(1f)) {
+                if (products.itemCount == 0 && products.loadState.refresh is LoadState.NotLoading) {
+                    // Instead of fillMaxSize(), use fillMaxWidth()
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.Center)
+                            .background(MaterialTheme.colorScheme.surface),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Image(
+                                painter = painterResource(R.drawable.im_no_result_found),
+                                contentDescription = null
+                            )
+                            Text(
+                                text = "No products found",
+                                textAlign = TextAlign.Center,
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 18.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(Modifier.size(6.dp))
+                            Text(
+                                text = "Try changing filters or your search query.",
+                                textAlign = TextAlign.Center,
+                                fontSize = 16.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                } else {
+                    LazyVerticalStaggeredGrid(
+                        columns = StaggeredGridCells.Fixed(2),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.surface),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalItemSpacing = 12.dp,
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
+                    ) {
+                        items(products.itemCount) {
+                            products[it]?.let { product ->
+                                ProductCard(
+                                    brand = product.brand,
+                                    title = product.title,
+                                    size = "null",
+//                            size = product.size,
+                                    productThumbnail = if (product.images.size == 1) product.images[0] else null,
+                                    cashPrice = if (product.price.cashPrice != null) product.price.cashPrice.toInt()
+                                        .toString() else null,
+                                    coinsPrice = if (product.price.coinPrice != null) product.price.coinPrice.toInt()
+                                        .toString() else null,
+                                    combinedPrice =
+                                        if (product.price.mixPrice != null)
+                                            Pair(
+                                                product.price.mixPrice.enteredCash.toInt()
+                                                    .toString(),
+                                                product.price.mixPrice.enteredCoin.toInt()
+                                                    .toString()
+                                            )
+                                        else
+                                            null,
+                                    mrp = product.price.mrp?.toInt().toString(),
+                                    badge = "null",
+                                    isLiked = false,
+                                    onLikeClick = {},
+                                    onClick = {
+                                        val currentState = lifeCycleOwner.lifecycle.currentState
+                                        if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                                            onProductClick(product._id)
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                        products.apply {
+                            if (loadState.append is LoadState.Loading) {
+                                item(span = StaggeredGridItemSpan.FullLine) {
+                                    Box(
+                                        contentAlignment = Alignment.Center,
+                                        modifier = Modifier.padding(vertical = 16.dp)
+                                    ) {
+                                        CircularProgressIndicator()
+                                    }
+                                }
+                            }
+                            if (loadState.append == LoadState.NotLoading(endOfPaginationReached = true) &&
+                                products.itemCount != 0 && products.itemCount > 15
+                            ) {
+                                item(span = StaggeredGridItemSpan.FullLine) {
+                                    Text(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(bottom = 16.dp),
+                                        text = "No more products to load",
+                                        textAlign = TextAlign.Center,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                            if (loadState.append is LoadState.Error) {
+                                var message = ""
+                                val e = (loadState.append as LoadState.Error).error
+                                if (e is UnknownHostException) {
+                                    message = "No internet.\nCheck your connection"
+                                } else if (e is Exception) {
+                                    message = e.message ?: "Unknown error occurred"
+                                }
+                                item(span = StaggeredGridItemSpan.FullLine) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 8.dp, vertical = 8.dp),
+                                        horizontalArrangement = Arrangement.Center,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            modifier = Modifier.size(24.dp),
+                                            painter = painterResource(R.drawable.ic_error),
+                                            contentDescription = null,
+                                            tint = Color.Unspecified
+                                        )
+                                        Spacer(Modifier.size(16.dp))
+                                        Text(
+                                            text = "Error: $message",
+                                            modifier = Modifier.weight(1f),
+                                            softWrap = true,  // Ensures text wraps to next line when needed
+                                            maxLines = 2,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                        Button(
+                                            modifier = Modifier.padding(start = 16.dp),
+                                            onClick = { products.retry() },
+                                            shape = ButtonShape,
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = MaterialTheme.colorScheme.tertiary,
+                                                contentColor = MaterialTheme.colorScheme.onTertiary
+                                            )
+                                        ) {
+                                            Text("Retry")
+                                        }
+                                    }
+                                }
+
+                            }
+
+                        }
+
+
+                    }
+
                 }
+            }
+        }
+        products.apply {
+
+            var message = ""
+            if (loadState.refresh is LoadState.Error) {
+                val e = (loadState.refresh as LoadState.Error).error
+                if (e is UnknownHostException) {
+                    message = "No internet.\nCheck your connection"
+                } else if (e is Exception) {
+                    message = e.message ?: "Unknown error occurred"
+                }
+            }
+
+            when (loadState.refresh) {
+
+                is LoadState.Error -> {
+                    if (products.itemCount == 0) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(MaterialTheme.colorScheme.surface)
+                        ) {
+                            Column(
+                                modifier = Modifier.align(Alignment.Center),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Image(
+                                    painter = painterResource(R.drawable.im_error),
+                                    contentDescription = null
+                                )
+                                Text(
+                                    text = message.ifEmpty { "Unknown error occurred" },
+                                    fontSize = 15.sp,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    fontWeight = FontWeight.W500
+                                )
+                                Button(
+                                    onClick = { products.retry() },
+                                    shape = ButtonShape,
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.tertiary,
+                                        contentColor = MaterialTheme.colorScheme.onTertiary
+                                    )
+                                ) {
+                                    Text("Retry")
+                                }
+                            }
+                        }
+                    }
+                }
+
+                LoadState.Loading -> {
+                    Box(Modifier.fillMaxSize()) {
+                       PleaseWaitLoading(Modifier.align(Alignment.Center))
+                    }
+                }
+
+                else -> {}
             }
         }
     }
@@ -422,7 +504,6 @@ fun ProductListing(
             },
             containerColor = MaterialTheme.colorScheme.primaryContainer,
             shape = BottomSheetShape,
-            windowInsets = WindowInsets(0.dp),
             dragHandle = null
         ) {
             Column(
@@ -488,11 +569,19 @@ fun ProductListing(
                             pricingModelOptions = state.pricingModelOptions,
                             selectedCashRange = state.selectedCashRange ?: MAX_CASH_RANGE,
                             onCashRangeChange = {
-                                productListingViewModel.onEvent(ProductListingUiEvent.ChangeCashRange(it))
+                                productListingViewModel.onEvent(
+                                    ProductListingUiEvent.ChangeCashRange(
+                                        it
+                                    )
+                                )
                             },
                             selectedCoinRange = state.selectedCoinRange ?: MAX_COINS_RANGE,
                             onCoinsRangeChange = {
-                                productListingViewModel.onEvent(ProductListingUiEvent.ChangeCoinRange(it))
+                                productListingViewModel.onEvent(
+                                    ProductListingUiEvent.ChangeCoinRange(
+                                        it
+                                    )
+                                )
                             },
                             onTertiaryCategoryClick = {
                                 productListingViewModel.onEvent(
@@ -510,78 +599,47 @@ fun ProductListing(
                                 )
                             },
                             onSelectAll = {
-                                productListingViewModel.onEvent(ProductListingUiEvent.ToggleSelectAll(it))
+                                productListingViewModel.onEvent(
+                                    ProductListingUiEvent.ToggleSelectAll(
+                                        it
+                                    )
+                                )
                             },
-                            availableFilters = state.availableFilters
+                            availableFilters = state.availableFilters,
+                            onApplyClick = {
+                                productListingViewModel.onEvent(ProductListingUiEvent.ToggleBottomSheet("filter"))
+                            }
                         )
                     }
 
                     state.isSortBottomSheet -> {
-                        Box(
-                            Modifier.size(16.dp)
+                        SortBottomSheet(
+                            tempSortOption = state.tempSortOption ?: "default",
+                            onSortOptionSelected = { selectedOption ->
+                                productListingViewModel.onEvent(ProductListingUiEvent.ChangeSortOption(selectedOption))
+                            },
+                            onApply = {
+                                productListingViewModel.onEvent(ProductListingUiEvent.ApplySortOption)
+                            },
+                            onDismiss = {
+                                productListingViewModel.onEvent(ProductListingUiEvent.BottomSheetDismiss)
+                            }
                         )
                     }
                 }
             }
 
         }
-//        BottomPopup(
-//            isAvailablitySelected = state.isAvailablitySelected,
-//            onAvailablitySelected = { productListingViewModel.onClickAvailablity() },
-//            isAvailableSelected = state.isAvailableSelected,
-//            onAvailableSelected = { productListingViewModel.onClickAvailable() },
-//            isSoldOutSelected = state.isSoldOutSelected,
-//            onSoldOutSelected = { productListingViewModel.onClickSoldOut() },
-//            isConditionSelected = state.isConditionSelected,
-//            onConditionSelected = { productListingViewModel.onClickCondition() },
-//            isNewWithTagsSelected = state.isNewWithTagsSelected,
-//            onNewWithTagsSelected = { productListingViewModel.onClickNewWithTags() },
-//            isLikeNewSelected = state.isLikeNewSelected,
-//            onLikeNewSelected = { productListingViewModel.onClickLikeNew() },
-//            isGoodSelected = state.isGoodSelected,
-//            onGoodSelected = { productListingViewModel.onClickGood() },
-//            isUsedSelected = state.isUsedSelected,
-//            onUsedSelected = { productListingViewModel.onClickUsed() },
-//            isSellerRatingSelected = state.isSellerRatingSelected,
-//            onSellerRatingSelected = { productListingViewModel.onClickSellerRating() },
-//            isRating4_0Selected = state.isRating4_0Selected,
-//            onRating4_0Selected = { productListingViewModel.onClickRating4_0() },
-//            isRating4_5Selected = state.isRating4_5Selected,
-//            onRating4_5Selected = { productListingViewModel.onClickRating4_5() },
-//            isRating4_7Selected = state.isRating4_7Selected,
-//            onRating4_7Selected = { productListingViewModel.onClickRating4_7() },
-//            isPriceSelected = state.isPriceSelected,
-//            onPriceSelected = { productListingViewModel.onClickPrice() },
-//            isSellerActiveSelected = state.isSellerActiveSelected,
-//            onSellerActiveSelected = { productListingViewModel.onClickSellerActive() },
-//            isSellerActiveThisWeekSelected = state.isSellerActiveThisWeekSelected,
-//            onSellerActiveThisWeekSelected = { productListingViewModel.onClickSellerActiveThisWeek() },
-//            isSellerActiveThisMonthSelected = state.isSellerActiveThisMonthSelected,
-//            onSellerActiveThisMonthSelected = { productListingViewModel.onClickSellerActiveThisMonth() },
-//            isCategorySelected = state.isCategorySelected,
-//            onCategorySelected = { productListingViewModel.onClickCategory() },
-//            isSizeSelected = state.isSizeSelected,
-//            onSizeSelected = { productListingViewModel.onClickSize() },
-//            cashSelected = state.cashSelected,
-//            onCashChange = { productListingViewModel.onCashChange(it) },
-//            coinsSelected = state.coinsSelected,
-//            onCoinsChange = { productListingViewModel.onCoinsChange(it) },
-//            isOfferSelected = state.isOfferSelected,
-//            onOfferSelect = { productListingViewModel.onOfferSelect(it) },
-//            onDismissListener = { productListingViewModel.closeBottomSheet() },
-//            filterSectionSelected = state.filterSectionOpen,
-//            onClickCash = {productListingViewModel.onClickCash()},
-//            onClickCoin = {productListingViewModel.onClickCoin()},
-//            isCashSelected = state.isCashSelected,
-//            isCoinSelected = state.isCoinSelected,
-//            isFilterSelected = state.isFilterSelected,
-//            isSortSelected = state.isSortSelected,
-//            sortOption = state.sortingOption,
-//            changeSortToRec = {productListingViewModel.changeSortToRec()},
-//            changeSortToPriceLoToHi = {productListingViewModel.changeSortToPriceLoToHi()},
-//            changeSortToPriceHiToLo = {productListingViewModel.changeSortToPriceHiToLo()},
-//            selectedFilter = null
-//        )
+    }
+    if (state.isLoading) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(0.3f)),
+            contentAlignment = Alignment.Center
+        ) {
+            PleaseWaitLoading()
+        }
     }
 }
 
@@ -591,7 +649,9 @@ fun ProductListing(
 fun PreviewProductListing() {
     SwapGoTheme {
         ProductListing(
-            onBack = { }
+            query = "",
+            onBack = { },
+            onProductClick = {}
         )
     }
 }

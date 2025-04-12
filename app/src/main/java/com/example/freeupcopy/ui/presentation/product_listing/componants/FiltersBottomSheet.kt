@@ -105,6 +105,7 @@ fun FiltersBottomSheet(
     onSelectAll: (FilterCategoryUiModel) -> Unit,
 
     availableFilters: List<Filter>,
+    onApplyClick: () -> Unit,
 ) {
     var selectedCategory by remember { mutableStateOf("") }
     var selectAll by remember { mutableStateOf(false) }
@@ -469,6 +470,11 @@ fun FiltersBottomSheet(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             if (selectedCategory.isNotEmpty()) {
+                                val currentCategory = FilterCategoryUiModel.predefinedCategories.find { it.name == selectedCategory }
+                                val categoryTertiaryCategories = currentCategory?.subcategories
+                                    ?.flatMap { it.tertiaryCategories }
+                                    ?.filter { it.parentCategory == currentCategory.name } ?: emptyList()
+
                                 Column {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         IconButton(
@@ -492,14 +498,11 @@ fun FiltersBottomSheet(
                                     FilterOptionMultiSelectItem(
                                         modifier = Modifier.padding(top = 4.dp),
                                         filterOption = "Select All",
-                                        isChecked = selectedTertiaryCategories.size == FilterCategoryUiModel.predefinedCategories
-                                            .find { it.name == selectedCategory }
-                                            ?.subcategories
-                                            ?.flatMap { it.tertiaryCategories } // Get all tertiary categories from subcategories
-                                            ?.size,
+                                        isChecked = selectedTertiaryCategories.count { it.parentCategory == currentCategory?.name } ==
+                                                categoryTertiaryCategories.size,
                                         onCheckedChange = {
-                                            //selectAll = !selectAll
-                                            onSelectAll(FilterCategoryUiModel.predefinedCategories.find { it.name == selectedCategory }!!)
+                                            // Handle select all logic here using the filtered list for currentCategory
+                                            onSelectAll(currentCategory!!)
                                         }
                                     )
 
@@ -530,12 +533,14 @@ fun FiltersBottomSheet(
                                             .fillMaxWidth(),
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        // Get all tertiary categories for this category
+                                        // Get tertiary categories for this category (filtered by parent)
                                         val categoryTertiaryCategories = category.subcategories
                                             .flatMap { it.tertiaryCategories }
+                                            .filter { it.parentCategory == category.name }
 
-                                        // Check if any of the selected tertiary categories belong to this category
-                                        if (selectedTertiaryCategories.any { it in categoryTertiaryCategories }) {
+                                        if (selectedTertiaryCategories.any { selected ->
+                                                categoryTertiaryCategories.any { it.uniqueKey == selected.uniqueKey }
+                                            }) {
                                             AppliedFilterIndicator()
                                             Spacer(Modifier.size(8.dp))
                                         }
@@ -547,9 +552,7 @@ fun FiltersBottomSheet(
                                         Icon(
                                             imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
                                             contentDescription = "select category",
-                                            tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(
-                                                alpha = 0.6f
-                                            )
+                                            tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
                                         )
                                     }
                                     Spacer(Modifier.size(8.dp))
@@ -557,7 +560,7 @@ fun FiltersBottomSheet(
                             } else {
                                 val subCategories = FilterCategoryUiModel.predefinedCategories
                                     .find { it.name == selectedCategory }
-                                    ?.subcategories!!
+                                    ?.subcategories.orEmpty()
 
                                 subCategories.forEach { subCategory ->
                                     if (subCategory.name != "Primary") {
@@ -565,22 +568,17 @@ fun FiltersBottomSheet(
                                             text = subCategory.name,
                                             fontSize = 16.sp,
                                             fontWeight = FontWeight.SemiBold,
-                                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(
-                                                alpha = 0.6f
-                                            )
+                                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
                                         )
                                         Spacer(Modifier.size(8.dp))
                                     }
                                     subCategory.tertiaryCategories.forEach { tertiaryCategory ->
                                         FilterOptionMultiSelectItem(
                                             filterOption = tertiaryCategory.name,
-                                            isChecked = selectedTertiaryCategories.contains(
-                                                tertiaryCategory
-                                            ),
+                                            isChecked = selectedTertiaryCategories.any { it.uniqueKey == tertiaryCategory.uniqueKey },
                                             onCheckedChange = {
                                                 onTertiaryCategoryClick(tertiaryCategory)
-                                                if (selectedTertiaryCategories.contains(tertiaryCategory)
-                                                ) {
+                                                if (selectedTertiaryCategories.any { it.uniqueKey == tertiaryCategory.uniqueKey }) {
                                                     onRemoveSpecialOption(tertiaryCategory)
                                                 }
                                             }
@@ -592,6 +590,7 @@ fun FiltersBottomSheet(
                             }
                         }
                     }
+
 
                     Filter.BRAND -> {
 
@@ -631,7 +630,9 @@ fun FiltersBottomSheet(
         )
 
         Button(
-            onClick = { },
+            onClick = {
+                onApplyClick()
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(60.dp)
@@ -730,7 +731,8 @@ private fun FiltersBottomSheetPreview() {
                 Filter.PRICE,
                 Filter.CATEGORY,
                 Filter.BRAND
-            )
+            ),
+            onApplyClick = {}
         )
     }
 }

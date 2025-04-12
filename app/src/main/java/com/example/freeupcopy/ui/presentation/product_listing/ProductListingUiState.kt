@@ -11,54 +11,16 @@ import com.example.freeupcopy.domain.enums.SellerRatingOption
 
 data class ProductListingUiState(
 
-    val isBottomSheetOpen : Boolean = false,
-
-    val isFilterSelected: Boolean = false,
-    val isSortSelected : Boolean = false,
-    val isSortApplied : Boolean = false,
-
-    val sortingOption: SortOption = SortOption.Recommended,
-
-    val isAvailablitySelected : Boolean = false,
-    val isAvailableSelected : Boolean = false,
-    val isSoldOutSelected : Boolean = false,
-
-    val isConditionSelected : Boolean = false,
-    val isNewWithTagsSelected : Boolean = false,
-    val isLikeNewSelected : Boolean = false,
-    val isGoodSelected : Boolean = false,
-    val isUsedSelected : Boolean = false,
-
-    val isSellerRatingSelected : Boolean = false,
-    val isRating4_0Selected : Boolean = false,
-    val isRating4_5Selected : Boolean = false,
-    val isRating4_7Selected : Boolean = false,
-
-    val isPriceSelected : Boolean = false,
-    val cashSelected : Float = 50000f,
-    val isCashSelected : Boolean = true,
-    val coinsSelected : Float = 50000f,
-    val isCoinSelected : Boolean = true,
-    val isOfferSelected : Boolean = true,
-
-    val isSellerActiveSelected : Boolean = false,
-    val isSellerActiveThisWeekSelected : Boolean = false,
-    val isSellerActiveThisMonthSelected : Boolean = false,
-
-    val isCategorySelected : Boolean = false,
-
-    val isSizeSelected : Boolean = false,
-
-    val filterSectionOpen : FilterClassOptions? = null,
-
-    val isNewArrivalSelected : Boolean = false,
-    val isFreeInCoinSelected : Boolean = false,
-    val isSwapGoAssuredSelected : Boolean = false,
-
-    // my state
+    val searchQuery: String = "",
     val selectedFilter: Filter = Filter.AVAILABILITY,
     val isFilterBottomSheet: Boolean = false,
     val isSortBottomSheet: Boolean = false,
+    val isBottomSheetOpen: Boolean = false,
+
+    // New fields for the sort functionality:
+    val appliedSortOption: String? = null, // Used for the query.
+    val tempSortOption: String? = null,    // Used for UI selection in the sort bottom sheet.
+    val selectedSortOption: String? = null,
 
     val availabilityOptions: List<AvailabilityOption> = emptyList(),
     val conditionOptions: List<ConditionOption> = emptyList(),
@@ -72,7 +34,10 @@ data class ProductListingUiState(
 
     val availableFilters: List<Filter> = listOf(Filter.AVAILABILITY, Filter.CONDITION, Filter.SELLER_RATING, Filter.PRICE, Filter.CATEGORY, Filter.BRAND),
 
-    val selectedSpecialOptions: List<FilterSpecialOption> = emptyList()
+    val selectedSpecialOptions: List<FilterSpecialOption> = emptyList(),
+
+    val isLoading: Boolean = false,
+    val error: String = ""
 )
 
 enum class FilterClassOptions{

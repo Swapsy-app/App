@@ -106,4 +106,23 @@ dependencies {
     implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
     implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3" ) // Use latest version
     implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+
+    //coil
+    implementation("io.coil-kt:coil-compose:2.5.0")
+    implementation("io.coil-kt:coil-video:2.2.2")
+
+    //paging
+    val pagingVersion = "3.3.6"
+
+    implementation("androidx.paging:paging-runtime-ktx:$pagingVersion")
+    implementation("androidx.paging:paging-compose:3.3.6")
+
+    //media3
+    val media3_version = "1.6.0"
+
+    // For media playback using ExoPlayer
+    implementation("androidx.media3:media3-exoplayer:$media3_version")
+    implementation("androidx.media3:media3-transformer:$media3_version")
+    implementation("androidx.media3:media3-effect:$media3_version")
+    implementation("androidx.media3:media3-common:$media3_version")
 }

@@ -3,6 +3,7 @@ package com.example.freeupcopy
 import android.annotation.SuppressLint
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -50,6 +51,7 @@ import com.example.freeupcopy.ui.presentation.sell_screen.advance_setting_screen
 import com.example.freeupcopy.ui.presentation.sell_screen.brand_screen.BrandScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.category_screen.CategoryScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.condition_screen.ConditionScreen
+import com.example.freeupcopy.ui.presentation.sell_screen.gallery_screen.CustomGalleryScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.location_screen.add_location_screen.AddLocationScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.location_screen.location_screen.LocationScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.manufacturing_screen.ManufacturingScreen
@@ -88,7 +90,7 @@ class MainActivity : ComponentActivity() {
 
                     NavHost(
                         navController = navController,
-                        startDestination = Screen.ConnectScreen,
+                        startDestination = Screen.MainScreen,
                         enterTransition = {
                             slideIntoContainer(
                                 towards = AnimatedContentTransitionScope.SlideDirection.Left,
@@ -112,7 +114,12 @@ class MainActivity : ComponentActivity() {
                             ) {
                                 val sellViewModel = it.sharedViewModel<SellViewModel>(navController = navController)
 
+                                val uploadedImages = it.savedStateHandle.get<List<String>>("uploaded_images") ?: emptyList()
+                                val uploadedVideo = it.savedStateHandle.get<String>("uploaded_video") ?: ""
+
                                 SellScreen(
+                                    uploadedImages = uploadedImages,
+                                    uploadedVideo = uploadedVideo,
                                     sellViewModel = sellViewModel,
                                     onCategoryClick = {
                                         navController.navigate(Screen.CategoryScreen)
@@ -129,11 +136,14 @@ class MainActivity : ComponentActivity() {
                                     onManufacturingClick = { manufacturingCountry ->
                                         navController.navigate(Screen.ManufacturingScreen(selectedCountry = manufacturingCountry))
                                     },
-                                    onLocationClick = { selectedLocation ->
-                                        navController.navigate(Screen.LocationScreen(selectedLocation = selectedLocation))
+                                    onLocationClick = { selectedLocationId ->
+                                        navController.navigate(Screen.LocationScreen(selectedLocationId = selectedLocationId))
                                     },
-                                    onAdvanceSettingClick = {
-                                        navController.navigate(Screen.GstScreen)
+                                    onAdvanceSettingClick = { gst ->
+                                        navController.navigate(Screen.GstScreen(gst = gst))
+                                    },
+                                    onAddImageVideoClick = { numberOfUploadedImages ->
+                                        navController.navigate(Screen.GalleryScreen(numberOfUploadedImages))
                                     },
                                     onPriceClick = { price ->
                                         navController.navigate(Screen.PriceScreen(price))
@@ -212,6 +222,29 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
 
+                            composable<Screen.GalleryScreen> {
+                                val sellViewModel = it.sharedViewModel<SellViewModel>(navController = navController)
+                                val args = it.toRoute<Screen.GalleryScreen>()
+                                CustomGalleryScreen(
+                                    sellViewModel = sellViewModel,
+                                    numberOfUploadedImages = args.numberOfUploadedImages ?: 0,
+                                    onClose = { uploadedImages, uploadedVideo ->
+                                        Log.e("MainActivity", "uploadedVideo: $uploadedVideo")
+                                        if(uploadedImages.isNotEmpty()) {
+                                            navController.previousBackStackEntry
+                                                ?.savedStateHandle
+                                                ?.set("uploaded_images", uploadedImages)
+                                        }
+                                        if(uploadedVideo?.isNotEmpty() == true) {
+                                            navController.previousBackStackEntry
+                                                ?.savedStateHandle
+                                                ?.set("uploaded_video", uploadedVideo)
+                                        }
+                                        navController.popBackStack()
+                                    }
+                                )
+                            }
+
                             composable<Screen.WeightScreen> {
                                 val sellViewModel = it.sharedViewModel<SellViewModel>(navController = navController)
                                 val args = it.toRoute<Screen.WeightScreen>()
@@ -276,7 +309,7 @@ class MainActivity : ComponentActivity() {
                                     onClose = {
                                         navController.popBackStack()
                                     },
-                                    selectedLocation = args.selectedLocation ?: 0,
+                                    selectedLocationId = args.selectedLocationId ?: "",
                                     onLocationClick = {
                                         navController.popBackStack()
                                     },
@@ -295,8 +328,15 @@ class MainActivity : ComponentActivity() {
                             }
 
                             composable<Screen.GstScreen> {
+                                val args = it.toRoute<Screen.GstScreen>()
+                                val sellViewModel = it.sharedViewModel<SellViewModel>(navController = navController)
                                 AdvanceSettingScreen(
                                     onClose = {
+                                        navController.popBackStack()
+                                    },
+                                    sellViewModel = sellViewModel,
+                                    gst = args.gst ?: "",
+                                    onSuccessfulUpdate = {
                                         navController.popBackStack()
                                     }
                                 )
@@ -336,8 +376,8 @@ class MainActivity : ComponentActivity() {
                                 onBack = {
                                     navController.popBackStack()
                                 },
-                                onSearch = {
-                                    navController.navigate(Screen.ProductListingScreen)
+                                onSearch = { query ->
+                                    navController.navigate(Screen.ProductListingScreen(query = query.trim()))
                                 }
                             )
                         }
@@ -593,14 +633,30 @@ class MainActivity : ComponentActivity() {
                                 onBack = {
                                     navController.popBackStack()
                                 },
-                                onEditProfile = {
-                                    navController.navigate(Screen.EditProfileScreen)
+                                onEditProfile = { profilePhotoUrl, userFullName, username, aboutMe, gender, occupation ->
+                                    navController.navigate(
+                                        Screen.EditProfileScreen(
+                                            profilePhotoUrl = profilePhotoUrl,
+                                            userFullName = userFullName,
+                                            username = username,
+                                            aboutMe = aboutMe,
+                                            gender = gender,
+                                            occupation = occupation
+                                        )
+                                    )
                                 }
                             )
                         }
 
                         composable<Screen.EditProfileScreen> {
+                            val args = it.toRoute<Screen.EditProfileScreen>()
                             EditProfileScreen(
+                                profilePhotoUrl = args.profilePhotoUrl ?: "",
+                                userFullName = args.userFullName ?: "",
+                                username = args.username ?: "",
+                                userBio = args.aboutMe ?: "",
+                                userGender = args.gender ?: "",
+                                userOccupation = args.occupation ?: "",
                                 onClose = {
                                     navController.popBackStack()
                                 }
@@ -619,13 +675,18 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable<Screen.ProductListingScreen> {
+                            val args = it.toRoute<Screen.ProductListingScreen>()
+
                             ProductListing(
+                                query = args.query,
                                 onBack = {
                                     navController.popBackStack()
+                                },
+                                onProductClick = {
+                                    navController.navigate(Screen.ProductScreen)
                                 }
                             )
                         }
-
                     }
                 }
             }

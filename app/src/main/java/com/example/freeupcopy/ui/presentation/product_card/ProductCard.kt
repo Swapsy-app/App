@@ -3,6 +3,8 @@ package com.example.freeupcopy.ui.presentation.product_card
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +13,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -24,12 +27,14 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,6 +48,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import com.example.freeupcopy.R
 import com.example.freeupcopy.ui.theme.CardShape
 import com.example.freeupcopy.ui.theme.CashColor1
@@ -56,7 +63,7 @@ fun ProductCard(
     modifier: Modifier = Modifier,
     brand: String?,
     title: String,
-    productThumbnail: Painter?,
+    productThumbnail: String?,
     size: String?,
     cashPrice: String?,
     coinsPrice: String?,
@@ -69,14 +76,19 @@ fun ProductCard(
         (combinedPrice != null)
     ),
     isLiked: Boolean,
-    onLikeClick: () -> Unit
+    onLikeClick: () -> Unit,
+    onClick: () -> Unit
 ) {
     Card(
         modifier = modifier
             .width(180.dp)
-        //.padding(8.dp)
-        //.width(180.dp)
-        ,
+            .clickable (
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = {
+                    onClick()
+                }
+            ),
         shape = CardShape.small,
         border = BorderStroke(
             1.dp,
@@ -88,13 +100,41 @@ fun ProductCard(
     ) {
         Column {
             Box {
-                Image(
+                SubcomposeAsyncImage(
+                    model = productThumbnail,
+                    contentDescription = "Product Image",
                     modifier = Modifier
                         .fillMaxWidth()
                         .aspectRatio(0.75f),
-                    painter = productThumbnail ?: painterResource(id = R.drawable.add_image),
-                    contentDescription = "Product Image",
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.Crop,
+                    loading = {
+                        // Display a loading indicator while the image is being fetched.
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 8.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                painter = painterResource(R.drawable.ic_logo_full),
+                                contentDescription = null
+                            )
+                        }
+                    },
+                    error = {
+                        // Fallback image if loading fails.
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 8.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                painter = painterResource(R.drawable.ic_logo_full),
+                                contentDescription = null
+                            )
+                        }
+                    }
                 )
                 IconButton(
                     onClick = { onLikeClick() },
@@ -318,22 +358,22 @@ fun ProductCard(
 }
 
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewProductCard() {
-    SwapGoTheme {
-        ProductCard(
-            brand = "Adidas",
-            title = "Adidas Bomber Jacket",
-            size = "40 inches",
-            productThumbnail = painterResource(id = R.drawable.bomber_jacket),
-            cashPrice = "2000",
-            coinsPrice = "1000",
-            combinedPrice = Pair("4000", "2000"),
-            mrp = "4000",
-            badge = "Trusted",
-            isLiked = true,
-            onLikeClick = {},
-        )
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewProductCard() {
+//    SwapGoTheme {
+//        ProductCard(
+//            brand = "Adidas",
+//            title = "Adidas Bomber Jacket",
+//            size = "40 inches",
+//            productThumbnail = painterResource(id = R.drawable.bomber_jacket),
+//            cashPrice = "2000",
+//            coinsPrice = "1000",
+//            combinedPrice = Pair("4000", "2000"),
+//            mrp = "4000",
+//            badge = "Trusted",
+//            isLiked = true,
+//            onLikeClick = {},
+//        )
+//    }
+//}

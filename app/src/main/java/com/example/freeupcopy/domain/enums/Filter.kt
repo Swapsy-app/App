@@ -16,9 +16,9 @@ enum class Filter(val displayValue: String) {
     LENGTH("Length"),
 }
 
-enum class AvailabilityOption(val displayValue: String) {
-    AVAILABLE("Available"),
-    SOLD_OUT("Sold Out")
+enum class AvailabilityOption(val displayValue: String, val filterName: String) {
+    AVAILABLE("Available", "available"),
+    SOLD_OUT("Sold Out", "sold")
 }
 
 enum class ConditionOption(val displayValue: String, val description: String) {
@@ -66,88 +66,88 @@ data class FilterCategoryUiModel(
                     FilterSubCategory(
                         name = "Ethnic",
                         tertiaryCategories = listOf(
-                            FilterTertiaryCategory("Sarees", specialFilters = listOf(Filter.FABRIC, Filter.COLOUR, Filter.OCCASION)),
-                            FilterTertiaryCategory("Blouses", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR, Filter.OCCASION, Filter.SHAPE)),
-                            FilterTertiaryCategory("Kurtas", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR, Filter.OCCASION, Filter.SHAPE)),
-                            FilterTertiaryCategory("Kurta Sets & Suits", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR, Filter.OCCASION, Filter.SHAPE)),
-                            FilterTertiaryCategory("Dupattas", specialFilters = listOf(Filter.FABRIC, Filter.COLOUR, Filter.OCCASION)),
-                            FilterTertiaryCategory("Lehenga Choli", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR, Filter.OCCASION)),
-                            FilterTertiaryCategory("Ethnic Skirts", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR, Filter.OCCASION)),
-                            FilterTertiaryCategory("Bridal Lehenga", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR, Filter.OCCASION)),
-                            FilterTertiaryCategory("Ethnic Gowns", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR, Filter.OCCASION)),
-                            FilterTertiaryCategory("Palazzos & Salwars", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR, Filter.OCCASION)),
-                            FilterTertiaryCategory("Dress Material")
+                            FilterTertiaryCategory(parentCategory = "Women", "Sarees", specialFilters = listOf(Filter.FABRIC, Filter.COLOUR, Filter.OCCASION)),
+                            FilterTertiaryCategory(parentCategory = "Women","Blouses", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR, Filter.OCCASION, Filter.SHAPE)),
+                            FilterTertiaryCategory(parentCategory = "Women","Kurtas", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR, Filter.OCCASION, Filter.SHAPE)),
+                            FilterTertiaryCategory(parentCategory = "Women","Kurta Sets & Suits", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR, Filter.OCCASION, Filter.SHAPE)),
+                            FilterTertiaryCategory(parentCategory = "Women","Dupattas", specialFilters = listOf(Filter.FABRIC, Filter.COLOUR, Filter.OCCASION)),
+                            FilterTertiaryCategory(parentCategory = "Women","Lehenga Choli", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR, Filter.OCCASION)),
+                            FilterTertiaryCategory(parentCategory = "Women","Ethnic Skirts", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR, Filter.OCCASION)),
+                            FilterTertiaryCategory(parentCategory = "Women","Bridal Lehenga", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR, Filter.OCCASION)),
+                            FilterTertiaryCategory(parentCategory = "Women","Ethnic Gowns", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR, Filter.OCCASION)),
+                            FilterTertiaryCategory(parentCategory = "Women","Palazzos & Salwars", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR, Filter.OCCASION)),
+                            FilterTertiaryCategory(parentCategory = "Women","Dress Material")
                         )
                     ),
                     FilterSubCategory(
                         name = "Western",
                         tertiaryCategories = listOf(
-                            FilterTertiaryCategory("Dresses", specialFilters = listOf(Filter.SHAPE, Filter.LENGTH, Filter.SIZE, Filter.FABRIC, Filter.COLOUR, Filter.OCCASION)),
-                            FilterTertiaryCategory("Tops & Tunics", specialFilters = listOf(Filter.SHAPE, Filter.SIZE, Filter.FABRIC, Filter.COLOUR, Filter.OCCASION)),
-                            FilterTertiaryCategory("T-Shirts", specialFilters = listOf(Filter.SHAPE, Filter.SIZE, Filter.FABRIC, Filter.COLOUR, Filter.OCCASION)),
-                            FilterTertiaryCategory("Jumpsuits & Co-ords", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR, Filter.OCCASION, Filter.SHAPE)),
-                            FilterTertiaryCategory("Jeans & Trousers", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR, Filter.OCCASION, Filter.SHAPE)),
-                            FilterTertiaryCategory("Sweaters & Sweatshirts", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR, Filter.OCCASION)),
-                            FilterTertiaryCategory("Shorts & Skirts", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR, Filter.OCCASION)),
-                            FilterTertiaryCategory("Jackets & Overcoats", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR, Filter.OCCASION)),
-                            FilterTertiaryCategory("Blazers", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR, Filter.OCCASION)),
-                            FilterTertiaryCategory("Active Wear", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR, Filter.OCCASION)),
+                            FilterTertiaryCategory(parentCategory = "Women","Dresses", specialFilters = listOf(Filter.SHAPE, Filter.LENGTH, Filter.SIZE, Filter.FABRIC, Filter.COLOUR, Filter.OCCASION)),
+                            FilterTertiaryCategory(parentCategory = "Women","Tops & Tunics", specialFilters = listOf(Filter.SHAPE, Filter.SIZE, Filter.FABRIC, Filter.COLOUR, Filter.OCCASION)),
+                            FilterTertiaryCategory(parentCategory = "Women","T-Shirts", specialFilters = listOf(Filter.SHAPE, Filter.SIZE, Filter.FABRIC, Filter.COLOUR, Filter.OCCASION)),
+                            FilterTertiaryCategory(parentCategory = "Women","Jumpsuits & Co-ords", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR, Filter.OCCASION, Filter.SHAPE)),
+                            FilterTertiaryCategory(parentCategory = "Women","Jeans & Trousers", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR, Filter.OCCASION, Filter.SHAPE)),
+                            FilterTertiaryCategory(parentCategory = "Women","Sweaters & Sweatshirts", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR, Filter.OCCASION)),
+                            FilterTertiaryCategory(parentCategory = "Women","Shorts & Skirts", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR, Filter.OCCASION)),
+                            FilterTertiaryCategory(parentCategory = "Women","Jackets & Overcoats", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR, Filter.OCCASION)),
+                            FilterTertiaryCategory(parentCategory = "Women","Blazers", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR, Filter.OCCASION)),
+                            FilterTertiaryCategory(parentCategory = "Women","Active Wear", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR, Filter.OCCASION)),
                         )
                     ),
                     FilterSubCategory(
                         name = "Jewellery",
                         tertiaryCategories = listOf(
-                            FilterTertiaryCategory("Jewellery Sets"),
-                            FilterTertiaryCategory("Earrings & Studs"),
-                            FilterTertiaryCategory("Mangalsutras"),
-                            FilterTertiaryCategory("Bangles & Bracelets"),
-                            FilterTertiaryCategory("Necklaces & Chains"),
-                            FilterTertiaryCategory("Kamarbandh & Maangtika"),
-                            FilterTertiaryCategory("Rings"),
-                            FilterTertiaryCategory("Anklets & Nosepins")
+                            FilterTertiaryCategory(parentCategory = "Women","Jewellery Sets"),
+                            FilterTertiaryCategory(parentCategory = "Women","Earrings & Studs"),
+                            FilterTertiaryCategory(parentCategory = "Women","Mangalsutras"),
+                            FilterTertiaryCategory(parentCategory = "Women","Bangles & Bracelets"),
+                            FilterTertiaryCategory(parentCategory = "Women","Necklaces & Chains"),
+                            FilterTertiaryCategory(parentCategory = "Women","Kamarbandh & Maangtika"),
+                            FilterTertiaryCategory(parentCategory = "Women","Rings"),
+                            FilterTertiaryCategory(parentCategory = "Women","Anklets & Nosepins")
                         )
                     ),
                     FilterSubCategory(
                         name = "Accessories",
                         tertiaryCategories = listOf(
-                            FilterTertiaryCategory("Sunglasses"),
-                            FilterTertiaryCategory("Watches"),
-                            FilterTertiaryCategory("Caps & Hats"),
-                            FilterTertiaryCategory("Hair Accessories"),
-                            FilterTertiaryCategory("Belts"),
-                            FilterTertiaryCategory("Scarfs & Stoles"),
+                            FilterTertiaryCategory(parentCategory = "Women","Sunglasses"),
+                            FilterTertiaryCategory(parentCategory = "Women","Watches"),
+                            FilterTertiaryCategory(parentCategory = "Women","Caps & Hats"),
+                            FilterTertiaryCategory(parentCategory = "Women","Hair Accessories"),
+                            FilterTertiaryCategory(parentCategory = "Women","Belts"),
+                            FilterTertiaryCategory(parentCategory = "Women","Scarfs & Stoles"),
                         )
                     ),
                     FilterSubCategory(
                         name = "Bags",
                         tertiaryCategories = listOf(
-                            FilterTertiaryCategory("Handbags", specialFilters = listOf(Filter.COLOUR)),
-                            FilterTertiaryCategory("Clutches", specialFilters = listOf(Filter.COLOUR)),
-                            FilterTertiaryCategory("Wallets", specialFilters = listOf(Filter.COLOUR)),
-                            FilterTertiaryCategory("Backpacks", specialFilters = listOf(Filter.COLOUR)),
-                            FilterTertiaryCategory("Slingbags", specialFilters = listOf(Filter.COLOUR))
+                            FilterTertiaryCategory(parentCategory = "Women","Handbags", specialFilters = listOf(Filter.COLOUR)),
+                            FilterTertiaryCategory(parentCategory = "Women","Clutches", specialFilters = listOf(Filter.COLOUR)),
+                            FilterTertiaryCategory(parentCategory = "Women","Wallets", specialFilters = listOf(Filter.COLOUR)),
+                            FilterTertiaryCategory(parentCategory = "Women","Backpacks", specialFilters = listOf(Filter.COLOUR)),
+                            FilterTertiaryCategory(parentCategory = "Women","Slingbags", specialFilters = listOf(Filter.COLOUR))
                         )
                     ),
                     FilterSubCategory(
                         name = "Footwear",
                         tertiaryCategories = listOf(
-                            FilterTertiaryCategory("Flats & Sandals", specialFilters = listOf(Filter.COLOUR)),
-                            FilterTertiaryCategory("Heels & Wedges", specialFilters = listOf(Filter.COLOUR)),
-                            FilterTertiaryCategory("Boots", specialFilters = listOf(Filter.COLOUR)),
-                            FilterTertiaryCategory("Flipflops & Slippers", specialFilters = listOf(Filter.COLOUR)),
-                            FilterTertiaryCategory("Bellies & Ballerinas", specialFilters = listOf(Filter.COLOUR)),
-                            FilterTertiaryCategory("Sports Shoes", specialFilters = listOf(Filter.COLOUR)),
-                            FilterTertiaryCategory("Casual Shoes", specialFilters = listOf(Filter.COLOUR))
+                            FilterTertiaryCategory(parentCategory = "Women","Flats & Sandals", specialFilters = listOf(Filter.COLOUR)),
+                            FilterTertiaryCategory(parentCategory = "Women","Heels & Wedges", specialFilters = listOf(Filter.COLOUR)),
+                            FilterTertiaryCategory(parentCategory = "Women","Boots", specialFilters = listOf(Filter.COLOUR)),
+                            FilterTertiaryCategory(parentCategory = "Women","Flipflops & Slippers", specialFilters = listOf(Filter.COLOUR)),
+                            FilterTertiaryCategory(parentCategory = "Women","Bellies & Ballerinas", specialFilters = listOf(Filter.COLOUR)),
+                            FilterTertiaryCategory(parentCategory = "Women","Sports Shoes", specialFilters = listOf(Filter.COLOUR)),
+                            FilterTertiaryCategory(parentCategory = "Women","Casual Shoes", specialFilters = listOf(Filter.COLOUR))
                         )
                     ),
                     FilterSubCategory(
                         name = "Innerwear & Sleepwear",
                         tertiaryCategories = listOf(
-                            FilterTertiaryCategory("Bra", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR)),
-                            FilterTertiaryCategory("Briefs", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR)),
-                            FilterTertiaryCategory("Camisoles & Slips", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR)),
-                            FilterTertiaryCategory("Nightsuits & Pyjamas", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR)),
-                            FilterTertiaryCategory("Maternity", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR))
+                            FilterTertiaryCategory(parentCategory = "Women","Bra", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR)),
+                            FilterTertiaryCategory(parentCategory = "Women","Briefs", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR)),
+                            FilterTertiaryCategory(parentCategory = "Women","Camisoles & Slips", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR)),
+                            FilterTertiaryCategory(parentCategory = "Women","Nightsuits & Pyjamas", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR)),
+                            FilterTertiaryCategory(parentCategory = "Women","Maternity", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR))
                         )
                     )
                 ),
@@ -158,18 +158,18 @@ data class FilterCategoryUiModel(
                     FilterSubCategory(
                         name = DEFAULT,
                         tertiaryCategories = listOf(
-                            FilterTertiaryCategory("T-Shirts & Shirts", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.OCCASION, Filter.COLOUR)),
-                            FilterTertiaryCategory("Sweats & Hoodies", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.OCCASION, Filter.COLOUR)),
-                            FilterTertiaryCategory("Sweaters", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.OCCASION, Filter.COLOUR)),
-                            FilterTertiaryCategory("Jeans & Pants", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.OCCASION, Filter.COLOUR)),
-                            FilterTertiaryCategory("Shorts", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.OCCASION, Filter.COLOUR)),
-                            FilterTertiaryCategory("Coats & Jackets", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.OCCASION, Filter.COLOUR)),
-                            FilterTertiaryCategory("Suits & Blazers", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.OCCASION, Filter.COLOUR)),
-                            FilterTertiaryCategory("EthnicWear", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.OCCASION, Filter.COLOUR)),
-                            FilterTertiaryCategory("Footwear", specialFilters = listOf(Filter.SIZE, Filter.COLOUR)),
-                            FilterTertiaryCategory("Bags & Backpacks", specialFilters = listOf(Filter.COLOUR)),
-                            FilterTertiaryCategory("Accessories"),
-                            FilterTertiaryCategory("Athletic Wear", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR)),
+                            FilterTertiaryCategory(parentCategory = "Men","T-Shirts & Shirts", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.OCCASION, Filter.COLOUR)),
+                            FilterTertiaryCategory(parentCategory = "Men","Sweats & Hoodies", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.OCCASION, Filter.COLOUR)),
+                            FilterTertiaryCategory(parentCategory = "Men","Sweaters", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.OCCASION, Filter.COLOUR)),
+                            FilterTertiaryCategory(parentCategory = "Men","Jeans & Pants", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.OCCASION, Filter.COLOUR)),
+                            FilterTertiaryCategory(parentCategory = "Men","Shorts", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.OCCASION, Filter.COLOUR)),
+                            FilterTertiaryCategory(parentCategory = "Men","Coats & Jackets", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.OCCASION, Filter.COLOUR)),
+                            FilterTertiaryCategory(parentCategory = "Men","Suits & Blazers", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.OCCASION, Filter.COLOUR)),
+                            FilterTertiaryCategory(parentCategory = "Men","EthnicWear", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.OCCASION, Filter.COLOUR)),
+                            FilterTertiaryCategory(parentCategory = "Men","Footwear", specialFilters = listOf(Filter.SIZE, Filter.COLOUR)),
+                            FilterTertiaryCategory(parentCategory = "Men","Bags & Backpacks", specialFilters = listOf(Filter.COLOUR)),
+                            FilterTertiaryCategory(parentCategory = "Men","Accessories"),
+                            FilterTertiaryCategory(parentCategory = "Men","Athletic Wear", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR)),
                         )
                     )
                 )
@@ -179,13 +179,13 @@ data class FilterCategoryUiModel(
                     FilterSubCategory(
                         name = DEFAULT,
                         tertiaryCategories = listOf(
-                            FilterTertiaryCategory("Boys Clothing", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR)),
-                            FilterTertiaryCategory("Girls Clothing", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR)),
-                            FilterTertiaryCategory("Boys Footwear", specialFilters = listOf(Filter.SIZE)),
-                            FilterTertiaryCategory("Girls Footwear", specialFilters = listOf(Filter.SIZE)),
-                            FilterTertiaryCategory("Bath & Skin Care"),
-                            FilterTertiaryCategory("Accessories"),
-                            FilterTertiaryCategory("Toys & Games")
+                            FilterTertiaryCategory(parentCategory = "Baby & Kids","Boys Clothing", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR)),
+                            FilterTertiaryCategory(parentCategory = "Baby & Kids","Girls Clothing", specialFilters = listOf(Filter.SIZE, Filter.FABRIC, Filter.COLOUR)),
+                            FilterTertiaryCategory(parentCategory = "Baby & Kids","Boys Footwear", specialFilters = listOf(Filter.SIZE)),
+                            FilterTertiaryCategory(parentCategory = "Baby & Kids","Girls Footwear", specialFilters = listOf(Filter.SIZE)),
+                            FilterTertiaryCategory(parentCategory = "Baby & Kids","Bath & Skin Care"),
+                            FilterTertiaryCategory(parentCategory = "Baby & Kids","Accessories"),
+                            FilterTertiaryCategory(parentCategory = "Baby & Kids","Toys & Games")
                         )
                     )
                 )
@@ -196,82 +196,82 @@ data class FilterCategoryUiModel(
                     FilterSubCategory(
                         name = "Skin Care",
                         tertiaryCategories = listOf(
-                            FilterTertiaryCategory("Face Wash"),
-                            FilterTertiaryCategory("Face Toner"),
-                            FilterTertiaryCategory("Face Serum"),
-                            FilterTertiaryCategory("Masks & Peels"),
-                            FilterTertiaryCategory("Face Moisturiser"),
-                            FilterTertiaryCategory("Sunscreen"),
-                            FilterTertiaryCategory("Eye Care"),
-                            FilterTertiaryCategory("Night Care"),
-                            FilterTertiaryCategory("Skincare Kit"),
+                            FilterTertiaryCategory(parentCategory = "Beauty & Care","Face Wash"),
+                            FilterTertiaryCategory(parentCategory = "Beauty & Care","Face Toner"),
+                            FilterTertiaryCategory(parentCategory = "Beauty & Care","Face Serum"),
+                            FilterTertiaryCategory(parentCategory = "Beauty & Care","Masks & Peels"),
+                            FilterTertiaryCategory(parentCategory = "Beauty & Care","Face Moisturiser"),
+                            FilterTertiaryCategory(parentCategory = "Beauty & Care","Sunscreen"),
+                            FilterTertiaryCategory(parentCategory = "Beauty & Care","Eye Care"),
+                            FilterTertiaryCategory(parentCategory = "Beauty & Care","Night Care"),
+                            FilterTertiaryCategory(parentCategory = "Beauty & Care","Skincare Kit"),
                         )
                     ),
                     FilterSubCategory(
                         name = "Hair Care",
                         tertiaryCategories = listOf(
-                            FilterTertiaryCategory("Hair Oil"),
-                            FilterTertiaryCategory("Hair Serum"),
-                            FilterTertiaryCategory("Hair Gels & Masks"),
-                            FilterTertiaryCategory("Shampoo & Conditioner"),
-                            FilterTertiaryCategory("Hair Colour"),
-                            FilterTertiaryCategory("Hair Spray"),
-                            FilterTertiaryCategory("Combs & Hair Brushes"),
-                            FilterTertiaryCategory("Hair Appliances"),
+                            FilterTertiaryCategory(parentCategory = "Beauty & Care","Hair Oil"),
+                            FilterTertiaryCategory(parentCategory = "Beauty & Care","Hair Serum"),
+                            FilterTertiaryCategory(parentCategory = "Beauty & Care","Hair Gels & Masks"),
+                            FilterTertiaryCategory(parentCategory = "Beauty & Care","Shampoo & Conditioner"),
+                            FilterTertiaryCategory(parentCategory = "Beauty & Care","Hair Colour"),
+                            FilterTertiaryCategory(parentCategory = "Beauty & Care","Hair Spray"),
+                            FilterTertiaryCategory(parentCategory = "Beauty & Care","Combs & Hair Brushes"),
+                            FilterTertiaryCategory(parentCategory = "Beauty & Care","Hair Appliances"),
                         )
                     ),
                     FilterSubCategory(
                         name = "Make-Up & Nails",
                         tertiaryCategories = listOf(
-                            FilterTertiaryCategory("Foundation"),
-                            FilterTertiaryCategory("Compact"),
-                            FilterTertiaryCategory("Concealer"),
-                            FilterTertiaryCategory("Face Primer"),
-                            FilterTertiaryCategory("Blushes & Highlighter"),
-                            FilterTertiaryCategory("Eye Shadows"),
-                            FilterTertiaryCategory("Kajal & Eyeliner"),
-                            FilterTertiaryCategory("Eyebrow Pencil"),
-                            FilterTertiaryCategory("Mascara"),
-                            FilterTertiaryCategory("Lipstick", specialFilters = listOf(Filter.COLOUR)),
-                            FilterTertiaryCategory("Nail Polish", specialFilters = listOf(Filter.COLOUR)),
-                            FilterTertiaryCategory("Makeup Removers"),
-                            FilterTertiaryCategory("Tools & Accessories"),
+                            FilterTertiaryCategory(parentCategory = "Beauty & Care","Foundation"),
+                            FilterTertiaryCategory(parentCategory = "Beauty & Care","Compact"),
+                            FilterTertiaryCategory(parentCategory = "Beauty & Care","Concealer"),
+                            FilterTertiaryCategory(parentCategory = "Beauty & Care","Face Primer"),
+                            FilterTertiaryCategory(parentCategory = "Beauty & Care","Blushes & Highlighter"),
+                            FilterTertiaryCategory(parentCategory = "Beauty & Care","Eye Shadows"),
+                            FilterTertiaryCategory(parentCategory = "Beauty & Care","Kajal & Eyeliner"),
+                            FilterTertiaryCategory(parentCategory = "Beauty & Care","Eyebrow Pencil"),
+                            FilterTertiaryCategory(parentCategory = "Beauty & Care","Mascara"),
+                            FilterTertiaryCategory(parentCategory = "Beauty & Care","Lipstick", specialFilters = listOf(Filter.COLOUR)),
+                            FilterTertiaryCategory(parentCategory = "Beauty & Care","Nail Polish", specialFilters = listOf(Filter.COLOUR)),
+                            FilterTertiaryCategory(parentCategory = "Beauty & Care","Makeup Removers"),
+                            FilterTertiaryCategory(parentCategory = "Beauty & Care","Tools & Accessories"),
                         )
                     ),
                     FilterSubCategory(
                         name = "Bath & Body",
                         tertiaryCategories = listOf(
-                            FilterTertiaryCategory("Body Washes & Scrubs"),
-                            FilterTertiaryCategory("Soaps"),
-                            FilterTertiaryCategory("Body Lotions"),
-                            FilterTertiaryCategory("Hair Removal"),
-                            FilterTertiaryCategory("Hand & Feet Cream"),
-                            FilterTertiaryCategory("Body Oil"),
-                            FilterTertiaryCategory("Intimate Hygiene"),
-                            FilterTertiaryCategory("Period Care")
+                            FilterTertiaryCategory(parentCategory = "Beauty & Care","Body Washes & Scrubs"),
+                            FilterTertiaryCategory(parentCategory = "Beauty & Care","Soaps"),
+                            FilterTertiaryCategory(parentCategory = "Beauty & Care","Body Lotions"),
+                            FilterTertiaryCategory(parentCategory = "Beauty & Care","Hair Removal"),
+                            FilterTertiaryCategory(parentCategory = "Beauty & Care","Hand & Feet Cream"),
+                            FilterTertiaryCategory(parentCategory = "Beauty & Care","Body Oil"),
+                            FilterTertiaryCategory(parentCategory = "Beauty & Care","Intimate Hygiene"),
+                            FilterTertiaryCategory(parentCategory = "Beauty & Care","Period Care")
                         )
                     ),
                     FilterSubCategory(
                         name = "Fragrances",
                         tertiaryCategories = listOf(
-                            FilterTertiaryCategory("Perfume"),
-                            FilterTertiaryCategory("Deodorant & Roll-Ons"),
-                            FilterTertiaryCategory("Body Mist")
+                            FilterTertiaryCategory(parentCategory = "Fragrances","Perfume"),
+                            FilterTertiaryCategory(parentCategory = "Fragrances","Deodorant & Roll-Ons"),
+                            FilterTertiaryCategory(parentCategory = "Fragrances","Body Mist")
                         )
                     ),
                     FilterSubCategory(
                         name = "Men's Grooming",
                         tertiaryCategories = listOf(
-                            FilterTertiaryCategory("Beard Care"),
-                            FilterTertiaryCategory("Grooming Kits")
+                            FilterTertiaryCategory(parentCategory = "Fragrances","Beard Care"),
+                            FilterTertiaryCategory(parentCategory = "Fragrances","Grooming Kits")
                         )
                     ),
                     FilterSubCategory(
                         name = "Oral Care",
                         tertiaryCategories = listOf(
-                            FilterTertiaryCategory("Toothpaste & Brush"),
-                            FilterTertiaryCategory("Teeth Whitening"),
-                            FilterTertiaryCategory("Mouth Washes & Floss")
+                            FilterTertiaryCategory(parentCategory = "Fragrances","Toothpaste & Brush"),
+                            FilterTertiaryCategory(parentCategory = "Fragrances","Teeth Whitening"),
+                            FilterTertiaryCategory(parentCategory = "Fragrances","Mouth Washes & Floss")
                         )
                     ),
                 )
@@ -282,10 +282,10 @@ data class FilterCategoryUiModel(
                     FilterSubCategory(
                         name = DEFAULT,
                         tertiaryCategories = listOf(
-                            FilterTertiaryCategory("Fiction"),
-                            FilterTertiaryCategory("Textbooks"),
-                            FilterTertiaryCategory("Children's Books"),
-                            FilterTertiaryCategory("Indian Language Books"),
+                            FilterTertiaryCategory(parentCategory = "Books","Fiction"),
+                            FilterTertiaryCategory(parentCategory = "Books","Textbooks"),
+                            FilterTertiaryCategory(parentCategory = "Books","Children's Books"),
+                            FilterTertiaryCategory(parentCategory = "Books","Indian Language Books"),
                         )
                     )
                 )
@@ -296,47 +296,47 @@ data class FilterCategoryUiModel(
                     FilterSubCategory(
                         name = "Home Decor",
                         tertiaryCategories = listOf(
-                            FilterTertiaryCategory("Showpieces & Idols"),
-                            FilterTertiaryCategory("Wall Decor & Clocks"),
-                            FilterTertiaryCategory("Lamps & Lights"),
-                            FilterTertiaryCategory("Candles & Candle Holders"),
-                            FilterTertiaryCategory("Sewing & Craft"),
-                            FilterTertiaryCategory("Wallpapers & Stickers"),
-                            FilterTertiaryCategory("Pooja Needs"),
-                            FilterTertiaryCategory("Artwork"),
-                            FilterTertiaryCategory("Artificial Plants")
+                            FilterTertiaryCategory(parentCategory = "Home & Kitchen","Showpieces & Idols"),
+                            FilterTertiaryCategory(parentCategory = "Home & Kitchen","Wall Decor & Clocks"),
+                            FilterTertiaryCategory(parentCategory = "Home & Kitchen","Lamps & Lights"),
+                            FilterTertiaryCategory(parentCategory = "Home & Kitchen","Candles & Candle Holders"),
+                            FilterTertiaryCategory(parentCategory = "Home & Kitchen","Sewing & Craft"),
+                            FilterTertiaryCategory(parentCategory = "Home & Kitchen","Wallpapers & Stickers"),
+                            FilterTertiaryCategory(parentCategory = "Home & Kitchen","Pooja Needs"),
+                            FilterTertiaryCategory(parentCategory = "Home & Kitchen","Artwork"),
+                            FilterTertiaryCategory(parentCategory = "Home & Kitchen","Artificial Plants")
                         )
                     ),
                     FilterSubCategory(
                         name = "Kitchen & Dining",
                         tertiaryCategories = listOf(
-                            FilterTertiaryCategory("Cooking Utensils"),
-                            FilterTertiaryCategory("Baking Utensils"),
-                            FilterTertiaryCategory("Kitchen Tools & Cutlery"),
-                            FilterTertiaryCategory("Glasses, Cups & Barware"),
-                            FilterTertiaryCategory("Containers & Tiffins"),
-                            FilterTertiaryCategory("Water Bottles"),
-                            FilterTertiaryCategory("Dinnerware")
+                            FilterTertiaryCategory(parentCategory = "Home & Kitchen","Cooking Utensils"),
+                            FilterTertiaryCategory(parentCategory = "Home & Kitchen","Baking Utensils"),
+                            FilterTertiaryCategory(parentCategory = "Home & Kitchen","Kitchen Tools & Cutlery"),
+                            FilterTertiaryCategory(parentCategory = "Home & Kitchen","Glasses, Cups & Barware"),
+                            FilterTertiaryCategory(parentCategory = "Home & Kitchen","Containers & Tiffins"),
+                            FilterTertiaryCategory(parentCategory = "Home & Kitchen","Water Bottles"),
+                            FilterTertiaryCategory(parentCategory = "Home & Kitchen","Dinnerware")
                         )
                     ),
                     FilterSubCategory(
                         name = "Bedding & Furnishing",
                         tertiaryCategories = listOf(
-                            FilterTertiaryCategory("Bedsheets & Curtains", specialFilters = listOf(Filter.COLOUR)),
-                            FilterTertiaryCategory("Pillow Covers & Cushion Covers", specialFilters = listOf(Filter.COLOUR)),
+                            FilterTertiaryCategory(parentCategory = "Home & Kitchen","Bedsheets & Curtains", specialFilters = listOf(Filter.COLOUR)),
+                            FilterTertiaryCategory(parentCategory = "Home & Kitchen","Pillow Covers & Cushion Covers", specialFilters = listOf(Filter.COLOUR)),
                         )
                     ),
                     FilterSubCategory(
                         name = "Bath & Storage",
                         tertiaryCategories = listOf(
-                            FilterTertiaryCategory("Organisers & Storage"),
-                            FilterTertiaryCategory("Bathroom Accessories"),
+                            FilterTertiaryCategory(parentCategory = "Home & Kitchen","Organisers & Storage"),
+                            FilterTertiaryCategory(parentCategory = "Home & Kitchen","Bathroom Accessories"),
                         )
                     ),
                     FilterSubCategory(
                         name = "Pet Supplies",
                         tertiaryCategories = listOf(
-                            FilterTertiaryCategory("Pet Accessories")
+                            FilterTertiaryCategory(parentCategory = "Home & Kitchen","Pet Accessories")
                         )
                     ),
                 )
@@ -347,17 +347,17 @@ data class FilterCategoryUiModel(
                     FilterSubCategory(
                         name = DEFAULT,
                         tertiaryCategories = listOf(
-                            FilterTertiaryCategory("Mobile Phones"),
-                            FilterTertiaryCategory("Mobile Accessories"),
-                            FilterTertiaryCategory("Tablets"),
-                            FilterTertiaryCategory("Computers & Laptops"),
-                            FilterTertiaryCategory("Cases & Covers"),
-                            FilterTertiaryCategory("Drives & Storage"),
-                            FilterTertiaryCategory("Headphones & Earphones"),
-                            FilterTertiaryCategory("Camera & Photography"),
-                            FilterTertiaryCategory("E-Books"),
-                            FilterTertiaryCategory("Office Supplies & Stationery"),
-                            FilterTertiaryCategory("Fitness Gadgets")
+                            FilterTertiaryCategory(parentCategory = "Gadgets","Mobile Phones"),
+                            FilterTertiaryCategory(parentCategory = "Gadgets","Mobile Accessories"),
+                            FilterTertiaryCategory(parentCategory = "Gadgets","Tablets"),
+                            FilterTertiaryCategory(parentCategory = "Gadgets","Computers & Laptops"),
+                            FilterTertiaryCategory(parentCategory = "Gadgets","Cases & Covers"),
+                            FilterTertiaryCategory(parentCategory = "Gadgets","Drives & Storage"),
+                            FilterTertiaryCategory(parentCategory = "Gadgets","Headphones & Earphones"),
+                            FilterTertiaryCategory(parentCategory = "Gadgets","Camera & Photography"),
+                            FilterTertiaryCategory(parentCategory = "Gadgets","E-Books"),
+                            FilterTertiaryCategory(parentCategory = "Gadgets","Office Supplies & Stationery"),
+                            FilterTertiaryCategory(parentCategory = "Gadgets","Fitness Gadgets")
                         )
                     )
                 )
@@ -372,7 +372,11 @@ data class FilterSubCategory(
 )
 
 data class FilterTertiaryCategory(
+    val parentCategory: String,  // e.g., "Women" or "Men"
     val name: String,
     val imageUrl: Int? = null,
     val specialFilters: List<Filter> = emptyList()
-)
+) {
+    val uniqueKey: String
+        get() = "${parentCategory.lowercase()}_$name".replace(" ", "_")
+}
