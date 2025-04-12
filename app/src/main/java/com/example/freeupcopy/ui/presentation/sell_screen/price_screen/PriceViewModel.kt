@@ -8,6 +8,7 @@ import com.example.freeupcopy.utils.Validator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 
 @HiltViewModel
@@ -16,7 +17,7 @@ class PriceViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _priceUiState = MutableStateFlow(PriceUiState())
-    val priceUiState: StateFlow<PriceUiState> = _priceUiState
+    val priceUiState = _priceUiState.asStateFlow()
 
     fun getPrice (price: Price) {
         _priceUiState.value = priceUiState.value.copy(

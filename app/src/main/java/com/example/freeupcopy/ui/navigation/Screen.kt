@@ -6,19 +6,16 @@ import kotlinx.serialization.Serializable
 @Serializable
 sealed class Screen {
     @Serializable
-    data object HomeScreen : Screen()
-
-    @Serializable
-    data object CommunityScreen : Screen()
-
-    @Serializable
     data object WishListScreen : Screen()
 
     @Serializable
     data object SellScreen : Screen()
 
+    //Sell Screens
     @Serializable
     data object SearchScreen : Screen()
+    @Serializable
+    data class ProductListingScreen(val query: String) : Screen()
 
     @Serializable
     data object InboxScreen : Screen()
@@ -44,11 +41,11 @@ sealed class Screen {
     @Serializable
     data class ConditionScreen(val selectedCondition: String?) : Screen()
     @Serializable
-    data class LocationScreen(val selectedLocation: Int?) : Screen()
+    data class LocationScreen(val selectedLocationId: String?) : Screen()
     @Serializable
     data object AddLocationScreen : Screen()
     @Serializable
-    data object GstScreen : Screen()
+    data class GstScreen(val gst: String?): Screen()
     @Serializable
     data class PriceScreen(val price: Price?) : Screen()
 
@@ -72,14 +69,22 @@ sealed class Screen {
 
     //Profile Screens
     @Serializable
-    data object ProfileScreen : Screen()
-    @Serializable
     data object PostedProductsScreen : Screen()
     @Serializable
     data object SellerProfileScreen : Screen()
     @Serializable
-    data object EditProfileScreen : Screen()
+    data class EditProfileScreen(
+        val profilePhotoUrl: String?,
+        val userFullName: String?,
+        val username: String?,
+        val aboutMe: String?,
+        val gender: String?,
+        val occupation: String?
+    ) : Screen()
 
     @Serializable
     data object MainScreen : Screen()
+
+    @Serializable
+    data class GalleryScreen(val numberOfUploadedImages: Int?): Screen()
 }

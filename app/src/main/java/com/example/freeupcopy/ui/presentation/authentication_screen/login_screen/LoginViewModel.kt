@@ -3,7 +3,7 @@ package com.example.freeupcopy.ui.presentation.authentication_screen.login_scree
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.freeupcopy.common.Resource
-import com.example.freeupcopy.data.remote.dto.LoginRequest
+import com.example.freeupcopy.data.remote.dto.auth.LoginRequest
 import com.example.freeupcopy.domain.repository.AuthRepository
 import com.example.freeupcopy.utils.ValidationResult
 import com.example.freeupcopy.utils.Validator
@@ -53,7 +53,7 @@ class LoginViewModel @Inject constructor(
                                     it.copy(
                                         isLoading = true,
                                         error = "",
-                                        shouldNavigateToHome = false
+                                        signInVerifyResponse = null
                                     )
                                 }
                             }
@@ -63,7 +63,7 @@ class LoginViewModel @Inject constructor(
                                     it.copy(
                                         isLoading = false,
                                         error = "",
-                                        shouldNavigateToHome = true
+                                        signInVerifyResponse = response.data
                                     )
                                 }
                             }
@@ -73,7 +73,7 @@ class LoginViewModel @Inject constructor(
                                     it.copy(
                                         isLoading = false,
                                         error = response.message ?: "An unexpected error occurred",
-                                        shouldNavigateToHome = false
+                                        signInVerifyResponse = null
                                     )
                                 }
                             }

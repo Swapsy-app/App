@@ -3,8 +3,7 @@ package com.example.freeupcopy.ui.presentation.authentication_screen.signup_scre
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.freeupcopy.common.Resource
-import com.example.freeupcopy.data.remote.dto.SignUpRequest
-import com.example.freeupcopy.domain.enums.SignUpStatus
+import com.example.freeupcopy.data.remote.dto.auth.SignUpRequest
 import com.example.freeupcopy.domain.repository.AuthRepository
 import com.example.freeupcopy.utils.ValidationResult
 import com.example.freeupcopy.utils.Validator
@@ -60,7 +59,7 @@ class SignUpViewModel @Inject constructor(
                                     it.copy(
                                         isLoading = true,
                                         error = "",
-                                        shouldNavigateToOtp = false
+                                        successMessage = ""
                                     )
                                 }
                             }
@@ -69,7 +68,7 @@ class SignUpViewModel @Inject constructor(
                                 _state.update {
                                     it.copy(
                                         isLoading = false,
-                                        shouldNavigateToOtp = true,
+                                        successMessage = result.data?.message ?: "",
                                         error = ""
                                     )
                                 }
@@ -80,7 +79,7 @@ class SignUpViewModel @Inject constructor(
                                     it.copy(
                                         error = result.message ?: "An unexpected error occurred",
                                         isLoading = false,
-                                        shouldNavigateToOtp = false
+                                        successMessage = ""
                                     )
                                 }
                             }

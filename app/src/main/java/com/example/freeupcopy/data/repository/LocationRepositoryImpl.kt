@@ -13,6 +13,7 @@ import com.example.freeupcopy.domain.model.StateAndCity
 import com.example.freeupcopy.domain.repository.LocationRepository
 import com.example.freeupcopy.utils.checkLocationPrerequisites
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.Priority
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
@@ -123,8 +124,10 @@ class LocationRepositoryImpl(
             return@flow
         }
         try {
-            val location = fusedLocationClient.lastLocation.await()
-                ?: throw Exception("Unable to fetch location")
+            val location = fusedLocationClient.getCurrentLocation(
+                Priority.PRIORITY_HIGH_ACCURACY,
+                null // optionally, supply a CancellationToken
+            ).await() ?: throw Exception("Unable to fetch location")
 
             val addresses = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 suspendCancellableCoroutine { continuation ->

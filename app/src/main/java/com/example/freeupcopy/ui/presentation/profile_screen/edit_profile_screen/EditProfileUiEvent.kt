@@ -7,4 +7,6 @@ sealed class EditProfileUiEvent {
     data class UserBioChanged(val userBio: String) : EditProfileUiEvent()
     data class UserGenderChanged(val userGender: String) : EditProfileUiEvent()
     data class UserOccupationChanged(val userOccupation: String) : EditProfileUiEvent()
+    data class UserProfilePhotoChange(val userProfilePhotoUrl: String) : EditProfileUiEvent()
+    data object ConfirmProfileChangesClicked : EditProfileUiEvent()
 }

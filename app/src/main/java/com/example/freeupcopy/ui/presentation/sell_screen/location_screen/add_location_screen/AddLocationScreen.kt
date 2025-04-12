@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -69,6 +68,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -103,7 +103,7 @@ fun AddLocationScreen(
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
 
-    val sheetState = rememberModalBottomSheetState()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val state by addLocationViewModel.state.collectAsState()
 
@@ -122,6 +122,12 @@ fun AddLocationScreen(
     LaunchedEffect(state.error) {
         if (state.error.isNotEmpty()) {
             Toast.makeText(context, state.error, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    LaunchedEffect(state.onSuccessFullAdd) {
+        if (state.onSuccessFullAdd) {
+            onLocationAdded()
         }
     }
 
@@ -171,9 +177,9 @@ fun AddLocationScreen(
                                     val currentState = lifecycleOwner.lifecycle.currentState
                                     if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
                                         val fullAddress =
-                                            "${state.flatNo}, ${state.landmark}, ${state.roadName}, ${state.pincode}, ${state.city}, ${state.state}"
+                                            "${state.flatNo}, ${state.landmark}, ${state.address}, ${state.pincode}, ${state.city}, ${state.state}"
                                         addLocationViewModel.onEvent(
-                                            AddLocationUiEvent.ChangeAddress(
+                                            AddLocationUiEvent.ChangeCompleteAddress(
                                                 fullAddress
                                             )
                                         )
@@ -261,6 +267,29 @@ fun AddLocationScreen(
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
             )
 
+            LocationTextField(
+                value = state.name,
+                onValueChange = {
+                    addLocationViewModel.onEvent(AddLocationUiEvent.ChangeName(it))
+                },
+                label = { Text("Name") },
+                placeholder = "User Name",
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            LocationTextField(
+                value = state.phoneNumber,
+                onValueChange = {
+                    addLocationViewModel.onEvent(AddLocationUiEvent.ChangePhoneNumber(it))
+                },
+                label = { Text("Phone Number") },
+                placeholder = "User Phone Number",
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone, imeAction = ImeAction.Next)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
 
             LocationTextField(
                 value = state.flatNo,
@@ -275,24 +304,24 @@ fun AddLocationScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             LocationTextField(
-                value = state.landmark,
+                value = state.address,
                 onValueChange = {
-                    addLocationViewModel.onEvent(AddLocationUiEvent.LandmarkChanged(it))
+                    addLocationViewModel.onEvent(AddLocationUiEvent.ChangeAddress(it))
                 },
-                label = { Text("Landmark") },
-                placeholder = "e.g., Near City Mall",
+                label = { Text("Road Name, Area, Colony") },
+                placeholder = "e.g., Park Street, Ballygunge, Green View Residency",
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
             LocationTextField(
-                value = state.roadName,
+                value = state.landmark,
                 onValueChange = {
-                    addLocationViewModel.onEvent(AddLocationUiEvent.RoadNameChanged(it))
+                    addLocationViewModel.onEvent(AddLocationUiEvent.LandmarkChanged(it))
                 },
-                label = { Text("Road Name/Area/Colony") },
-                placeholder = "e.g., MG Road",
+                label = { Text("Landmark (Optional)") },
+                placeholder = "e.g., Near City Mall",
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
 
@@ -356,7 +385,7 @@ fun AddLocationScreen(
                 addLocationViewModel.onEvent(AddLocationUiEvent.ConfirmSheetOpen)
             },
             containerColor = MaterialTheme.colorScheme.primaryContainer,
-            windowInsets = WindowInsets(0.dp),
+//            windowInsets = WindowInsets(0.dp),
         ) {
             Column(
                 modifier = Modifier
@@ -365,14 +394,16 @@ fun AddLocationScreen(
                     .padding(16.dp)
             ) {
                 ConfirmLocation(
-                    address = state.address,
+                    address = state.completeAddress,
                     onConfirmClick = {
                         addLocationViewModel.onEvent(AddLocationUiEvent.SaveLocation)
-                        onLocationAdded()
+//                        onLocationAdded()
                     },
                     onCancelClick = {
                         addLocationViewModel.onEvent(AddLocationUiEvent.ConfirmSheetOpen)
-                    }
+                    },
+                    name = state.name,
+                    phoneNumber = state.phoneNumber
                 )
             }
         }
@@ -419,6 +450,8 @@ fun LocationTextField(
 @Composable
 fun ConfirmLocation(
     modifier: Modifier = Modifier,
+    name: String,
+    phoneNumber: String,
     address: String,
     onConfirmClick: () -> Unit,
     onCancelClick: () -> Unit
@@ -453,11 +486,26 @@ fun ConfirmLocation(
                 .padding(16.dp),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = address,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                lineHeight = 16.sp
-            )
+            Column(verticalArrangement = Arrangement.Center) {
+                Text(
+                    text = name,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = phoneNumber,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    fontWeight = FontWeight.W500
+                )
+
+                Spacer(modifier = Modifier.size(4.dp))
+
+                Text(
+                    text = address,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    lineHeight = 18.sp
+                )
+            }
         }
 
         Spacer(modifier = Modifier.size(30.dp))
@@ -537,6 +585,8 @@ fun LocationPlaceholder(
 fun AddLocationScreenPreview() {
     SwapGoTheme {
         ConfirmLocation(
+            name = "Sahil Islam",
+            phoneNumber = "7892355878",
             address = "123, ABC Colony, XYZ Road, 123456, City, State, XYZ Road, 123456, City, State",
             onConfirmClick = {},
             onCancelClick = {}

@@ -72,8 +72,8 @@ fun LoginScreen(
         }
     }
 
-    LaunchedEffect(state.shouldNavigateToHome) {
-        if (state.shouldNavigateToHome) {
+    LaunchedEffect(state.signInVerifyResponse) {
+        if (state.signInVerifyResponse != null) {
             val current = lifeCycleOwner.lifecycle.currentState
             if (current.isAtLeast(Lifecycle.State.RESUMED)) {
                 Toast.makeText(context, "Login Successful", Toast.LENGTH_LONG).show()

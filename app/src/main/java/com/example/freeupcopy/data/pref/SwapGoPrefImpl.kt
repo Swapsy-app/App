@@ -33,19 +33,54 @@ class SwapGoPrefImpl(private val dataStore: DataStore<Preferences>) : SwapGoPref
         }
     }
 
-    override fun getUserToken(): Flow<String?> = dataStore.data.map { preferences ->
-        preferences[USER_KEY] ?: ""
-    }
-
-    override suspend fun saveUserToken(user: String) {
-        dataStore.edit {
-            it[USER_KEY] = user
+    //    override fun getUserToken(): Flow<String?> = dataStore.data.map { preferences ->
+//        preferences[USER_KEY] ?: ""
+//    }
+//
+//    override suspend fun saveUserToken(user: String) {
+//        dataStore.edit {
+//            it[USER_KEY] = user
+//        }
+//    }
+//
+//    override suspend fun clearUserToken() {
+//        dataStore.edit {
+//            it.remove(USER_KEY)
+//        }
+//    }
+    override fun getAccessToken(): Flow<String?> {
+        return dataStore.data.map { preferences ->
+            preferences[ACCESS_TOKEN_KEY]
         }
     }
 
-    override suspend fun clearUserToken() {
+    override suspend fun saveAccessToken(token: String) {
         dataStore.edit {
-            it.remove(USER_KEY)
+            it[ACCESS_TOKEN_KEY] = token
+        }
+    }
+
+    override suspend fun clearAccessToken() {
+        dataStore.edit {
+            it.remove(ACCESS_TOKEN_KEY)
+        }
+    }
+
+    override fun getRefreshToken(): Flow<String?> {
+        return dataStore.data.map { preferences ->
+            preferences[REFRESH_TOKEN_KEY]
+        }
+    }
+
+    override suspend fun saveRefreshToken(token: String) {
+        dataStore.edit {
+            it[REFRESH_TOKEN_KEY] = token
+        }
+    }
+
+    override suspend fun clearRefreshToken() {
+        dataStore.edit {
+            it.remove(REFRESH_TOKEN_KEY)
         }
     }
 }

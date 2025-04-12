@@ -54,11 +54,9 @@ fun OtpVerificationScreen(
         }
     }
 
-    LaunchedEffect(
-        state.shouldNavigateToLogin
-    ) {
-        if (state.shouldNavigateToLogin) {
-            Toast.makeText(context, "Email verified. You can now login.", Toast.LENGTH_SHORT).show()
+    LaunchedEffect(state.signUpOtpVerifyResponse) {
+        if (state.signUpOtpVerifyResponse != null) {
+            Toast.makeText(context, state.signUpOtpVerifyResponse!!.message, Toast.LENGTH_SHORT).show()
             onSuccessfulVerification()
         }
     }

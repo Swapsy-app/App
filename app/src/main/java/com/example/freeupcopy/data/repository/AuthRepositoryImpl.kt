@@ -1,15 +1,18 @@
 package com.example.freeupcopy.data.repository
 
+import android.util.Log
 import com.example.freeupcopy.common.Resource
 import com.example.freeupcopy.data.pref.SwapGoPref
 import com.example.freeupcopy.data.remote.SwapgoApi
-import com.example.freeupcopy.data.remote.dto.AuthResponse
-import com.example.freeupcopy.data.remote.dto.ForgotPasswordRequest
-import com.example.freeupcopy.data.remote.dto.LoginRequest
-import com.example.freeupcopy.data.remote.dto.LoginResponse
-import com.example.freeupcopy.data.remote.dto.OtpRequest
-import com.example.freeupcopy.data.remote.dto.OtpResendRequest
-import com.example.freeupcopy.data.remote.dto.SignUpRequest
+import com.example.freeupcopy.data.remote.dto.auth.AuthResponse
+import com.example.freeupcopy.data.remote.dto.auth.ForgotPasswordRequest
+import com.example.freeupcopy.data.remote.dto.auth.LoginRequest
+import com.example.freeupcopy.data.remote.dto.auth.LoginResponse
+import com.example.freeupcopy.data.remote.dto.auth.LoginStatusResponse
+import com.example.freeupcopy.data.remote.dto.auth.OtpRequest
+import com.example.freeupcopy.data.remote.dto.auth.OtpResendRequest
+import com.example.freeupcopy.data.remote.dto.auth.SignUpOtpVerifyResponse
+import com.example.freeupcopy.data.remote.dto.auth.SignUpRequest
 import com.example.freeupcopy.domain.repository.AuthRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -19,7 +22,8 @@ import org.json.JSONObject
 import retrofit2.HttpException
 
 class AuthRepositoryImpl(
-    private val api: SwapgoApi,
+    private val authApi: SwapgoApi,
+//    private val api: SwapgoApi,
     private val pref: SwapGoPref
 ) : AuthRepository {
 //    override suspend fun signUp(signUpRequest: SignUpRequest): Flow<Resource<AuthResponse>> = flow {
@@ -79,7 +83,7 @@ class AuthRepositoryImpl(
     override suspend fun signUp(signUpRequest: SignUpRequest): Flow<Resource<AuthResponse>> = flow {
         emit(Resource.Loading())
         try {
-            val response = api.signUp(signUpRequest)
+            val response = authApi.signUp(signUpRequest)
             emit(Resource.Success(response))
         }
         catch (e: HttpException) {
@@ -100,10 +104,13 @@ class AuthRepositoryImpl(
         }
     }.flowOn(Dispatchers.IO)
 
-    override suspend fun verifyOtp(otpRequest: OtpRequest): Flow<Resource<AuthResponse>> = flow {
+    override suspend fun verifyOtp(otpRequest: OtpRequest): Flow<Resource<SignUpOtpVerifyResponse>> = flow {
         emit(Resource.Loading())
         try {
-            val response = api.verifyOtp(otpRequest)
+            val response = authApi.verifyOtp(otpRequest)
+            response.refreshToken.let { pref.saveRefreshToken(it) }
+            response.accessToken.let { pref.saveAccessToken(it) }
+            Log.e("AuthRepositoryImpl", "verifyOtp: $response")
             emit(Resource.Success(response))
         }
         catch (e: HttpException) {
@@ -127,7 +134,7 @@ class AuthRepositoryImpl(
     override suspend fun resendOtp(otpResendRequest: OtpResendRequest): Flow<Resource<AuthResponse>> = flow {
         emit(Resource.Loading())
         try {
-            val response = api.resendOtp(otpResendRequest)
+            val response = authApi.resendOtp(otpResendRequest)
             emit(Resource.Success(response))
         }
         catch (e: HttpException) {
@@ -151,8 +158,10 @@ class AuthRepositoryImpl(
     override suspend fun login(loginRequest: LoginRequest): Flow<Resource<LoginResponse>> = flow {
         emit(Resource.Loading())
         try {
-            val response = api.login(loginRequest)
-            response.token?.let { pref.saveUserToken(it) }
+            val response = authApi.login(loginRequest)
+            response.refreshToken.let { pref.saveRefreshToken(it) }
+            response.accessToken.let { pref.saveAccessToken(it) }
+//            response.token?.let { pref.saveUserToken(it) }
             emit(Resource.Success(response))
         }
         catch (e: HttpException) {
@@ -163,7 +172,8 @@ class AuthRepositoryImpl(
             e.message ?: "An error occurred during sign up"
 
             emit(Resource.Error(
-                message = errorMessage
+                message = errorMessage,
+                data = LoginResponse(message = e.code().toString(), "", "")
             ))
         }
         catch (e: Exception) {
@@ -176,7 +186,7 @@ class AuthRepositoryImpl(
     override suspend fun forgotPassword(forgotPasswordRequest: ForgotPasswordRequest): Flow<Resource<AuthResponse>> = flow {
         emit(Resource.Loading())
         try {
-            val response = api.forgotPassword(forgotPasswordRequest)
+            val response = authApi.forgotPassword(forgotPasswordRequest)
             emit(Resource.Success(response))
         }
         catch (e: HttpException) {
@@ -196,5 +206,53 @@ class AuthRepositoryImpl(
             ))
         }
     }.flowOn(Dispatchers.IO)
+
+    override suspend fun checkLoginStatus(): Flow<Resource<LoginStatusResponse>> = flow {
+        emit(Resource.Loading())
+        try {
+            val response = authApi.checkLoginStatus()
+            emit(Resource.Success(response))
+        }
+        catch (e: HttpException) {
+            val errorBody = e.response()?.errorBody()?.string()
+            val json = errorBody?.let { JSONObject(it) }
+
+            val errorMessage = json?.getString("message") ?:
+            e.message ?: "An error occurred during sign up"
+
+            emit(Resource.Error(
+                message = errorMessage
+            ))
+        }
+        catch (e: Exception) {
+            emit(Resource.Error(
+                message = e.message ?: "An unexpected error occurred"
+            ))
+        }
+    }.flowOn(Dispatchers.IO)
+
+//    override suspend fun getProfile(): Flow<Resource<ProfileResponse>> = flow {
+//        emit(Resource.Loading())
+//        try {
+//            val response = authApi.getProfile()
+//            emit(Resource.Success(response))
+//        }
+//        catch (e: HttpException) {
+//            val errorBody = e.response()?.errorBody()?.string()
+//            val json = errorBody?.let { JSONObject(it) }
+//
+//            val errorMessage = json?.getString("message") ?:
+//            e.message ?: "An error occurred during sign up"
+//
+//            emit(Resource.Error(
+//                message = errorMessage
+//            ))
+//        }
+//        catch (e: Exception) {
+//            emit(Resource.Error(
+//                message = e.message ?: "An unexpected error occurred"
+//            ))
+//        }
+//    }.flowOn(Dispatchers.IO)
 
 }

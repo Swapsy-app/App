@@ -1,6 +1,7 @@
 package com.example.freeupcopy.ui.presentation.home_screen.componants
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -32,18 +34,28 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.freeupcopy.R
 import com.example.freeupcopy.ui.theme.BadgeDark
 import com.example.freeupcopy.ui.theme.BadgeLight
+import com.example.freeupcopy.ui.theme.CustomOrangeColor
+import com.example.freeupcopy.ui.theme.LinkColor
+import com.example.freeupcopy.ui.theme.RecommendedContainerColor
+import com.example.freeupcopy.ui.theme.SwapGoTheme
+import com.example.freeupcopy.ui.theme.TextFieldContainerColor
 
 @Composable
 fun SearchTopSection(
@@ -79,17 +91,9 @@ fun SearchRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        SearchBar(
-            value = "",
-            enabled = false,
-            isFocused = remember {
-                mutableStateOf(false)
-            },
-            onFocusChange = {},
-            onValueChange = {},
-            onSearch = { /*TODO*/ },
-            onCancel = { /*TODO*/ },
-            modifier = Modifier.weight(1f).clip(CircleShape).clickable { onSearchBarClick() }
+        HomeSearchBar(
+            modifier = Modifier.weight(1f),
+            onClick = { onSearchBarClick() }
         )
 
         CustomTopBarItem(
@@ -106,6 +110,51 @@ fun SearchRow(
         )
     }
 
+}
+
+@Composable
+fun HomeSearchBar(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(CircleShape)
+            .background(
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        RecommendedContainerColor.copy(0.095f),
+                        MaterialTheme.colorScheme.secondaryContainer.copy(0.5f)
+                    ),
+                    start = Offset(0f, 0f),
+                    end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
+                )
+            )
+            .clickable { onClick() }
+//            .border(1.5.dp, Color(0xFF00AEFF).copy(0.6f), CircleShape)
+            .border(1.5.dp, MaterialTheme.colorScheme.primary, CircleShape)
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            modifier = Modifier
+                .size(28.dp),
+            imageVector = Icons.Outlined.Search,
+            contentDescription = "search",
+            //tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
+        )
+
+        Spacer(modifier = Modifier.size(8.dp))
+
+        Text(
+            text = "Teddy bears",
+            fontSize = 15.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f)
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -195,7 +244,7 @@ fun SearchBar(
                     unfocusedContainerColor = containerColor,
                     focusedContainerColor = containerColor,
                     disabledIndicatorColor = Color.Transparent,
-                    disabledContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    disabledContainerColor = containerColor,
                     disabledTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                     focusedTextColor = MaterialTheme.colorScheme.onSurface,
                 ),
@@ -257,5 +306,17 @@ fun CustomTopBarItem(
                     .align(Alignment.TopEnd)
             )
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun PreviewHomeSearchBar() {
+    SwapGoTheme {
+         SearchTopSection(
+            onSearchBarClick = {},
+            onInboxClick = {},
+            onCartClick = {}
+        )
     }
 }

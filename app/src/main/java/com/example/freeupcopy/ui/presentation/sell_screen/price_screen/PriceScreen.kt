@@ -520,7 +520,7 @@ fun PriceScreen(
                     },
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     //windowInsets = BottomSheetDefaults.windowInsets.only(WindowInsetsSides.Bottom)
-                    windowInsets = WindowInsets(0.dp)
+//                    windowInsets = WindowInsets(0.dp)
                 ) {
                     Column(
                         modifier = Modifier

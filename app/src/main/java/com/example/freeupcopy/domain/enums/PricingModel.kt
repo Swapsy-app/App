@@ -11,3 +11,9 @@ enum class PricingModel(val displayValue: String) {
 //        }
 //    }
 }
+
+enum class NewPricingModel(val displayValue: String) {
+    CASH("Cash"),
+    COINS("SwapCoins"),
+    CASH_AND_COINS("Cash + SwapCoins")
+}

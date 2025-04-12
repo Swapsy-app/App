@@ -123,11 +123,26 @@ fun MainScreen(
                     0 -> {
                         HomeScreen(
                             lazyColumnState = lazyState,
-                            onSearchBarClick = {},
+                            onSearchBarClick = {
+                                val currentState = lifecycleOwner.lifecycle.currentState
+                                if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                                    onNavigate(Screen.SearchScreen)
+                                }
+                            },
                             onInboxClick = {},
                             onCartClick = {},
-                            onCoinClick = {},
-                            onCashClick = {}
+                            onCoinClick = {
+                                val currentState = lifecycleOwner.lifecycle.currentState
+                                if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                                    onNavigate(Screen.CoinScreen)
+                                }
+                            },
+                            onCashClick = {
+                                val currentState = lifecycleOwner.lifecycle.currentState
+                                if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                                    onNavigate(Screen.CashScreen)
+                                }
+                            }
                         )
                     }
 

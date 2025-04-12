@@ -43,7 +43,7 @@ fun SellerProfileActionsBottomSheet(
     if (isVisible) {
         ModalBottomSheet(
             onDismissRequest = onDismiss,
-            windowInsets = WindowInsets(0.dp),
+//            windowInsets = WindowInsets(0.dp),
             containerColor = MaterialTheme.colorScheme.primaryContainer,
         ) {
             Column(

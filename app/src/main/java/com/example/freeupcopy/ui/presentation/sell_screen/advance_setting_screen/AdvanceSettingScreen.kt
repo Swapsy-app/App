@@ -29,8 +29,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,6 +56,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.freeupcopy.R
+import com.example.freeupcopy.ui.presentation.sell_screen.SellUiEvent
+import com.example.freeupcopy.ui.presentation.sell_screen.SellViewModel
 import com.example.freeupcopy.ui.theme.ButtonShape
 import com.example.freeupcopy.ui.theme.NoteContainerLight
 import com.example.freeupcopy.ui.theme.SwapGoTheme
@@ -62,12 +68,32 @@ import com.example.freeupcopy.utils.clearFocusOnKeyboardDismiss
 @Composable
 fun AdvanceSettingScreen(
     modifier: Modifier = Modifier,
+    gst: String,
     onClose: () -> Unit,
-    advanceSettingViewModel: AdvanceSettingViewModel = hiltViewModel()
+    advanceSettingViewModel: AdvanceSettingViewModel = hiltViewModel(),
+    onSuccessfulUpdate: () -> Unit,
+    sellViewModel: SellViewModel
 ) {
+    var gst1 by remember {
+        mutableStateOf(gst)
+    }
     val lifeCycleOwner = LocalLifecycleOwner.current
     val state by advanceSettingViewModel.state.collectAsState()
     val context = LocalContext.current
+
+    LaunchedEffect(state.error) {
+        state.error.takeIf { it.isNotBlank() }?.let {
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    LaunchedEffect(state.gstResponse) {
+        if (state.gstResponse != null) {
+            Toast.makeText(context, state.gstResponse!!.message, Toast.LENGTH_SHORT).show()
+            sellViewModel.onEvent(SellUiEvent.ChangeGst(state.gst))
+            onSuccessfulUpdate()
+        }
+    }
 
     Scaffold(
         modifier = modifier
@@ -135,7 +161,7 @@ fun AdvanceSettingScreen(
                                     val currentState = lifeCycleOwner.lifecycle.currentState
                                     if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
                                         advanceSettingViewModel.onEvent(AdvanceSettingUiEvent.OnSave)
-                                        onClose()
+//                                        onClose()
                                     }
                                 }
                             }
@@ -171,8 +197,9 @@ fun AdvanceSettingScreen(
                 modifier = modifier
                     .fillMaxWidth()
                     .clearFocusOnKeyboardDismiss(),
-                value = state.gst,
+                value = gst1,
                 onValueChange = {
+                    gst1 = it
                     advanceSettingViewModel.onEvent(AdvanceSettingUiEvent.OnGstChanged(it))
                 },
                 placeholder = {
@@ -226,13 +253,14 @@ fun AdvanceSettingScreen(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun GstScreenPreview() {
-    SwapGoTheme {
-        AdvanceSettingScreen (
-            //onClick = {  },
-            onClose = {  },
-        )
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun GstScreenPreview() {
+//    SwapGoTheme {
+//        AdvanceSettingScreen (
+//            //onClick = {  },
+//            onClose = {  },
+//            gst = "",
+//        )
+//    }
+//}

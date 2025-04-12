@@ -35,6 +35,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -52,6 +53,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.freeupcopy.R
+import com.example.freeupcopy.domain.enums.Filter
 import com.example.freeupcopy.domain.model.FilterOption
 import com.example.freeupcopy.domain.model.FilterSection
 import com.example.freeupcopy.ui.presentation.product_listing.FilterClassOptions
@@ -64,6 +66,8 @@ import com.example.freeupcopy.ui.theme.OfferColor2
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BottomPopup(
+
+    selectedFilter: Filter?,
 
     isFilterSelected : Boolean,
     isSortSelected : Boolean,
@@ -246,13 +250,17 @@ fun BottomPopup(
         ),
     )
 ) {
+    val bottomSheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true
+    )
     ModalBottomSheet(
         modifier = Modifier
             .fillMaxWidth()
             .height(600.dp),
         onDismissRequest = {
             onDismissListener()
-        }
+        },
+
     ) {
         if(isFilterSelected){
             Row(
@@ -914,7 +922,8 @@ fun PreviewFilterSideBar(){
         sortOption = SortOption.Recommended,
         changeSortToRec = {},
         changeSortToPriceHiToLo = {},
-        changeSortToPriceLoToHi = {}
+        changeSortToPriceLoToHi = {},
+        selectedFilter = null
     )
 }
 

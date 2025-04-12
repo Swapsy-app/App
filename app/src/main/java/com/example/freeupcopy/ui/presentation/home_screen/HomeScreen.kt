@@ -1,24 +1,19 @@
 package com.example.freeupcopy.ui.presentation.home_screen
 
 import android.annotation.SuppressLint
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -29,14 +24,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.example.freeupcopy.ui.presentation.home_screen.componants.AppNameTopSection
+import com.example.freeupcopy.ui.presentation.home_screen.componants.BestInMen
+import com.example.freeupcopy.ui.presentation.home_screen.componants.CategoriesHomeRow
 import com.example.freeupcopy.ui.presentation.home_screen.componants.FlexibleTopBar
 import com.example.freeupcopy.ui.presentation.home_screen.componants.FlexibleTopBarDefaults
+import com.example.freeupcopy.ui.presentation.home_screen.componants.HomeCarousel
+import com.example.freeupcopy.ui.presentation.home_screen.componants.HomeDashboard
 import com.example.freeupcopy.ui.presentation.home_screen.componants.SearchTopSection
+import com.example.freeupcopy.ui.presentation.home_screen.componants.WomenStyle
+import com.example.freeupcopy.ui.presentation.home_screen.componants.WomenWear
+import com.example.freeupcopy.ui.theme.SwapGoTheme
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -56,25 +57,25 @@ fun HomeScreen(
         modifier = Modifier
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = MaterialTheme.colorScheme.surface,
+        containerColor = MaterialTheme.colorScheme.primaryContainer,
         contentWindowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
         topBar = {
             Column(
                 modifier = Modifier
-                    .background(MaterialTheme.colorScheme.secondaryContainer)
+                    .background(MaterialTheme.colorScheme.primaryContainer)
             ) {
                 Spacer(modifier = Modifier.statusBarsPadding())
                 Box(
                     modifier = Modifier
-                        .background(MaterialTheme.colorScheme.secondaryContainer)
+                        .background(MaterialTheme.colorScheme.primaryContainer)
                         //.offset(y = 6.dp)
                 ) {
 
                     FlexibleTopBar(
                         scrollBehavior = scrollBehavior,
                         colors = FlexibleTopBarDefaults.topAppBarColors(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                            scrolledContainerColor = MaterialTheme.colorScheme.secondaryContainer
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            scrolledContainerColor = MaterialTheme.colorScheme.primaryContainer
                         )
                     ) {
                         AppNameTopSection(
@@ -96,7 +97,7 @@ fun HomeScreen(
                 Box {
                     FlexibleTopBar(
                         colors = FlexibleTopBarDefaults.topAppBarColors(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
                             scrolledContainerColor = Color.Transparent
                         )
                     ) {
@@ -104,10 +105,7 @@ fun HomeScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(
-                                    start = 16.dp,
-                                    end = 16.dp,
-                                    bottom = 12.dp,
-                                    top = 8.dp
+                                    horizontal = 12.dp, vertical = 8.dp
                                 ),
                             onSearchBarClick = {
                                 val currentState = lifeCycleOwner.lifecycle.currentState
@@ -130,20 +128,45 @@ fun HomeScreen(
                         )
                     }
                 }
+                HorizontalDivider(
+                    thickness = 1.dp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+                )
             }
         }
     ) { innerPadding->
-        //if remove offset int the content of the home screen then add the
-        // bottom padding that is commented out SearchTopSection
 
         LazyColumn(
             state = lazyColumnState,
             modifier = Modifier
-                //.offset(y = 12.dp)
-                //.navigationBarsPadding()
                 .padding(top = innerPadding.calculateTopPadding())
                 .fillMaxSize()
         ) {
+            item {
+                CategoriesHomeRow()
+            }
+            item {
+                HomeCarousel(
+                    modifier = Modifier.zIndex(1f),
+                    onImagePreview = {}
+                )
+            }
+            item {
+                HomeDashboard(
+                    modifier = Modifier.zIndex(1f)
+                )
+            }
+            item {
+                WomenStyle()
+            }
+            item {
+                WomenWear()
+            }
+            item {
+                BestInMen(
+                    modifier = Modifier.zIndex(0f)
+                )
+            }
             items(50) { index ->
                 Text(
                     text = "Item $index",
@@ -153,5 +176,22 @@ fun HomeScreen(
                 )
             }
         }
+    }
+}
+
+
+
+@Preview(showBackground = true)
+@Composable
+private fun PreviewHomeScreen() {
+    SwapGoTheme {
+        HomeScreen(
+            lazyColumnState = LazyListState(),
+            onSearchBarClick = {},
+            onInboxClick = {},
+            onCartClick = {},
+            onCoinClick = {},
+            onCashClick = {}
+        )
     }
 }

@@ -3,12 +3,11 @@ package com.example.freeupcopy.ui.presentation.authentication_screen.otp_screen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.freeupcopy.common.Resource
-import com.example.freeupcopy.data.remote.dto.OtpRequest
-import com.example.freeupcopy.data.remote.dto.OtpResendRequest
+import com.example.freeupcopy.data.remote.dto.auth.OtpRequest
+import com.example.freeupcopy.data.remote.dto.auth.OtpResendRequest
 import com.example.freeupcopy.domain.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -32,13 +31,11 @@ class OtpViewModel @Inject constructor(
                 }
             }
             is OtpUiEvent.VerifyChange -> {
-                //_state.value = state.value.copy(isVerifyEnabled = event.isVerifyEnabled)
                 _state.update {
                     it.copy(isVerifyEnabled = event.isVerifyEnabled)
                 }
             }
             is OtpUiEvent.ResendChange -> {
-                //_state.value = state.value.copy(isResendEnabled = event.isResendEnabled)
                 _state.update {
                     it.copy(isResendEnabled = event.isResendEnabled)
                 }
@@ -95,7 +92,6 @@ class OtpViewModel @Inject constructor(
                 }
             }
             is OtpUiEvent.VerifyOtp -> {
-                //_state.value = state.value.copy(isLoading = true)
                 viewModelScope.launch {
                     val otpRequest = OtpRequest(
                         otp = _state.value.otpValues.joinToString(""),
@@ -108,7 +104,7 @@ class OtpViewModel @Inject constructor(
                                     it.copy(
                                         isLoading = true,
                                         error = "",
-                                        shouldNavigateToLogin = false
+                                        signUpOtpVerifyResponse = null
                                     )
                                 }
                             }
@@ -116,7 +112,7 @@ class OtpViewModel @Inject constructor(
                                 _state.update {
                                     it.copy(
                                         isLoading = false,
-                                        shouldNavigateToLogin = true,
+                                        signUpOtpVerifyResponse = result.data,
                                         error = ""
                                     )
                                 }
@@ -125,7 +121,7 @@ class OtpViewModel @Inject constructor(
                                 _state.update {
                                     it.copy(
                                         isLoading = false,
-                                        shouldNavigateToLogin = false,
+                                        signUpOtpVerifyResponse = null,
                                         error = result.message ?: "An unexpected error occurred"
                                     )
                                 }

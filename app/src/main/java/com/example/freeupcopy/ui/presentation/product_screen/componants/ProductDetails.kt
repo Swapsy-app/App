@@ -297,7 +297,6 @@ fun DynamicImage(
                             indication = null,
                             onClick = {
                                 onImagePreview(pagerState.currentPage)
-                                Log.e("Image Clicked", pagerState.currentPage.toString())
                             }
                         ),
                     painter = painterResource(id = images[currentPage]),
