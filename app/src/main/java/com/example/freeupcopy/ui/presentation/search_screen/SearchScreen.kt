@@ -1,10 +1,12 @@
 package com.example.freeupcopy.ui.presentation.search_screen
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
@@ -57,8 +59,13 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import com.example.freeupcopy.R
+import com.example.freeupcopy.data.local.RecentlyViewed
 import com.example.freeupcopy.ui.presentation.home_screen.componants.SearchBar
+import com.example.freeupcopy.ui.presentation.product_listing.ProductListingUiEvent
+import com.example.freeupcopy.ui.presentation.sell_screen.location_screen.location_screen.PleaseWaitLoading
 import com.example.freeupcopy.ui.theme.ButtonShape
 import com.example.freeupcopy.ui.theme.SwapGoTheme
 import kotlinx.coroutines.delay
@@ -70,6 +77,7 @@ fun SearchScreen(
     modifier: Modifier = Modifier,
     onBack: () -> Unit,
     onSearch: (String) -> Unit,
+    onRecentProductClick: (String) -> Unit,
     searchViewModel: SearchViewModel = hiltViewModel()
 ) {
     val state by searchViewModel.state.collectAsState()
@@ -157,7 +165,11 @@ fun SearchScreen(
                             SuggestionItem(
                                 text = suggestion,
                                 onClick = {
-                                    searchViewModel.onEvent(SearchUiEvent.SearchQueryChanged(suggestion))
+                                    searchViewModel.onEvent(
+                                        SearchUiEvent.SearchQueryChanged(
+                                            suggestion
+                                        )
+                                    )
                                     searchViewModel.onEvent(SearchUiEvent.OnSearch)
                                     onSearch(suggestion)
                                 }
@@ -176,7 +188,7 @@ fun SearchScreen(
                         fontWeight = FontWeight.W500
                     )
                     Spacer(Modifier.weight(1f))
-                    if(state.recentSearches.isNotEmpty()) {
+                    if (state.recentSearches.isNotEmpty()) {
                         Text(
                             text = "Clear All",
                             fontSize = 14.sp,
@@ -199,63 +211,91 @@ fun SearchScreen(
                         RecentSearchItem(
                             text = recentSearch.recentSearch,
                             onClick = {
-                                searchViewModel.onEvent(SearchUiEvent.SelectRecentSearch(recentSearch))
+                                searchViewModel.onEvent(
+                                    SearchUiEvent.SelectRecentSearch(
+                                        recentSearch
+                                    )
+                                )
                                 onSearch(recentSearch.recentSearch)
                             },
                             onDelete = {
-                                searchViewModel.onEvent(SearchUiEvent.DeleteRecentSearch(recentSearch))
+                                searchViewModel.onEvent(
+                                    SearchUiEvent.DeleteRecentSearch(
+                                        recentSearch
+                                    )
+                                )
                             }
                         )
                     }
                 }
             }
 
-            Column {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 12.dp, start = 16.dp, end = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_recent_searches),
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(Modifier.size(6.dp))
-                    Text(
-                        text = "Recently Viewed",
-                        fontSize = 18.sp,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontWeight = FontWeight.W500
-                    )
-                    Spacer(Modifier.weight(1f))
-                    Text(
-                        text = "Clear All",
-                        fontSize = 14.sp,
-                        color = Color(0xFF007AFF),
-                        modifier = Modifier.clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                            onClick = {
-                                //TODO()
-                            }
-                        ),
-                        fontWeight = FontWeight.W500
-                    )
-                }
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    contentPadding = PaddingValues(horizontal = 16.dp)
-                ) {
-                    items(10) {
-                        RecentlyViewedItem(
-                            image = painterResource(R.drawable.p3),
-                            title = "Shoes from Nike"
+            if(state.recentlyViewed.isEmpty().not()) {
+                Column {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp, start = 16.dp, end = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_recent_searches),
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(Modifier.size(6.dp))
+                        Text(
+                            text = "Recently Viewed",
+                            fontSize = 18.sp,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontWeight = FontWeight.W500
+                        )
+                        Spacer(Modifier.weight(1f))
+                        Text(
+                            text = "Clear All",
+                            fontSize = 14.sp,
+                            color = Color(0xFF007AFF),
+                            modifier = Modifier.clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                                onClick = {
+                                    searchViewModel.onEvent(SearchUiEvent.ClearAllRecentlyViewed)
+                                }
+                            ),
+                            fontWeight = FontWeight.W500
                         )
                     }
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        contentPadding = PaddingValues(horizontal = 16.dp)
+                    ) {
+                        items(state.recentlyViewed) { recentlyViewed ->
+                            RecentlyViewedItem(
+                                recentlyViewed = recentlyViewed,
+                                onClick = {
+                                    val currentState = lifeCycleOwner.lifecycle.currentState
+                                    if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                                        scope.launch {
+                                            searchViewModel.onEvent(SearchUiEvent.IsLoading(true))
+
+                                            searchViewModel.onEvent(
+                                                SearchUiEvent.ProductClicked(
+                                                    productId = recentlyViewed.productId
+                                                )
+                                            )
+                                            delay(100)
+                                            // Call onProductClick after onEvent has been processed.
+                                            onRecentProductClick(recentlyViewed.productId)
+
+                                            searchViewModel.onEvent(SearchUiEvent.IsLoading(false))
+                                        }
+                                    }
+                                }
+                            )
+                        }
+                    }
+                    Spacer(Modifier.size(60.dp))
                 }
-                Spacer(Modifier.size(60.dp))
             }
 
         }
@@ -309,8 +349,8 @@ fun RecentSearchItem(
 @Composable
 fun RecentlyViewedItem(
     modifier: Modifier = Modifier,
-    image: Painter,
-    title: String,
+    recentlyViewed: RecentlyViewed,
+    onClick: (String) -> Unit
 ) {
     Column(
         modifier = modifier
@@ -319,16 +359,45 @@ fun RecentlyViewedItem(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Image(
-            painter = image,
-            contentDescription = null,
+//        Image(
+//            painter = image,
+//            contentDescription = null,
+//            modifier = Modifier
+//                .size(90.dp)
+//                .clip(CircleShape),
+//            contentScale = ContentScale.Crop
+//        )
+        SubcomposeAsyncImage(
             modifier = Modifier
                 .size(90.dp)
-                .clip(CircleShape),
-            contentScale = ContentScale.Crop
+                .clip(CircleShape)
+                .clickable { onClick(recentlyViewed.productId) },
+            model = recentlyViewed.imageUrl,
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            loading = {
+                Image(
+                    modifier = Modifier
+                        .size(90.dp)
+                        .clip(CircleShape),
+                    painter = painterResource(id = R.drawable.ic_logo_full),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop
+                )
+            },
+            error = {
+                Image(
+                    modifier = Modifier
+                        .size(90.dp)
+                        .clip(CircleShape),
+                    painter = painterResource(id = R.drawable.ic_logo_full),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop
+                )
+            }
         )
         Text(
-            text = title,
+            text = recentlyViewed.title,
             fontSize = 14.sp,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(top = 8.dp),
@@ -381,7 +450,8 @@ private fun SearchScreenPreview() {
     SwapGoTheme {
         SearchScreen(
             onBack = {},
-            onSearch = {}
+            onSearch = {},
+            onRecentProductClick = {},
         )
     }
 }

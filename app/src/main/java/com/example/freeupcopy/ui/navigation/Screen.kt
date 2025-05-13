@@ -63,15 +63,15 @@ sealed class Screen {
 
     //Product Screens
     @Serializable
-    data object ProductScreen : Screen()
+    data class ProductScreen(val productId: String) : Screen()
     @Serializable
-    data object ReplyScreen : Screen()
+    data class ReplyScreen(val commentId: String?, val replyId: String?) : Screen()
 
     //Profile Screens
     @Serializable
     data object PostedProductsScreen : Screen()
     @Serializable
-    data object SellerProfileScreen : Screen()
+    data class SellerProfileScreen(val userId: String?) : Screen()
     @Serializable
     data class EditProfileScreen(
         val profilePhotoUrl: String?,

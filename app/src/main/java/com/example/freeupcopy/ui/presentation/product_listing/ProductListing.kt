@@ -44,6 +44,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -74,6 +75,8 @@ import com.example.freeupcopy.ui.theme.BottomSheetShape
 import com.example.freeupcopy.ui.theme.ButtonShape
 import com.example.freeupcopy.ui.theme.SwapGoTheme
 import com.example.freeupcopy.ui.theme.TextFieldContainerColor
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.net.UnknownHostException
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -90,9 +93,13 @@ fun ProductListing(
 
     val products = productListingViewModel.productCards.collectAsLazyPagingItems()
 
-    LaunchedEffect(true) {
-        if (query.isNotEmpty() && query != state.searchQuery) {
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        if (state.initialQuerySet.not() && query.isNotEmpty()) {
             productListingViewModel.onEvent(ProductListingUiEvent.ChangeSearchQuery(query))
+            // Mark that we've set the initial query
+            productListingViewModel.onEvent(ProductListingUiEvent.SetInitialQuery)
         }
     }
 
@@ -350,7 +357,22 @@ fun ProductListing(
                                     onClick = {
                                         val currentState = lifeCycleOwner.lifecycle.currentState
                                         if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                                            onProductClick(product._id)
+                                            scope.launch {
+                                                productListingViewModel.onEvent(ProductListingUiEvent.IsLoading(true))
+
+                                                productListingViewModel.onEvent(
+                                                    ProductListingUiEvent.ProductClicked(
+                                                        productId = product._id,
+                                                        productImageUrl = if (product.images.size == 1) product.images[0] else "",
+                                                        title = product.title
+                                                    )
+                                                )
+                                                delay(100)
+                                                // Call onProductClick after onEvent has been processed.
+                                                onProductClick(product._id)
+
+                                                productListingViewModel.onEvent(ProductListingUiEvent.IsLoading(false))
+                                            }
                                         }
                                     }
                                 )

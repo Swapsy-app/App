@@ -1,13 +1,18 @@
 package com.example.freeupcopy.domain.repository
 
 import com.example.freeupcopy.common.Resource
+import com.example.freeupcopy.data.remote.dto.sell.UserBasicInfoResponse
 import com.example.freeupcopy.data.remote.dto.your_profile.AvatarsResponse
 import com.example.freeupcopy.data.remote.dto.your_profile.ProfileResponse
 import com.example.freeupcopy.data.remote.dto.your_profile.UpdateProfileResponse
 import kotlinx.coroutines.flow.Flow
 
 interface SellerProfileRepository {
+    suspend fun getUserBasicInfo(): Flow<Resource<UserBasicInfoResponse>>
+
     suspend fun getProfile(): Flow<Resource<ProfileResponse>>
+
+    suspend fun getProfileById(userId: String): Flow<Resource<ProfileResponse>>
 
     suspend fun getAvatars(): Flow<Resource<AvatarsResponse>>
 

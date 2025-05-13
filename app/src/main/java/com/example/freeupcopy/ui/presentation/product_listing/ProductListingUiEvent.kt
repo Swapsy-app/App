@@ -12,6 +12,8 @@ import com.example.freeupcopy.domain.enums.SellerRatingOption
 
 sealed class ProductListingUiEvent {
     data class ChangeSearchQuery(val query: String): ProductListingUiEvent()
+    data object SetInitialQuery : ProductListingUiEvent()
+
     data class ToggleBottomSheet(val type: String): ProductListingUiEvent()
     data object BottomSheetDismiss: ProductListingUiEvent()
     data object ClearFilters: ProductListingUiEvent()
@@ -26,6 +28,10 @@ sealed class ProductListingUiEvent {
     data class ChangeSelectedTertiaryCategory(val tertiaryCategory: FilterTertiaryCategory): ProductListingUiEvent()
     data class RemoveSpecialOptions(val tertiaryCategory: FilterTertiaryCategory) : ProductListingUiEvent()
     data class ToggleSelectAll(val selectedFilter: FilterCategoryUiModel) : ProductListingUiEvent()
+
+    data class ProductClicked(val productId: String, val productImageUrl: String, val title: String) : ProductListingUiEvent()
+
+    data class IsLoading(val isLoading: Boolean): ProductListingUiEvent()
 
     data class ChangeSortOption(val sortOption: String): ProductListingUiEvent()
     data object ApplySortOption: ProductListingUiEvent()

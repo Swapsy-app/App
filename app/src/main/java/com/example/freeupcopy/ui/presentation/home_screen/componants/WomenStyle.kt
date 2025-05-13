@@ -219,7 +219,8 @@ fun WomenStyleCard(
         mrp = item.mrp,
         badge = null,
         isLiked = false,
-        onLikeClick = {}
+        onLikeClick = {},
+        onClick = {}
     )
 }
 

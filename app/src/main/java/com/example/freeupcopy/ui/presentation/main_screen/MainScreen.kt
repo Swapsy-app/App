@@ -165,7 +165,7 @@ fun MainScreen(
                             onViewProfileClick = {
                                 val currentState = lifecycleOwner.lifecycle.currentState
                                 if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                                    onNavigate(Screen.SellerProfileScreen)
+                                    onNavigate(Screen.SellerProfileScreen(null))
                                 }
                             }
                         )

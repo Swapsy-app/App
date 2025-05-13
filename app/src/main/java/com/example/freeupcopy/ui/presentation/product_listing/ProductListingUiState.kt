@@ -12,6 +12,8 @@ import com.example.freeupcopy.domain.enums.SellerRatingOption
 data class ProductListingUiState(
 
     val searchQuery: String = "",
+    val initialQuerySet: Boolean = false,
+
     val selectedFilter: Filter = Filter.AVAILABILITY,
     val isFilterBottomSheet: Boolean = false,
     val isSortBottomSheet: Boolean = false,

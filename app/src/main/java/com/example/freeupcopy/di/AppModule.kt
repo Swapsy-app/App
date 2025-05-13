@@ -20,11 +20,13 @@ import com.example.freeupcopy.data.remote.dto.auth.RefreshTokenRequest
 import com.example.freeupcopy.data.remote.dto.auth.RefreshTokenResponse
 import com.example.freeupcopy.data.repository.AuthRepositoryImpl
 import com.example.freeupcopy.data.repository.LocationRepositoryImpl
+import com.example.freeupcopy.data.repository.ProductRepositoryImpl
 import com.example.freeupcopy.data.repository.SellRepositoryImpl
 import com.example.freeupcopy.data.repository.SellerProfileRepositoryImpl
 import com.example.freeupcopy.db.SwapsyDatabase
 import com.example.freeupcopy.domain.repository.AuthRepository
 import com.example.freeupcopy.domain.repository.LocationRepository
+import com.example.freeupcopy.domain.repository.ProductRepository
 import com.example.freeupcopy.domain.repository.SellRepository
 import com.example.freeupcopy.domain.repository.SellerProfileRepository
 import dagger.Module
@@ -95,8 +97,8 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun providesLocationRepository(addressDao: AddressDao, swapGoPref: SwapGoPref): LocationRepository {
-        return LocationRepositoryImpl(addressDao = addressDao, swapGoPref = swapGoPref)
+    fun providesLocationRepository(): LocationRepository {
+        return LocationRepositoryImpl()
     }
 
     @Provides
@@ -109,6 +111,12 @@ object AppModule {
     @Singleton
     fun providesSellRepository(api: SwapgoApi): SellRepository {
         return SellRepositoryImpl(api)
+    }
+
+    @Provides
+    @Singleton
+    fun provideProductRepository(api: SwapgoApi): ProductRepository {
+        return ProductRepositoryImpl(api)
     }
 
     @Provides
@@ -128,6 +136,10 @@ object AppModule {
     @Provides
     @Singleton
     fun provideRecentSearchesDao(db: SwapsyDatabase): RecentSearchesDao = db.recentSearchesDao
+
+    @Provides
+    @Singleton
+    fun provideRecentlyViewedDao(db: SwapsyDatabase) = db.recentlyViewedDao
 
     @Provides
     @Singleton

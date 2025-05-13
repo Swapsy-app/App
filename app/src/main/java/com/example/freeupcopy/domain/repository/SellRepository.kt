@@ -1,13 +1,16 @@
 package com.example.freeupcopy.domain.repository
 
 import com.example.freeupcopy.common.Resource
+import com.example.freeupcopy.data.remote.dto.sell.FetchWishlistResponse
 import com.example.freeupcopy.data.remote.dto.sell.GstRequest
 import com.example.freeupcopy.data.remote.dto.sell.GstResponse
 import com.example.freeupcopy.data.remote.dto.sell.ProductCardsResponse
+import com.example.freeupcopy.data.remote.dto.sell.ProductDetailsResponse
 import com.example.freeupcopy.data.remote.dto.sell.ProductRequest
 import com.example.freeupcopy.data.remote.dto.sell.ProductResponse
 import com.example.freeupcopy.data.remote.dto.sell.UploadImagesResponse
 import com.example.freeupcopy.data.remote.dto.sell.UploadVideoResponse
+import com.example.freeupcopy.data.remote.dto.sell.WishlistCountResponse
 import com.example.freeupcopy.data.remote.dto.sell.address.AddAddressRequest
 import com.example.freeupcopy.data.remote.dto.sell.address.AddressesResponse
 import com.example.freeupcopy.data.remote.dto.sell.address.UserAddressResponse
@@ -61,4 +64,29 @@ interface SellRepository {
     ): ProductCardsResponse
 
     suspend fun getAutoComplete(search: String): Flow<Resource<List<String>>>
+
+    suspend fun getProductDetails(productId: String): Flow<Resource<ProductDetailsResponse>>
+
+    // 1️⃣ Add a product to the wishlist
+    suspend fun addToWishlist(productId: String): Flow<Resource<Unit>>
+
+    // 2️⃣ Remove a product from the wishlist
+    suspend fun removeFromWishlist(productId: String): Flow<Resource<Unit>>
+
+    // 3️⃣ Fetch wishlisted products (with pagination and optional filtering/sorting)
+    suspend fun fetchWishlist(
+        page: Int,
+        sort: String? = null,
+        status: String? = null,
+        condition: String? = null,
+        primaryCategory: String? = null,
+        secondaryCategory: String? = null,
+        tertiaryCategory: String? = null,
+        priceType: String? = null,
+        minPrice: Float? = null,
+        maxPrice: Float? = null
+    ): Flow<Resource<FetchWishlistResponse>>
+
+    // 4️⃣ Get the wishlist count for a specific product
+    suspend fun getWishlistCount(productId: String): Flow<Resource<WishlistCountResponse>>
 }

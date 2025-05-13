@@ -667,67 +667,6 @@ fun BargainPopupPreview() {
             currencySelected = Currency.CASH,
             onCurrencySelected = {}
         )
-//        BargainOfferRow(
-//            bargainOffer = BargainOffer(
-//                id = "BO12345",
-//                username = "johnoe",
-//                userId = "U001",
-//                message = "Looking for a 20% discount on bulk orders.",
-//                timeStamp = "1 day ago",
-//                amount = "2000",
-//                currency = Currency.CASH
-//            ),
-//            isCurrentUser = true,
-//            onEditOffer = {}
-//        )
     }
 }
 
-//@Preview(
-//    showBackground = true
-//)
-//@Composable
-//fun BargainElementPreview() {
-//    SwapsyTheme {
-//        BargainElement(
-//            onOpenPopup = {},
-//            bargainOffers = listOf(
-//                BargainOffer(
-//                    id = "BO12345",
-//                    user = "John Doe",
-//                    userId = "U001",
-//                    text = "Looking for a 20% discount on bulk orders.",
-//                    timeStamp = "1 day ago"
-//                ),
-//                BargainOffer(
-//                    id = "BO12346",
-//                    user = "Jane Smith",
-//                    userId = "U002",
-//                    text = "Can I get free shipping for orders above $50?",
-//                    timeStamp = "1 day ago"
-//                ),
-//                BargainOffer(
-//                    id = "BO12347",
-//                    user = "Alex Johnson",
-//                    userId = "U003",
-//                    text = "Would you accept a counteroffer of $30 for this item?",
-//                    timeStamp = "2 day ago"
-//                ),
-//                BargainOffer(
-//                    id = "BO12348",
-//                    user = "Emily Davis",
-//                    userId = "U004",
-//                    text = "If I buy two items, can I get a third one free?",
-//                    timeStamp = "2 day ago"
-//                ),
-//                BargainOffer(
-//                    id = "BO12349",
-//                    user = "Michael Brown",
-//                    userId = "U005",
-//                    text = "Is there any holiday discount available?",
-//                    timeStamp = "4 day ago"
-//                )
-//            )
-//        )
-//    }
-//}

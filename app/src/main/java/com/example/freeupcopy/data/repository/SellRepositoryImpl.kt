@@ -2,13 +2,17 @@ package com.example.freeupcopy.data.repository
 
 import com.example.freeupcopy.common.Resource
 import com.example.freeupcopy.data.remote.SwapgoApi
+import com.example.freeupcopy.data.remote.dto.sell.FetchWishlistResponse
 import com.example.freeupcopy.data.remote.dto.sell.GstRequest
 import com.example.freeupcopy.data.remote.dto.sell.GstResponse
 import com.example.freeupcopy.data.remote.dto.sell.ProductCardsResponse
+import com.example.freeupcopy.data.remote.dto.sell.ProductDetailsResponse
 import com.example.freeupcopy.data.remote.dto.sell.ProductRequest
 import com.example.freeupcopy.data.remote.dto.sell.ProductResponse
 import com.example.freeupcopy.data.remote.dto.sell.UploadImagesResponse
 import com.example.freeupcopy.data.remote.dto.sell.UploadVideoResponse
+import com.example.freeupcopy.data.remote.dto.sell.WishlistCountResponse
+import com.example.freeupcopy.data.remote.dto.sell.WishlistRequest
 import com.example.freeupcopy.data.remote.dto.sell.address.AddAddressRequest
 import com.example.freeupcopy.data.remote.dto.sell.address.AddressesResponse
 import com.example.freeupcopy.data.remote.dto.sell.address.UserAddressResponse
@@ -20,7 +24,6 @@ import kotlinx.coroutines.flow.flowOn
 import okhttp3.MultipartBody
 import org.json.JSONObject
 import retrofit2.HttpException
-
 class SellRepositoryImpl(
     private val api: SwapgoApi
 ): SellRepository {
@@ -260,4 +263,105 @@ class SellRepositoryImpl(
             emit(Resource.Error(message = e.message ?: "An unexpected error occurred"))
         }
     }.flowOn(Dispatchers.IO)
+
+    override suspend fun getProductDetails(productId: String): Flow<Resource<ProductDetailsResponse>> = flow {
+        emit(Resource.Loading())
+        try {
+            val response = api.getProductDetails(productId)
+            emit(Resource.Success(response))
+        } catch (e: HttpException) {
+            val errorBody = e.response()?.errorBody()?.string()
+            val json = errorBody?.let { JSONObject(it) }
+            val errorMessage =
+                json?.getString("message") ?: e.message ?: "An error occurred during product details fetch"
+            emit(Resource.Error(message = errorMessage))
+        } catch (e: Exception) {
+            emit(Resource.Error(message = e.message ?: "An unexpected error occurred"))
+        }
+    }.flowOn(Dispatchers.IO)
+
+    override suspend fun addToWishlist(productId: String): Flow<Resource<Unit>>  = flow {
+        emit(Resource.Loading())
+        try {
+            val response = api.addToWishlist(WishlistRequest(productId))
+            emit(Resource.Success(response))
+        } catch (e: HttpException) {
+            val errorBody = e.response()?.errorBody()?.string()
+            val json = errorBody?.let { JSONObject(it) }
+            val errorMessage =
+                json?.getString("message") ?: e.message ?: "An error occurred during adding to wishlist"
+            emit(Resource.Error(message = errorMessage))
+        } catch (e: Exception) {
+            emit(Resource.Error(message = e.message ?: "An unexpected error occurred"))
+        }
+    }.flowOn(Dispatchers.IO)
+
+    override suspend fun removeFromWishlist(productId: String): Flow<Resource<Unit>> = flow {
+        emit(Resource.Loading())
+        try {
+            val response = api.removeFromWishlist(WishlistRequest(productId))
+            emit(Resource.Success(response))
+        } catch (e: HttpException) {
+            val errorBody = e.response()?.errorBody()?.string()
+            val json = errorBody?.let { JSONObject(it) }
+            val errorMessage =
+                json?.getString("message") ?: e.message ?: "An error occurred during removing from wishlist"
+            emit(Resource.Error(message = errorMessage))
+        } catch (e: Exception) {
+            emit(Resource.Error(message = e.message ?: "An unexpected error occurred"))
+        }
+    }.flowOn(Dispatchers.IO)
+
+    override suspend fun fetchWishlist(
+        page: Int,
+        sort: String?,
+        status: String?,
+        condition: String?,
+        primaryCategory: String?,
+        secondaryCategory: String?,
+        tertiaryCategory: String?,
+        priceType: String?,
+        minPrice: Float?,
+        maxPrice: Float?
+    ): Flow<Resource<FetchWishlistResponse>> = flow {
+        emit(Resource.Loading())
+        try {
+            val res = api.fetchWishlist(
+                page = page,
+                sort = sort,
+                status = status,
+                condition = condition,
+                primaryCategory = primaryCategory,
+                secondaryCategory = secondaryCategory,
+                tertiaryCategory = tertiaryCategory,
+                priceType = priceType,
+                minPrice = minPrice,
+                maxPrice = maxPrice
+            )
+            emit(Resource.Success(res))
+        } catch(e: HttpException) {
+            val errorBody = e.response()?.errorBody()?.string()
+            val json = errorBody?.let { JSONObject(it) }
+            val errorMessage = json?.getString("message") ?: e.message ?: "An error occurred fetching wishlist"
+            emit(Resource.Error(message = errorMessage))
+        } catch(e: Exception) {
+            emit(Resource.Error(message = e.message?: "An unexpected error occurred"))
+        }
+    }.flowOn(Dispatchers.IO)
+
+    override suspend fun getWishlistCount(productId: String): Flow<Resource<WishlistCountResponse>> = flow {
+        emit(Resource.Loading())
+        try {
+            val res = api.getWishlistCount(productId)
+            emit(Resource.Success(res))
+        } catch(e: HttpException) {
+            val errorBody = e.response()?.errorBody()?.string()
+            val json = errorBody?.let { JSONObject(it) }
+            val errorMessage = json?.getString("message") ?: e.message ?: "An error occurred fetching wishlist count"
+            emit(Resource.Error(message = errorMessage))
+        } catch(e: Exception) {
+            emit(Resource.Error(message = e.message?: "An unexpected error occurred"))
+        }
+    }.flowOn(Dispatchers.IO)
 }
+

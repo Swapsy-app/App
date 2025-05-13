@@ -1,6 +1,5 @@
 package com.example.freeupcopy.ui.presentation.product_screen.componants
 
-import android.util.Log
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -52,6 +51,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.SubcomposeAsyncImage
 import com.example.freeupcopy.R
 import com.example.freeupcopy.ui.theme.CardShape
 import com.example.freeupcopy.ui.theme.SwapGoTheme
@@ -59,22 +59,19 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun ProductDetails(
-    productTitle: String = "Lymio Men Polyester Jackets || Bomber Jacket For Men || Lightweight Outwear Sportswear Bomber Standard Length Jacket (J4-6)",
-    productCondition: String = "New with Price Tag",
+    title: String,
+    condition: String,
+    images: List<String>,
     productSize: String = "Bust 32in",
-    productBrand: String = "Lymio",
-    productDescription: String = "men jackets || bomber jacket for men || Lightweight Outwear Sportswear Bomber Jacket\n" +
-            "Type:Bomber\n" +
-            "Sleeve Length:Long Sleeve\n" +
-            "Fit Type:Regular Fit\n" +
-            "Please Noted - Only upper part of Only shirt is given Not inner t shirt and No any Accessories given",
-    productCategory: String = "Office Supplies & Stationery",
-    productFabric: String = "Product Fabric",
-    productOccasion: String = "Product Occasion",
-    productPlaceOfOrigin: String = "India",
-    productColor: String = "Product Color",
-    productShape: String = "Product Shape",
-    productWeight: String = "Product Weight",
+    brand: String = "Lymio",
+    description: String,
+    category: String,
+    fabric: String?,
+    occasion: String?,
+    manufacturingCountry: String,
+    color: String?,
+    shape: String?,
+    weight: String = "Product Weight",
     numberOfLikes: Int,
     shareCounter: Int,
     onImagePreview: (Int) -> Unit
@@ -129,7 +126,7 @@ fun ProductDetails(
             }
             Spacer(modifier = Modifier.size(8.dp))
             Text(
-                text = productTitle,
+                text = title,
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp
             )
@@ -139,9 +136,7 @@ fun ProductDetails(
                     text = "Condition : ",
                     fontWeight = FontWeight.SemiBold,
                 )
-                Text(
-                    text = productCondition,
-                )
+                Text(text = condition)
             }
             Row {
                 Text(
@@ -158,13 +153,14 @@ fun ProductDetails(
                     fontWeight = FontWeight.SemiBold,
                 )
                 Text(
-                    text = productBrand,
+                    text = brand,
                 )
             }
         }
 
         DynamicImage(
-            onImagePreview = onImagePreview
+            onImagePreview = onImagePreview,
+            images = images
         )
         Spacer(modifier = Modifier.size(16.dp))
 
@@ -181,7 +177,7 @@ fun ProductDetails(
             Spacer(modifier = Modifier.size(16.dp))
 
             Text(
-                text = productDescription,
+                text = description,
                 fontSize = 17.sp
             )
             Spacer(modifier = Modifier.size(20.dp))
@@ -200,42 +196,50 @@ fun ProductDetails(
                     ProductSpecification(
                         modifier = Modifier.weight(1f),
                         heading = "Category",
-                        value = productCategory
+                        value = category
                     )
                     ProductSpecification(
                         modifier = Modifier.weight(1f),
                         heading = "Manufactured Country",
-                        value = productPlaceOfOrigin
+                        value = manufacturingCountry
                     )
                 }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    ProductSpecification(
-                        modifier = Modifier.weight(1f),
-                        heading = "Fabric",
-                        value = productFabric
-                    )
-                    ProductSpecification(
-                        modifier = Modifier.weight(1f),
-                        heading = "Color",
-                        value = productColor
-                    )
+                    if (fabric != null) {
+                        ProductSpecification(
+                            modifier = Modifier.weight(1f),
+                            heading = "Fabric",
+                            value = fabric
+                        )
+                    }
+                    if (color != null) {
+                        ProductSpecification(
+                            modifier = Modifier.weight(1f),
+                            heading = "Color",
+                            value = color
+                        )
+                    }
                 }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceAround
                 ) {
-                    ProductSpecification(
-                        modifier = Modifier.weight(1f),
-                        heading = "Occasion",
-                        value = productOccasion
-                    )
-                    ProductSpecification(
-                        modifier = Modifier.weight(1f),
-                        heading = "Shape",
-                        value = productShape
-                    )
+                    if (occasion != null) {
+                        ProductSpecification(
+                            modifier = Modifier.weight(1f),
+                            heading = "Occasion",
+                            value = occasion
+                        )
+                    }
+                    if (shape != null) {
+                        ProductSpecification(
+                            modifier = Modifier.weight(1f),
+                            heading = "Shape",
+                            value = shape
+                        )
+                    }
                 }
 
                 Row(
@@ -249,7 +253,7 @@ fun ProductDetails(
                             fontSize = 15.sp
                         )
                         Text(
-                            text = productWeight
+                            text = weight
                         )
                     }
                 }
@@ -264,14 +268,7 @@ fun ProductDetails(
 @Composable
 fun DynamicImage(
     modifier: Modifier = Modifier,
-    images: List<Int> = listOf(
-        R.drawable.p1,
-        R.drawable.p2,
-        R.drawable.p3,
-        R.drawable.p4,
-        R.drawable.p5,
-        R.drawable.p6
-    ),
+    images: List<String>,
     onImagePreview: (Int) -> Unit
 ) {
 
@@ -288,7 +285,21 @@ fun DynamicImage(
                 state = pagerState,
             ) { currentPage ->
 
-                Image(
+//                Image(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .aspectRatio(0.75f)
+//                        .clickable(
+//                            interactionSource = remember { MutableInteractionSource() },
+//                            indication = null,
+//                            onClick = {
+//                                onImagePreview(pagerState.currentPage)
+//                            }
+//                        ),
+//                    painter = painterResource(id = images[currentPage]),
+//                    contentDescription = null
+//                )
+                SubcomposeAsyncImage(
                     modifier = Modifier
                         .fillMaxWidth()
                         .aspectRatio(0.75f)
@@ -299,8 +310,36 @@ fun DynamicImage(
                                 onImagePreview(pagerState.currentPage)
                             }
                         ),
-                    painter = painterResource(id = images[currentPage]),
-                    contentDescription = null
+                    model = images[currentPage],
+                    contentDescription = null,
+                    loading = {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                modifier = Modifier.fillMaxWidth(0.5f),
+                                painter = painterResource(id = R.drawable.ic_logo_full),
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+                    },
+                    error = {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                modifier = Modifier.fillMaxWidth(0.5f),
+                                painter = painterResource(id = R.drawable.ic_logo_full),
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+                    }
                 )
 
             }
@@ -420,7 +459,7 @@ fun ProductSpecification(
 
 @Composable
 fun ImagePreviewDialog(
-    images: List<Int>,
+    images: List<String>,
     initialImageIndex: Int,
     onDismiss: () -> Unit
 ) {
@@ -454,11 +493,42 @@ fun ImagePreviewDialog(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Image(
-                    painter = painterResource(id = images[page]),
+//                Image(
+//                    painter = painterResource(id = images[page]),
+//                    contentDescription = "Image ${page + 1}",
+//                    modifier = Modifier.fillMaxSize(),
+//                    contentScale = ContentScale.Fit
+//                )
+                SubcomposeAsyncImage(
+                    model = images[page],
                     contentDescription = "Image ${page + 1}",
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Fit
+                    loading = {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_logo_full),
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+                    },
+                    error = {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_logo_full),
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+                    }
                 )
             }
         }
@@ -576,14 +646,47 @@ fun ImagePreviewDialog(
                                 }
                             }
                     ) {
-                        Image(
-                            painter = painterResource(id = images[index]),
+//                        Image(
+//                            painter = painterResource(id = images[index]),
+//                            contentDescription = "Thumbnail ${index + 1}",
+//                            modifier = Modifier
+//                                .padding(4.dp)
+//                                .fillMaxSize(),
+//                            contentScale = ContentScale.Crop,
+//                            alpha = 0.8f
+//                        )
+                        SubcomposeAsyncImage(
+                            model = images[index],
                             contentDescription = "Thumbnail ${index + 1}",
                             modifier = Modifier
                                 .padding(4.dp)
                                 .fillMaxSize(),
-                            contentScale = ContentScale.Crop,
-                            alpha = 0.8f
+                            loading = {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Image(
+                                        painter = painterResource(id = R.drawable.ic_logo_full),
+                                        contentDescription = null,
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
+                            },
+                            error = {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Image(
+                                        painter = painterResource(id = R.drawable.ic_logo_full),
+                                        contentDescription = null,
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
+                            }
                         )
                     }
                 }
@@ -591,6 +694,7 @@ fun ImagePreviewDialog(
         }
     }
 }
+
 @Preview
 @Composable
 fun PreviewProductDetails() {
@@ -600,7 +704,17 @@ fun PreviewProductDetails() {
 //            changeImage = {},
             numberOfLikes = 34,
             shareCounter = 35,
-            onImagePreview = {}
+            onImagePreview = {},
+            title = "Product Title",
+            condition = "New",
+            description = "This is a sample product description. It provides details about the product, including its features, specifications, and other relevant information.",
+            category = "Clothing",
+            fabric = "Cotton",
+            occasion = "Casual",
+            manufacturingCountry = "India",
+            color = "Red",
+            shape = "Round",
+            images = listOf("https://via.placeholder.com/150", "https://via.placeholder.com/150", "https://via.placeholder.com/150"),
         )
     }
 }

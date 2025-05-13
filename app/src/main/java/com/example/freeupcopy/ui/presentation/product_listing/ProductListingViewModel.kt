@@ -1,8 +1,12 @@
 package com.example.freeupcopy.ui.presentation.product_listing
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
+import com.example.freeupcopy.data.local.RecentSearch
+import com.example.freeupcopy.data.local.RecentlyViewed
+import com.example.freeupcopy.data.local.RecentlyViewedDao
 import com.example.freeupcopy.domain.enums.Filter
 import com.example.freeupcopy.domain.use_case.GetProductCardsUseCase
 import com.example.freeupcopy.domain.use_case.ProductCardsQueryParameters
@@ -16,11 +20,13 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ProductListingViewModel @Inject constructor(
-    private val getProductCardsUseCase: GetProductCardsUseCase
+    private val getProductCardsUseCase: GetProductCardsUseCase,
+    private val recentlyViewedDao: RecentlyViewedDao
 ) : ViewModel() {
     private val _state = MutableStateFlow(ProductListingUiState())
     val state = _state.asStateFlow()
@@ -90,11 +96,20 @@ class ProductListingViewModel @Inject constructor(
 
     fun onEvent(event: ProductListingUiEvent) {
         when (event) {
+            is ProductListingUiEvent.IsLoading -> {
+                _state.update {
+                    it.copy(isLoading = event.isLoading)
+                }
+            }
 
             is ProductListingUiEvent.ChangeSearchQuery -> {
                 _state.update {
                     it.copy(searchQuery = event.query)
                 }
+            }
+
+            is ProductListingUiEvent.SetInitialQuery -> {
+                _state.update { it.copy(initialQuerySet = true) }
             }
 
             is ProductListingUiEvent.ChangeSelectedFilter -> {
@@ -134,6 +149,28 @@ class ProductListingViewModel @Inject constructor(
                     }
                 }
             }
+
+            is ProductListingUiEvent.ProductClicked -> {
+                viewModelScope.launch {
+                    _state.update { it.copy(isLoading = true) }
+                    val existingRecentlyViewed = recentlyViewedDao.getRecentlyViewExists(event.productId)
+                    if (existingRecentlyViewed == null) {
+                        val recentlyViewed = RecentlyViewed(
+                            productId = event.productId,
+                            imageUrl = event.productImageUrl,
+                            title = event.title
+                        )
+                        recentlyViewedDao.insertWithLimit(recentlyViewed)
+//                        Log.d("ProductListingVM", "Inserted recently viewed: $recentlyViewed")
+                    } else {
+                        // Update the timestamp if the record already exists
+                        val updatedRecentlyViewed = existingRecentlyViewed.copy(timestamp = System.currentTimeMillis())
+                        recentlyViewedDao.insertWithLimit(updatedRecentlyViewed)
+                    }
+                    _state.update { it.copy(isLoading = false) }
+                }
+            }
+
 
             is ProductListingUiEvent.ChangeSortOption -> {
                 // Instead of directly applying sort, update the temporary sort option.

@@ -2,12 +2,14 @@ package com.example.freeupcopy
 
 import android.annotation.SuppressLint
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -66,6 +68,7 @@ import kotlin.reflect.typeOf
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
+    @RequiresApi(Build.VERSION_CODES.O)
     @ExperimentalMaterial3Api
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -90,7 +93,7 @@ class MainActivity : ComponentActivity() {
 
                     NavHost(
                         navController = navController,
-                        startDestination = Screen.MainScreen,
+                        startDestination = Screen.ConnectScreen,
                         enterTransition = {
                             slideIntoContainer(
                                 towards = AnimatedContentTransitionScope.SlideDirection.Left,
@@ -378,6 +381,9 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onSearch = { query ->
                                     navController.navigate(Screen.ProductListingScreen(query = query.trim()))
+                                },
+                                onRecentProductClick = { productId ->
+                                    navController.navigate(Screen.ProductScreen(productId = productId))
                                 }
                             )
                         }
@@ -603,8 +609,18 @@ class MainActivity : ComponentActivity() {
 
                         composable<Screen.ProductScreen> {
                             ProductScreen(
-                                onReplyClick = {
-                                    navController.navigate(Screen.ReplyScreen)
+                                navController = navController,
+                                onReplyClickComment = { commentId ->
+                                    navController.navigate(Screen.ReplyScreen(commentId = commentId, replyId = null))
+                                },
+                                onReplyClickReply = { commentId, replyId ->
+                                    navController.navigate(Screen.ReplyScreen(commentId = commentId, replyId = replyId))
+                                },
+                                onBack = {
+                                    navController.popBackStack()
+                                },
+                                onUserClick = { userId ->
+                                    navController.navigate(Screen.SellerProfileScreen(userId))
                                 }
                             )
                         }
@@ -612,6 +628,13 @@ class MainActivity : ComponentActivity() {
                         composable<Screen.ReplyScreen> {
                             ReplyScreen(
                                 onClose = {
+                                    navController.popBackStack()
+                                },
+                                onReplyPosted = { newReply ->
+                                    // assume `newReply` is the Reply object returned from your API
+                                    navController.previousBackStackEntry
+                                        ?.savedStateHandle
+                                        ?.set("new_reply", newReply)
                                     navController.popBackStack()
                                 }
                             )
@@ -623,7 +646,7 @@ class MainActivity : ComponentActivity() {
                                     navController.popBackStack()
                                 },
                                 onProductClick = {
-                                    navController.navigate(Screen.ProductScreen)
+                                    navController.navigate(Screen.ProductScreen(""))
                                 },
                             )
                         }
@@ -682,8 +705,9 @@ class MainActivity : ComponentActivity() {
                                 onBack = {
                                     navController.popBackStack()
                                 },
-                                onProductClick = {
-                                    navController.navigate(Screen.ProductScreen)
+                                onProductClick = { productId ->
+                                    //this ensures that productId is passed into the saved state handle, which we can retrieve in the ProductViewModel
+                                    navController.navigate(Screen.ProductScreen(productId = productId))
                                 }
                             )
                         }
