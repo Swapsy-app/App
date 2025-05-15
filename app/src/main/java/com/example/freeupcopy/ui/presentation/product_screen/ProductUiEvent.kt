@@ -1,5 +1,6 @@
 package com.example.freeupcopy.ui.presentation.product_screen
 
+import com.example.freeupcopy.data.remote.dto.product.ProductBargain
 import com.example.freeupcopy.data.remote.dto.product.UserSearchResult
 import com.example.freeupcopy.domain.enums.Currency
 import com.example.freeupcopy.domain.model.BargainOffer
@@ -29,13 +30,16 @@ sealed class ProductUiEvent {
     data object BargainOptionsClicked: ProductUiEvent()
     data class BargainSelectedChange(val index: Int): ProductUiEvent()
     data class BargainCurrencySelectedChange(val currency: Currency): ProductUiEvent()
+    data class EditBargainOption(val bargainOffer: ProductBargain) : ProductUiEvent()
+    data class DeleteBargain(val bargainId: String) : ProductUiEvent()
+    data object BargainUpdateRequest: ProductUiEvent()
+    data object BargainRequest: ProductUiEvent()
 
-    data class EditBargainOption(val bargainOffer: BargainOffer) : ProductUiEvent()
-
-    data class BargainRequest(val message: String, val amount: String): ProductUiEvent()
     data object OnImagePreview : ProductUiEvent()
 
     data class ChangeReply(val reply : String) : ProductUiEvent()
     data object OnFollow : ProductUiEvent()
 
+    data class IsLoading(val isLoading: Boolean): ProductUiEvent()
+    data class SimilarProductClicked(val productId: String, val productImageUrl: String, val title: String) : ProductUiEvent()
 }

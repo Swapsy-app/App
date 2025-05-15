@@ -1,17 +1,22 @@
 package com.example.freeupcopy.ui.presentation.sell_screen.gallery_screen
 
+import android.Manifest
+import android.app.Activity
 import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.database.Cursor
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
 import android.media.MediaScannerConnection
 import android.net.Uri
+import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.provider.OpenableColumns
+import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -57,6 +62,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -78,8 +84,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.transformer.EditedMediaItem
@@ -137,8 +148,63 @@ fun CustomGalleryScreen(
     val state by sellViewModel.state.collectAsState()
     val context = LocalContext.current
     val galleryState by galleryViewModel.state.collectAsState()
+    val lifecycleOwner = LocalLifecycleOwner.current
 
+    // Track if we should show permission denied message
+    var showPermissionDeniedMessage by remember { mutableStateOf(false) }
+
+    // Define the storage permission based on Android version
+    val storagePermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        Manifest.permission.READ_MEDIA_IMAGES
+    } else {
+        Manifest.permission.READ_EXTERNAL_STORAGE
+    }
+
+    // Create a state that will be updated when permission changes
+    var permissionGranted by remember { mutableStateOf(false) }
+
+    // Define the permission launcher
+    val storagePermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        permissionGranted = isGranted
+        showPermissionDeniedMessage = !isGranted
+    }
+
+    // Check permission status when the app resumes
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                // Check permission status when app resumes
+                permissionGranted = ContextCompat.checkSelfPermission(
+                    context,
+                    storagePermission
+                ) == PackageManager.PERMISSION_GRANTED
+
+                showPermissionDeniedMessage = !permissionGranted
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    // Check permission on launch
     LaunchedEffect(Unit) {
+        val isPermissionGranted = ContextCompat.checkSelfPermission(
+            context,
+            storagePermission
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (isPermissionGranted) {
+            permissionGranted = true
+        } else {
+            // Request permission
+            storagePermissionLauncher.launch(storagePermission)
+        }
+
         Log.e("GalleryScreen: ", numberOfUploadedImages.toString())
     }
 
@@ -218,41 +284,79 @@ fun CustomGalleryScreen(
                 .padding(innerPadding)
                 .fillMaxSize()
         ) {
-            when (mode) {
-                "Gallery" -> GalleryScreenContent(
-                    isLoading = state.isLoading,
-                    maxSelectable = MAX_IMAGES_UPLOAD - numberOfUploadedImages,
-                    onUploadClick = { imageUris ->
-                        // Convert Uris to Files. Assume uriToFile is defined elsewhere.
-                        val fileList = imageUris.mapNotNull { uri ->
-                            uriToFile(context, uri)
-                        }
-                        // Call the ViewModel event.
-//                        sellViewModel.onEvent(SellUiEvent.UploadImages(fileList))
-                        galleryViewModel.onEvent(GalleryUiEvent.UploadImages(fileList))
-                    },
-                    onClose = { onClose(emptyList(), null) }
-                )
-
-                "Camera" -> CameraScreenContent(
-                    isLoading = state.isLoading,
-                    onUploadClick = { image ->
-                        val file = uriToFile(context, image)
-                        file?.let {
-                            galleryViewModel.onEvent(GalleryUiEvent.UploadImages(listOf(file)))
-                        }
+            // Show permission denied message if needed
+            if (showPermissionDeniedMessage) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        "Storage permission is required to access your media",
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 16.sp
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(
+                        onClick = {
+                            if (ActivityCompat.shouldShowRequestPermissionRationale(
+                                    context as Activity, storagePermission
+                                )
+                            ) {
+                                // User has denied once but not permanently
+                                storagePermissionLauncher.launch(storagePermission)
+                            } else {
+                                // User has permanently denied, direct to settings
+                                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                    data = Uri.fromParts("package", context.packageName, null)
+                                }
+                                context.startActivity(intent)
+                            }
+                        },
+                        shape = ButtonShape
+                    ) {
+                        Text("Grant Permission")
                     }
-                )
+                }
+            } else {
+                when (mode) {
+                    "Gallery" -> GalleryScreenContent(
+                        isLoading = state.isLoading,
+                        maxSelectable = MAX_IMAGES_UPLOAD - numberOfUploadedImages,
+                        onUploadClick = { imageUris ->
+                            // Convert Uris to Files. Assume uriToFile is defined elsewhere.
+                            val fileList = imageUris.mapNotNull { uri ->
+                                uriToFile(context, uri)
+                            }
+                            // Call the ViewModel event.
+                            galleryViewModel.onEvent(GalleryUiEvent.UploadImages(fileList))
+                        },
+                        onClose = { onClose(emptyList(), null) }
+                    )
 
-                "Video" -> VideoScreenContent(
-                    isLoading = state.isLoading,
-                    onUploadClick = { videoUri ->
-                        val file = uriToFile(context, videoUri)
-                        file?.let {
-                            galleryViewModel.onEvent(GalleryUiEvent.UploadVideo(file))
+                    "Camera" -> CameraScreenContent(
+                        isLoading = state.isLoading,
+                        onUploadClick = { image ->
+                            val file = uriToFile(context, image)
+                            file?.let {
+                                galleryViewModel.onEvent(GalleryUiEvent.UploadImages(listOf(file)))
+                            }
                         }
-                    }
-                )
+                    )
+
+                    "Video" -> VideoScreenContent(
+                        isLoading = state.isLoading,
+                        onUploadClick = { videoUri ->
+                            val file = uriToFile(context, videoUri)
+                            file?.let {
+                                galleryViewModel.onEvent(GalleryUiEvent.UploadVideo(file))
+                            }
+                        }
+                    )
+                }
             }
         }
     }
@@ -268,6 +372,7 @@ fun CustomGalleryScreen(
         }
     }
 }
+
 
 @Composable
 fun GalleryScreenContent(

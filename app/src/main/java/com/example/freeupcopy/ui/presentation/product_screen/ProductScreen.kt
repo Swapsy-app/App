@@ -3,18 +3,26 @@ package com.example.freeupcopy.ui.presentation.product_screen
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Build
+import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Favorite
@@ -23,8 +31,11 @@ import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -42,6 +53,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,8 +67,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavHostController
+import androidx.paging.LoadState
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.freeupcopy.data.remote.dto.product.Reply
 import com.example.freeupcopy.ui.navigation.Screen
+import com.example.freeupcopy.ui.presentation.product_card.ProductCard
 import com.example.freeupcopy.ui.presentation.product_screen.componants.BargainElement
 import com.example.freeupcopy.ui.presentation.product_screen.componants.BargainOptionsSheet
 import com.example.freeupcopy.ui.presentation.product_screen.componants.Comments
@@ -67,6 +82,9 @@ import com.example.freeupcopy.ui.presentation.product_screen.componants.ProductF
 import com.example.freeupcopy.ui.presentation.product_screen.componants.ProductScreenBottomBar
 import com.example.freeupcopy.ui.presentation.product_screen.componants.SellerDetail
 import com.example.freeupcopy.ui.presentation.sell_screen.location_screen.location_screen.PleaseWaitLoading
+import com.example.freeupcopy.utils.getListedPrice
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @SuppressLint("UnrememberedGetBackStackEntry")
 @RequiresApi(Build.VERSION_CODES.O)
@@ -81,12 +99,15 @@ fun ProductScreen(
     productViewModel: ProductViewModel = hiltViewModel()
 ) {
     val state by productViewModel.state.collectAsState()
+    val similarProducts = productViewModel.similarProducts.collectAsLazyPagingItems()
 
     val lifeCycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     var currentIndex by remember { mutableIntStateOf(0) }
+
+    val scope = rememberCoroutineScope()
 
     // 1️⃣ Remember the back-stack entry
     val thisEntry = remember(navController) {
@@ -100,6 +121,13 @@ fun ProductScreen(
 
     // 3️⃣ Collect it as Compose state
     val newReply by newReplyFlow.collectAsState()
+
+    LaunchedEffect(state.error) {
+        Log.e("ProductScreen", "Error: ${state.error}")
+        state.error.takeIf { it.isNotBlank() }?.let {
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+        }
+    }
 
     // 4️⃣ When a new reply arrives, update your ViewModel and clear it
     LaunchedEffect(newReply) {
@@ -182,10 +210,10 @@ fun ProductScreen(
         },
         bottomBar = {
             ProductScreenBottomBar(
-                specialOffer = state.specialOffer,
-                coinsOffered = state.listedCoinPrice,
-                mrp = state.mrp,
-                priceOffered = state.listedCashPrice,
+                specialOffer = state.productDetail?.price?.mix,
+                coinsOffered = state.productDetail?.price?.coin,
+                mrp = state.productDetail?.price?.mrp?.toInt().toString(),
+                priceOffered = state.productDetail?.price?.cash
             )
         },
         floatingActionButton = {
@@ -280,7 +308,7 @@ fun ProductScreen(
                 }
                 item {
                     BargainElement(
-                        bargainOffers = state.bargainOfferLists,
+                        bargainOffers = state.bargains,
                         onOpenPopup = {
                             //productViewModel.onOpenPopup()
                             productViewModel.onEvent(ProductUiEvent.BargainOptionsClicked)
@@ -288,8 +316,10 @@ fun ProductScreen(
                         onEditOffer = {
                             productViewModel.onEvent(ProductUiEvent.EditBargainOption(it))
                         },
-                        currentUserId = "U002",
-
+                        currentUserId = state.user?._id,
+                        isLoadingMore = state.isLoadingMoreBargains,
+                        hasMoreBargains = state.hasMoreBargains,
+                        onLoadMoreBargains = { productViewModel.loadMoreBargains() }
                     )
                 }
                 item {
@@ -354,6 +384,182 @@ fun ProductScreen(
                         }
                     )
                 }
+
+                item {
+                    Column (
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.primaryContainer),
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "Similar Products",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
+                        )
+
+                        HorizontalDivider(
+                            thickness = 1.dp,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(0.12f)
+                        )
+                    }
+                }
+
+                // Replace the current implementation for similar products
+                item {
+                    when {
+                        // Show loading state when initially loading
+                        similarProducts.loadState.refresh is LoadState.Loading -> {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(200.dp)
+                            ) {
+                                CircularProgressIndicator()
+                            }
+                        }
+
+                        // Show error state
+                        similarProducts.loadState.refresh is LoadState.Error -> {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp)
+                            ) {
+                                Text(
+                                    text = "Failed to load similar products",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Button(onClick = { similarProducts.retry() }) {
+                                    Text("Retry")
+                                }
+                            }
+                        }
+
+                        // Show empty state when no products found
+                        similarProducts.itemCount == 0 -> {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(100.dp)
+                            ) {
+                                Text(
+                                    text = "No similar products found",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        // Show grid when we have products
+                        else -> {
+                            LazyVerticalStaggeredGrid(
+                                columns = StaggeredGridCells.Fixed(2),
+                                contentPadding = PaddingValues(
+                                    start = 8.dp,
+                                    end = 8.dp,
+                                    bottom = 16.dp
+                                ),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalItemSpacing = 8.dp,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(max = Short.MAX_VALUE.toInt().dp)
+                            ) {
+                                items(similarProducts.itemCount) { index ->
+                                    similarProducts[index]?.let { product ->
+                                        ProductCard(
+                                            brand = product.brand,
+                                            title = product.title,
+                                            size = "null",
+                                            productThumbnail = if (product.images.size == 1) product.images[0] else null,
+                                            cashPrice = if (product.price.cashPrice != null) product.price.cashPrice.toInt()
+                                                .toString() else null,
+                                            coinsPrice = if (product.price.coinPrice != null) product.price.coinPrice.toInt()
+                                                .toString() else null,
+                                            combinedPrice = if (product.price.mixPrice != null)
+                                                Pair(
+                                                    product.price.mixPrice.enteredCash.toInt()
+                                                        .toString(),
+                                                    product.price.mixPrice.enteredCoin.toInt()
+                                                        .toString()
+                                                )
+                                            else null,
+                                            mrp = product.price.mrp?.toInt().toString(),
+                                            badge = "null",
+                                            isLiked = false,
+                                            onLikeClick = {},
+                                            onClick = {
+                                                scope.launch {
+                                                    productViewModel.onEvent(
+                                                        ProductUiEvent.IsLoading(
+                                                            true
+                                                        )
+                                                    )
+
+                                                    productViewModel.onEvent(
+                                                        ProductUiEvent.SimilarProductClicked(
+                                                            productId = product._id,
+                                                            productImageUrl = if (product.images.size == 1) product.images[0] else "",
+                                                            title = product.title
+                                                        )
+                                                    )
+                                                    delay(100)
+                                                    // Call onProductClick after onEvent has been processed.
+                                                    navController.navigate(
+                                                        Screen.ProductScreen(
+                                                            product._id
+                                                        )
+                                                    )
+
+                                                    productViewModel.onEvent(
+                                                        ProductUiEvent.IsLoading(
+                                                            false
+                                                        )
+                                                    )
+                                                }
+                                            }
+                                        )
+                                    }
+                                }
+
+                                // Add loading indicators and error handling
+                                similarProducts.apply {
+                                    when {
+                                        loadState.append is LoadState.Loading -> {
+                                            item(span = StaggeredGridItemSpan.FullLine) {
+                                                Box(
+                                                    contentAlignment = Alignment.Center,
+                                                    modifier = Modifier.padding(vertical = 16.dp)
+                                                ) {
+                                                    CircularProgressIndicator()
+                                                }
+                                            }
+                                        }
+
+                                        loadState.append is LoadState.Error -> {
+                                            item(span = StaggeredGridItemSpan.FullLine) {
+                                                Button(
+                                                    onClick = { retry() },
+                                                    modifier = Modifier.fillMaxWidth()
+                                                ) {
+                                                    Text("Retry")
+                                                }
+                                            }
+                                        }
+
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -362,9 +568,7 @@ fun ProductScreen(
             modifier = Modifier,
             sheetState = sheetState,
             onDismissRequest = { productViewModel.onEvent(ProductUiEvent.BargainOptionsClicked) },
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            //windowInsets = BottomSheetDefaults.windowInsets.only(WindowInsetsSides.Bottom)
-//            windowInsets = WindowInsets(0.dp)
+            containerColor = MaterialTheme.colorScheme.primaryContainer
         ) {
             Column(
                 modifier = Modifier
@@ -373,8 +577,10 @@ fun ProductScreen(
                     .padding(start = 16.dp, bottom = 16.dp, end = 16.dp)
             ) {
                 BargainOptionsSheet(
-                    listedPrice = state.listedCashPrice,
-                    mrp = state.mrp,
+                    listedPrice = getListedPrice(state.productDetail?.price),
+                    hasCashPrice = state.productDetail?.price?.cash != null,
+                    hasCoinPrice = state.productDetail?.price?.coin != null,
+                    mrp = state.productDetail?.price?.mrp?.toInt().toString(),
                     bargainAmount = state.bargainAmount,
                     onBargainAmountChange = {
                         productViewModel.onEvent(ProductUiEvent.ChangeBargainAmount(it))
@@ -386,12 +592,19 @@ fun ProductScreen(
                     onBargainRequest = {
                         val validationResult = productViewModel.validateAll()
                         if (validationResult.isValid) {
-                            productViewModel.onEvent(
-                                ProductUiEvent.BargainRequest(
-                                    state.bargainMessage,
-                                    state.bargainAmount
-                                )
-                            )
+                            productViewModel.onEvent(ProductUiEvent.BargainRequest)
+                        } else {
+                            Toast.makeText(
+                                context,
+                                validationResult.errorMessage,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    },
+                    onBargainUpdateRequest = {
+                        val validationResult = productViewModel.validateAll()
+                        if (validationResult.isValid) {
+                            productViewModel.onEvent(ProductUiEvent.BargainUpdateRequest)
                         } else {
                             Toast.makeText(
                                 context,
@@ -412,6 +625,14 @@ fun ProductScreen(
                         productViewModel.onEvent(ProductUiEvent.BargainSelectedChange(it))
                     },
                     //isEditing = false
+                    isEditingBargain = state.isEditingBargain,
+                    onDeleteBargain = {
+                        state.currentEditingBargainId?.let {
+                            ProductUiEvent.DeleteBargain(
+                                it
+                            )
+                        }?.let { productViewModel.onEvent(it) }
+                    }
                 )
             }
         }

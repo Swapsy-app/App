@@ -92,17 +92,6 @@ fun HomeCarousel(
         }
 
     }
-//    LaunchedEffect(pagerState) {
-//        snapshotFlow { pagerState.currentPage }.collect { currentPage ->
-//            if (currentPage == images.size - 1) {
-//                // If last page, go to first page when swiping forward
-//                pagerState.scrollToPage(0)
-//            } else if (currentPage == 0) {
-//                // If first page, go to last page when swiping backward
-//                pagerState.scrollToPage(images.size - 1)
-//            }
-//        }
-//    }
 }
 
 @Composable

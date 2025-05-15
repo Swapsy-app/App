@@ -167,14 +167,6 @@ fun HomeScreen(
                     modifier = Modifier.zIndex(0f)
                 )
             }
-            items(50) { index ->
-                Text(
-                    text = "Item $index",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                )
-            }
         }
     }
 }

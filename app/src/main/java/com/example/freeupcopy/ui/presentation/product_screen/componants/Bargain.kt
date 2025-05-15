@@ -14,15 +14,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -46,6 +47,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -59,10 +61,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.SubcomposeAsyncImage
 import com.example.freeupcopy.R
+import com.example.freeupcopy.common.Constants.BASE_URL_AVATAR
 import com.example.freeupcopy.common.Constants.MAX_BARGAIN_MESSAGE_LENGTH
+import com.example.freeupcopy.data.remote.dto.product.ProductBargain
 import com.example.freeupcopy.domain.enums.Currency
-import com.example.freeupcopy.domain.model.BargainOffer
 import com.example.freeupcopy.ui.theme.ButtonShape
 import com.example.freeupcopy.ui.theme.CardShape
 import com.example.freeupcopy.ui.theme.SwapGoTheme
@@ -73,13 +77,14 @@ import com.example.freeupcopy.utils.clearFocusOnKeyboardDismiss
 @Composable
 fun BargainElement(
     modifier: Modifier = Modifier,
-    bargainOffers: List<BargainOffer>,
+    bargainOffers: List<ProductBargain>,
     onOpenPopup: () -> Unit,
-    currentUserId: String,
-    onEditOffer: (BargainOffer) -> Unit
+    currentUserId: String?,
+    onEditOffer: (ProductBargain) -> Unit,
+    isLoadingMore: Boolean = false,
+    hasMoreBargains: Boolean = false,
+    onLoadMoreBargains: () -> Unit = {}
 ) {
-    // State to track whether all offers are shown
-    var showAllOffers by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -122,37 +127,50 @@ fun BargainElement(
 
         Spacer(modifier = Modifier.size(16.dp))
 
-        // Show limited or all offers based on the state
-        val offersToDisplay = if (showAllOffers) bargainOffers else bargainOffers.take(3)
-        offersToDisplay.forEach { offer ->
+        // Display all available bargain offers
+        bargainOffers.forEach { offer ->
             BargainOfferRow(
                 bargainOffer = offer,
-                isCurrentUser = offer.userId == currentUserId,
-                onEditOffer = onEditOffer,
-
-                )
-            if (offer != offersToDisplay.last()) {
+                isCurrentUser = offer.buyerId?._id == currentUserId && currentUserId != null,
+                onEditOffer = onEditOffer
+            )
+            if (offer != bargainOffers.last()) {
                 Spacer(modifier = Modifier.size(10.dp))
             }
         }
 
         Spacer(modifier = Modifier.size(2.dp))
 
-        // Show "Show More" or "Show Less" button
-        if (bargainOffers.size > 3) {
+        // Show loading indicator when loading more offers
+        if (isLoadingMore) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+
+        // "Load More" button if there are more offers to load
+        if (hasMoreBargains && !isLoadingMore) {
             TextButton(
-                onClick = { showAllOffers = !showAllOffers },
+                onClick = onLoadMoreBargains,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             ) {
                 Text(
-                    text = if (showAllOffers) "Show Less" else "Show ${bargainOffers.size - 3} more offers",
+                    text = "Show more offers",
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.SemiBold
                 )
                 Icon(
-                    modifier = Modifier.rotate(if (showAllOffers) 180f else 0f),
+                    modifier = Modifier.rotate(0f),
                     imageVector = Icons.Rounded.ArrowDropDown,
-                    contentDescription = if (showAllOffers) "Show less" else "Show more",
+                    contentDescription = "Show more",
                     tint = MaterialTheme.colorScheme.primary
                 )
             }
@@ -163,9 +181,9 @@ fun BargainElement(
 @Composable
 fun BargainOfferRow(
     modifier: Modifier = Modifier,
-    bargainOffer: BargainOffer,
+    bargainOffer: ProductBargain,
     isCurrentUser: Boolean,
-    onEditOffer: (BargainOffer) -> Unit
+    onEditOffer: (ProductBargain) -> Unit
 ) {
     Row(
         modifier = modifier
@@ -180,27 +198,38 @@ fun BargainOfferRow(
             Row(
                 verticalAlignment = Alignment.Top
             ) { // User and time
-                Icon(
-                    imageVector = Icons.Rounded.AccountCircle,
-                    contentDescription = "User image",
+                SubcomposeAsyncImage(
+                    modifier = Modifier
+                        .padding(start = 6.dp, end = 4.dp)
+                        .size(24.dp)
+                        .clip(CircleShape),
+                    model = BASE_URL_AVATAR + bargainOffer.buyerId?.avatar,
+                    loading = {
+                        painterResource(id = R.drawable.im_user)
+                    },
+                    error = {
+                        painterResource(id = R.drawable.im_user)
+                    },
+                    contentDescription = "profile",
+                    contentScale = ContentScale.Crop
                 )
                 Spacer(modifier = Modifier.size(8.dp))
                 Column {
                     Row {
                         Text(
-                            text = bargainOffer.username,
+                            text = bargainOffer.buyerId?.username ?: "Unknown",
                             fontWeight = FontWeight.SemiBold,
                         )
-                        Spacer(modifier = Modifier.size(8.dp))
-                        Text(
-                            text = bargainOffer.timeStamp,
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
-                        )
+//                        Spacer(modifier = Modifier.size(8.dp))
+//                        Text(
+//                            text = bargainOffer.timeStamp,
+//                            fontSize = 14.sp,
+//                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
+//                        )
                     }
                     Spacer(modifier = Modifier.size(4.dp))
                     Text(
-                        text = bargainOffer.message,
+                        text = bargainOffer.message ?: "No message",
                         fontSize = 14.sp,
                         lineHeight = 18.sp
                     )
@@ -241,35 +270,39 @@ fun BargainOfferRow(
                 }
                 Spacer(modifier = Modifier.size(6.dp))
             }
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                when (bargainOffer.currency) {
-                    Currency.CASH -> {
-                        Icon(
-                            modifier = Modifier.size(14.dp),
-                            painter = painterResource(id = R.drawable.ic_rupee),
-                            contentDescription = null,
-                        )
+            bargainOffer.offeredPrice?.let {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
+                    when (bargainOffer.offeredIn) {
+                        Currency.CASH.valueName -> {
+                            Icon(
+                                modifier = Modifier.size(14.dp),
+                                painter = painterResource(id = R.drawable.ic_rupee),
+                                contentDescription = null,
+                            )
+                        }
+
+                        Currency.COIN.valueName -> {
+                            Icon(
+                                modifier = Modifier
+                                    .padding(end = 2.dp)
+                                    .size(14.dp),
+                                painter = painterResource(id = R.drawable.coin),
+                                contentDescription = null,
+                                tint = Color.Unspecified
+                            )
+                        }
                     }
 
-                    Currency.COIN -> {
-                        Icon(
-                            modifier = Modifier
-                                .padding(end = 2.dp)
-                                .size(14.dp),
-                            painter = painterResource(id = R.drawable.coin),
-                            contentDescription = null,
-                            tint = Color.Unspecified
-                        )
-                    }
+                    Text(
+                        text = bargainOffer.offeredPrice.toInt().toString(),
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                    )
                 }
-                Text(
-                    text = bargainOffer.amount,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold,
-                )
             }
 
         }
@@ -280,15 +313,20 @@ fun BargainOfferRow(
 fun BargainOptionsSheet(
     modifier: Modifier = Modifier,
     listedPrice: String,
+    hasCashPrice: Boolean,
+    hasCoinPrice: Boolean,
     mrp: String,
     fifteenPercentRecommended: Pair<String, String>,
     tenPercentRecommended: Pair<String, String>,
+    isEditingBargain: Boolean,
     bargainAmount: String,
     onBargainAmountChange: (String) -> Unit,
     message: String,
     onBargainMessageChange: (String) -> Unit,
     onClosePopup: () -> Unit,
     onBargainRequest: () -> Unit,
+    onDeleteBargain: () -> Unit,
+    onBargainUpdateRequest: () -> Unit,
     selectedIndex: Int,
     onSelectedIndexChange: (Int) -> Unit,
     currencySelected: Currency,
@@ -357,59 +395,89 @@ fun BargainOptionsSheet(
                 color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.4f)
             )
             Spacer(modifier = Modifier.size(8.dp))
-            Text(
-                text = "₹$listedPrice",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold
-            )
+            if(!hasCashPrice && hasCoinPrice) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = listedPrice,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Icon(
+                        modifier = Modifier
+                            .padding(end = 2.dp)
+                            .size(14.dp),
+                        painter = painterResource(id = R.drawable.coin),
+                        contentDescription = null,
+                        tint = Color.Unspecified
+                    )
+                }
+            }
+            else if(hasCashPrice) {
+                Text(
+                    text = "₹$listedPrice",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+            else {
+                Text(
+                    text = listedPrice,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
         }
         Spacer(modifier = Modifier.size(20.dp))
 
-        Row(
-            modifier = Modifier.height(IntrinsicSize.Min),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            BargainOptionBox(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(1f),
-                value = if (currencySelected == Currency.CASH) "${Currency.CASH.symbol}${fifteenPercentRecommended.first}" else fifteenPercentRecommended.second,
-                isSelected = selectedIndex == 0,
-                onClick = {
-                    onBargainAmountChange(
-                        if (currencySelected == Currency.CASH) fifteenPercentRecommended.first else fifteenPercentRecommended.second
-                    )
-                    //selectedIndex = 0
-                    onSelectedIndexChange(0)
-                }
-            )
-            BargainOptionBox(
-                modifier = Modifier.fillMaxHeight(),
-                value = if (currencySelected == Currency.CASH) "${Currency.CASH.symbol}${tenPercentRecommended.first}" else tenPercentRecommended.second,
-                isRecommended = true,
-                isSelected = selectedIndex == 1,
-                onClick = {
-                    onBargainAmountChange(
-                        if (currencySelected == Currency.CASH) tenPercentRecommended.first else tenPercentRecommended.second
-                    )
-                    //selectedIndex = 1
-                    onSelectedIndexChange(1)
-                }
-            )
-            BargainOptionBox(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(1f),
-                value = "Other",
-                isSelected = selectedIndex == 2,
-                onClick = {
-                    //selectedIndex = 2
-                    onSelectedIndexChange(2)
-                }
-            )
-        }
-        Spacer(modifier = Modifier.size(16.dp))
-        if (selectedIndex == 2) {
+
+//        if(hasCashPrice) {
+//
+//            Row(
+//                modifier = Modifier.height(IntrinsicSize.Min),
+//                horizontalArrangement = Arrangement.spacedBy(10.dp)
+//            ) {
+//                BargainOptionBox(
+//                    modifier = Modifier
+//                        .fillMaxHeight()
+//                        .weight(1f),
+//                    value = if (currencySelected == Currency.CASH) "${Currency.CASH.symbol}${fifteenPercentRecommended.first}" else fifteenPercentRecommended.second,
+//                    isSelected = selectedIndex == 0,
+//                    onClick = {
+//                        onBargainAmountChange(
+//                            if (currencySelected == Currency.CASH) fifteenPercentRecommended.first else fifteenPercentRecommended.second
+//                        )
+//                        //selectedIndex = 0
+//                        onSelectedIndexChange(0)
+//                    }
+//                )
+//                BargainOptionBox(
+//                    modifier = Modifier.fillMaxHeight(),
+//                    value = if (currencySelected == Currency.CASH) "${Currency.CASH.symbol}${tenPercentRecommended.first}" else tenPercentRecommended.second,
+//                    isRecommended = true,
+//                    isSelected = selectedIndex == 1,
+//                    onClick = {
+//                        onBargainAmountChange(
+//                            if (currencySelected == Currency.CASH) tenPercentRecommended.first else tenPercentRecommended.second
+//                        )
+//                        //selectedIndex = 1
+//                        onSelectedIndexChange(1)
+//                    }
+//                )
+//                BargainOptionBox(
+//                    modifier = Modifier
+//                        .fillMaxHeight()
+//                        .weight(1f),
+//                    value = "Other",
+//                    isSelected = selectedIndex == 2,
+//                    onClick = {
+//                        //selectedIndex = 2
+//                        onSelectedIndexChange(2)
+//                    }
+//                )
+//            }
+//            Spacer(modifier = Modifier.size(16.dp))
+//        }
+//        if (selectedIndex == 2) {
 
             OutlinedTextField(
                 modifier = Modifier
@@ -459,7 +527,7 @@ fun BargainOptionsSheet(
             )
 
             Spacer(modifier = Modifier.size(16.dp))
-        }
+//        }
 
         OutlinedTextField(
             value = message,
@@ -506,23 +574,34 @@ fun BargainOptionsSheet(
         Row(
             modifier = Modifier.fillMaxWidth()
         ) {
-            OutlinedButton(
-                modifier = Modifier.weight(0.4f).height(50.dp),
-                onClick = {},
-                shape = ButtonShape,
-            ) {
-                Text(
-                    text = "Delete",
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
-                )
+            if (isEditingBargain) {
+                OutlinedButton(
+                    modifier = Modifier
+                        .weight(0.4f)
+                        .height(50.dp),
+                    onClick = {onDeleteBargain()},
+                    shape = ButtonShape,
+                ) {
+                    Text(
+                        text = "Delete",
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                    )
+                }
+                Spacer(modifier = Modifier.size(8.dp))
             }
-            Spacer(modifier = Modifier.size(8.dp))
 
             Button(
-                modifier = Modifier.weight(0.6f).height(50.dp),
-                onClick = onBargainRequest,
+                modifier = Modifier
+                    .weight(0.6f)
+                    .height(50.dp),
+                onClick = {
+                    if (isEditingBargain)
+                        onBargainUpdateRequest()
+                    else
+                        onBargainRequest()
+                },
                 shape = ButtonShape,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Black,
@@ -530,31 +609,12 @@ fun BargainOptionsSheet(
                 )
             ) {
                 Text(
-                    text = "Request",
+                    text = if (isEditingBargain) "Update" else "Request",
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
                 )
             }
         }
-//        Row(
-//            modifier = Modifier
-//                .heightIn(min = 50.dp)
-//                .fillMaxWidth()
-//                .clip(ButtonShape)
-//                .clickable {
-//                    onBargainRequest()
-//                }
-//                .background(MaterialTheme.colorScheme.onPrimaryContainer),
-//            verticalAlignment = Alignment.CenterVertically,
-//            horizontalArrangement = Arrangement.Center
-//        ) {
-//            Text(
-//                text = "Request",
-//                fontWeight = FontWeight.Bold,
-//                fontSize = 18.sp,
-//                color = MaterialTheme.colorScheme.onPrimary
-//            )
-//        }
     }
 
 }
@@ -644,29 +704,32 @@ fun BargainCurrencyType(
     }
 
 }
-
-@Preview(
-    showBackground = true
-)
-@Composable
-fun BargainPopupPreview() {
-    SwapGoTheme {
-        BargainOptionsSheet(
-            listedPrice = "200",
-            mrp = "300",
-            bargainAmount = "",
-            onBargainAmountChange = {},
-            message = "",
-            onBargainMessageChange = {},
-            onClosePopup = {},
-            onBargainRequest = {},
-            fifteenPercentRecommended = Pair("150", "300"),
-            tenPercentRecommended = Pair("100", "200"),
-            selectedIndex = 0,
-            onSelectedIndexChange = {},
-            currencySelected = Currency.CASH,
-            onCurrencySelected = {}
-        )
-    }
-}
-
+//
+//@Preview(
+//    showBackground = true
+//)
+//@Composable
+//fun BargainPopupPreview() {
+//    SwapGoTheme {
+//        BargainOptionsSheet(
+//            listedPrice = "200",
+//            mrp = "300",
+//            bargainAmount = "",
+//            onBargainAmountChange = {},
+//            message = "",
+//            onBargainMessageChange = {},
+//            onClosePopup = {},
+//            onBargainRequest = {},
+//            isEditingBargain = false,
+//            fifteenPercentRecommended = Pair("150", "300"),
+//            tenPercentRecommended = Pair("100", "200"),
+//            selectedIndex = 0,
+//            onSelectedIndexChange = {},
+//            currencySelected = Currency.CASH,
+//            onCurrencySelected = {},
+//            onBargainUpdateRequest = {},
+//            onDeleteBargain = {}
+//        )
+//    }
+//}
+//

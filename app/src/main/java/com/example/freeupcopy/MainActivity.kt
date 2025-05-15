@@ -19,6 +19,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.NavHost
@@ -28,6 +31,8 @@ import androidx.navigation.navigation
 import androidx.navigation.toRoute
 import com.example.freeupcopy.domain.enums.SpecialOption
 import com.example.freeupcopy.domain.model.Price
+import com.example.freeupcopy.ui.navigation.AuthState
+import com.example.freeupcopy.ui.navigation.AuthStateManager
 import com.example.freeupcopy.ui.navigation.CustomNavType
 import com.example.freeupcopy.ui.navigation.Screen
 import com.example.freeupcopy.ui.presentation.authentication_screen.connect_screen.ConnectScreen
@@ -63,10 +68,15 @@ import com.example.freeupcopy.ui.presentation.wish_list.WishListScreen
 import com.example.freeupcopy.ui.theme.SwapGoTheme
 import com.example.freeupcopy.utils.sharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import kotlin.reflect.typeOf
+
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var authStateManager: AuthStateManager
 
     @RequiresApi(Build.VERSION_CODES.O)
     @ExperimentalMaterial3Api
@@ -83,7 +93,20 @@ class MainActivity : ComponentActivity() {
             SwapGoTheme(darkTheme = false) {
 
                 val navController = rememberNavController()
+                val authState by authStateManager.authState.collectAsState()
 
+                // Monitor auth state changes
+                LaunchedEffect(authState) {
+                    when (authState) {
+                         AuthState.UNAUTHENTICATED -> {
+                            // Navigate to login screen when session expires
+                            navController.navigate(Screen.ConnectScreen) {
+                                popUpTo(navController.graph.id) { inclusive = true }
+                            }
+                        }
+                        else -> { /* No action needed */ }
+                    }
+                }
                 Scaffold(
                     modifier = Modifier
                         .fillMaxSize()
@@ -93,7 +116,7 @@ class MainActivity : ComponentActivity() {
 
                     NavHost(
                         navController = navController,
-                        startDestination = Screen.ConnectScreen,
+                        startDestination = Screen.MainScreen,
                         enterTransition = {
                             slideIntoContainer(
                                 towards = AnimatedContentTransitionScope.SlideDirection.Left,
@@ -717,4 +740,3 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-

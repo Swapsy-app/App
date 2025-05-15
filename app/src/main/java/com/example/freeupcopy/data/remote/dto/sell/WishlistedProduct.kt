@@ -1,5 +1,7 @@
 package com.example.freeupcopy.data.remote.dto.sell
 
+import com.example.freeupcopy.data.remote.dto.product.User
+
 data class WishlistedProduct(
     val productId: String,
     val wishlistId: String,
@@ -9,6 +11,6 @@ data class WishlistedProduct(
     val size: Size?,           // or whatever your size model is
     val price: Price,          // reuse your existing Price model
     val status: String,
-    val seller: SellerId?,       // reuse your existing Seller model
+    val seller: User?,       // reuse your existing Seller model
     val createdAt: String
 )

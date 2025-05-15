@@ -29,6 +29,7 @@ import com.example.freeupcopy.domain.repository.LocationRepository
 import com.example.freeupcopy.domain.repository.ProductRepository
 import com.example.freeupcopy.domain.repository.SellRepository
 import com.example.freeupcopy.domain.repository.SellerProfileRepository
+import com.example.freeupcopy.ui.navigation.AuthStateManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -57,10 +58,11 @@ object AppModule {
     fun provideAuthInterceptor(swapGoPref: SwapGoPref): AuthInterceptor =
         AuthInterceptor(swapGoPref)
 
-    @Singleton
     @Provides
-    fun provideAuthAuthenticator(swapGoPref: SwapGoPref): AuthAuthenticator =
-        AuthAuthenticator(swapGoPref)
+    @Singleton
+    fun provideAuthStateManager(swapGoPref: SwapGoPref): AuthStateManager {
+        return AuthStateManager(swapGoPref)
+    }
 
     @Provides
     @Singleton
@@ -173,21 +175,31 @@ class AuthInterceptor @Inject constructor(
 
 class AuthAuthenticator @Inject constructor(
     private val swapGoPref: SwapGoPref,
+    private val authStateManager: AuthStateManager
 ): Authenticator {
 
     override fun authenticate(route: Route?, response: Response): Request? {
-
-        Log.e("ForgotViewModel", "AuthAuthenticator")
+        Log.e("AuthAuthenticator", "Token refresh attempt")
 
         val token = runBlocking {
             swapGoPref.getRefreshToken().first()
         }
+
+        // If no refresh token exists, signal unauthenticated state
+        if (token.isNullOrEmpty()) {
+            runBlocking {
+                authStateManager.setUnauthenticated()
+            }
+            return null
+        }
+
         return runBlocking {
             val newToken = getNewToken(token)
 
-            if (!newToken.isSuccessful || newToken.body() == null) { //Couldn't refresh the token, so restart the login process
-                swapGoPref.clearRefreshToken()
-                swapGoPref.clearAccessToken()
+            if (!newToken.isSuccessful || newToken.body() == null) {
+                // Token refresh failed - trigger logout flow
+                authStateManager.setUnauthenticated()
+                return@runBlocking null
             }
 
             newToken.body()?.let {

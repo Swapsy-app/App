@@ -8,21 +8,36 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.filter
 import com.example.freeupcopy.common.Resource
+import com.example.freeupcopy.data.local.RecentlyViewed
+import com.example.freeupcopy.data.local.RecentlyViewedDao
 import com.example.freeupcopy.data.remote.dto.product.AddCommentRequest
+import com.example.freeupcopy.data.remote.dto.product.BargainOfferRequest
 import com.example.freeupcopy.data.remote.dto.product.Comment
 import com.example.freeupcopy.data.remote.dto.product.Reply
+import com.example.freeupcopy.domain.enums.Currency
+import com.example.freeupcopy.domain.enums.getCurrencyFromString
 import com.example.freeupcopy.domain.repository.ProductRepository
 import com.example.freeupcopy.domain.repository.SellRepository
 import com.example.freeupcopy.domain.repository.SellerProfileRepository
+import com.example.freeupcopy.domain.use_case.GetProductCardsUseCase
+import com.example.freeupcopy.domain.use_case.ProductCardsQueryParameters
 import com.example.freeupcopy.utils.ValidationResult
 import com.example.freeupcopy.utils.calculateFifteenPercent
 import com.example.freeupcopy.utils.calculateTenPercent
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -32,13 +47,63 @@ class ProductViewModel @Inject constructor(
     private val sellRepository: SellRepository,
     savedStateHandle: SavedStateHandle,
     private val productRepository: ProductRepository,
-    private val sellerProfileRepository: SellerProfileRepository
+    private val sellerProfileRepository: SellerProfileRepository,
+    private val getProductCardsUseCase: GetProductCardsUseCase,
+    private val recentlyViewedDao: RecentlyViewedDao
 ) : ViewModel() {
     private val _state = MutableStateFlow(ProductUiState())
     val state = _state.asStateFlow()
 
     // Retrieve the productId from the saved state
     private val productId: String? = savedStateHandle["productId"]
+
+    // In ProductViewModel class
+    // Paging state for bargain offers
+    private var currentBargainPage = 1
+
+    // Similar products implementation using stateIn
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val similarProducts = _state
+        .map { state ->
+            state.productDetail?.let { product ->
+                // Extract category for filtering
+                val category = product.category
+
+                // Build search query from product name
+                val searchQuery = buildSearchQuery(product.title)
+
+                // Build filters map
+                val filters = buildMap<String, String> {
+                    put("category", category.primaryCategory)
+                }
+
+                // Return the search parameters
+                ProductCardsQueryParameters(
+                    search = searchQuery,
+                    filters = filters,
+                    sort = "relevance"
+                )
+            }
+        }
+        .filterNotNull() // Only proceed when we have valid parameters
+        .flatMapLatest { params ->
+            getProductCardsUseCase(params)
+        }
+        .map { pagingData ->
+            // Filter out the current product from results
+            pagingData.filter { productCard ->
+                productCard._id != _state.value.productId
+            }
+        }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.Lazily,
+            PagingData.empty()
+        )
+
+
+    private var isLoadingMoreBargains = false
+    private var hasMoreBargains = true
 
     // New properties for replies pagination
     private var currentRepliesPages = mutableMapOf<String, Int>()
@@ -65,6 +130,7 @@ class ProductViewModel @Inject constructor(
             getWishlistCount(it)
             loadMoreComments()
             getSellerBasicInfo()
+            getBargainOffersForProduct()
         }
     }
 
@@ -387,20 +453,33 @@ class ProductViewModel @Inject constructor(
             }
 
             is ProductUiEvent.BargainOptionsClicked -> {
-                val tenPercentCash = calculateTenPercent(_state.value.listedCashPrice)
-                val tenPercentCoin = calculateTenPercent(_state.value.listedCoinPrice)
+                val currentSheetState = _state.value.isSheetOpen
 
-                val fifteenPercentCash = calculateFifteenPercent(_state.value.listedCashPrice)
+
                 val fifteenPercentCoin = calculateFifteenPercent(_state.value.listedCoinPrice)
 
                 _state.update {
-                    it.copy(
-                        isSheetOpen = !it.isSheetOpen,
-                        tenPercentRecommended = Pair(tenPercentCash, tenPercentCoin),
-                        fifteenPercentRecommended = Pair(fifteenPercentCash, fifteenPercentCoin)
-                    )
+                    if (currentSheetState) {
+                        // Sheet is closing, reset all bargain-related values
+                        it.copy(
+                            isSheetOpen = false,
+                            bargainMessage = "",
+                            bargainAmount = "",
+                            bargainSelectedIndex = 1,
+                            isEditingBargain = false,
+                            bargainCurrencySelected = Currency.CASH, // Default currency
+                            currentEditingBargainId = null,
+                        )
+                    } else {
+                        // Sheet is opening
+                        it.copy(
+                            isSheetOpen = true,
+
+                            )
+                    }
                 }
             }
+
 
             is ProductUiEvent.ChangeBargainMessage -> {
                 _state.update {
@@ -415,25 +494,31 @@ class ProductViewModel @Inject constructor(
             }
 
             is ProductUiEvent.BargainRequest -> {
-                _state.update {
-                    it.copy(
-                        isSheetOpen = false,
-                        bargainMessage = "",
-                        bargainAmount = event.amount
-                    )
-                }
+
+                // Call the new makeOffer method
+                makeOffer()
             }
 
             is ProductUiEvent.EditBargainOption -> {
                 _state.update {
                     it.copy(
                         isSheetOpen = true,
+                        isEditingBargain = true,
                         bargainSelectedIndex = 2,
-                        bargainMessage = event.bargainOffer.message,
-                        bargainAmount = event.bargainOffer.amount,
-                        bargainCurrencySelected = event.bargainOffer.currency
+                        bargainMessage = event.bargainOffer.message!!,
+                        bargainAmount = event.bargainOffer.offeredPrice!!.toInt().toString(),
+                        bargainCurrencySelected = getCurrencyFromString(event.bargainOffer.offeredIn),
+                        currentEditingBargainId = event.bargainOffer._id,
                     )
                 }
+            }
+
+            is ProductUiEvent.DeleteBargain -> {
+                deleteBargainOffer(event.bargainId)
+            }
+
+            is ProductUiEvent.BargainUpdateRequest -> {
+                updateOffer()
             }
 
             is ProductUiEvent.BargainSelectedChange -> {
@@ -474,6 +559,32 @@ class ProductViewModel @Inject constructor(
                     it.copy(isFollowed = !it.isFollowed)
                 }
             }
+
+            is ProductUiEvent.IsLoading -> {
+                _state.update {
+                    it.copy(isLoading = event.isLoading)
+                }
+            }
+            is ProductUiEvent.SimilarProductClicked -> {
+                viewModelScope.launch {
+                    _state.update { it.copy(isLoading = true) }
+                    val existingRecentlyViewed = recentlyViewedDao.getRecentlyViewExists(event.productId)
+                    if (existingRecentlyViewed == null) {
+                        val recentlyViewed = RecentlyViewed(
+                            productId = event.productId,
+                            imageUrl = event.productImageUrl,
+                            title = event.title
+                        )
+                        recentlyViewedDao.insertWithLimit(recentlyViewed)
+//                        Log.d("ProductListingVM", "Inserted recently viewed: $recentlyViewed")
+                    } else {
+                        // Update the timestamp if the record already exists
+                        val updatedRecentlyViewed = existingRecentlyViewed.copy(timestamp = System.currentTimeMillis())
+                        recentlyViewedDao.insertWithLimit(updatedRecentlyViewed)
+                    }
+                    _state.update { it.copy(isLoading = false) }
+                }
+            }
         }
     }
 
@@ -510,6 +621,206 @@ class ProductViewModel @Inject constructor(
         }
     }
 
+    private fun makeOffer() {
+        viewModelScope.launch {
+            // Get current state values
+            val currentState = _state.value
+            val productId = currentState.productId ?: return@launch
+            val amount = currentState.bargainAmount.toFloatOrNull() ?: return@launch
+            val message = currentState.bargainMessage
+            val currency = currentState.bargainCurrencySelected
+
+            // Create the request object
+            val request = BargainOfferRequest(
+                offeredPrice = amount,
+                offeredIn = currency.valueName,
+                message = message,
+                sellerReceives = if (currency == Currency.CASH) {
+                    currentState.listedCashPrice
+                } else {
+                    currentState.listedCoinPrice
+                }
+            )
+
+            // Call the repository method
+            productRepository.makeOffer(productId, request).collect { result ->
+                when (result) {
+                    is Resource.Loading -> {
+                        _state.update { it.copy(isLoading = true, error = "") }
+                    }
+
+                    is Resource.Success -> {
+                        // Handle successful response
+                        _state.update {
+                            it.copy(
+                                isLoading = false,
+                                isSheetOpen = false,
+                                bargainMessage = "",
+                                bargainAmount = "",
+                                error = ""
+                            )
+                        }
+
+                        // Refresh the bargain offers list
+                        getBargainOffersForProduct()
+                    }
+
+                    is Resource.Error -> {
+                        _state.update {
+                            it.copy(
+                                isLoading = false,
+                                isSheetOpen = false,
+                                error = result.message ?: "Failed to make offer"
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    // Add this method to handle updating an existing bargain offer
+    private fun updateOffer() {
+        viewModelScope.launch {
+            val currentState = _state.value
+            val productId = currentState.productId
+            val amount = currentState.bargainAmount.toFloatOrNull() ?: return@launch
+            val message = currentState.bargainMessage
+            val currency = currentState.bargainCurrencySelected
+
+            val request = BargainOfferRequest(
+                offeredPrice = amount,
+                offeredIn = currency.name.lowercase(),
+                message = message,
+                sellerReceives = if (currency == Currency.CASH) {
+                    currentState.listedCashPrice
+                } else {
+                    currentState.listedCoinPrice
+                }
+            )
+
+            productRepository.updateOffer(productId, request).collect { result ->
+                when (result) {
+                    is Resource.Loading -> {
+                        _state.update { it.copy(isLoading = true, error = "") }
+                    }
+
+                    is Resource.Success -> {
+                        _state.update {
+                            it.copy(
+                                isLoading = false,
+                                isSheetOpen = false,
+                                bargainMessage = "",
+                                bargainAmount = "",
+                                currentEditingBargainId = null,
+                                isEditingBargain = false,
+                                error = ""
+                            )
+                        }
+                        getBargainOffersForProduct()
+                    }
+
+                    is Resource.Error -> {
+                        _state.update {
+                            it.copy(
+                                isLoading = false,
+                                isEditingBargain = false,
+                                error = result.message ?: "Failed to update offer"
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Add this method to handle deleting a bargain offer
+    private fun deleteBargainOffer(bargainId: String) {
+        viewModelScope.launch {
+            productRepository.deleteOffer(bargainId).collect { result ->
+                when (result) {
+                    is Resource.Loading -> {
+                        _state.update { it.copy(isLoading = true, error = "") }
+                    }
+
+                    is Resource.Success -> {
+                        _state.update {
+                            it.copy(
+                                isLoading = false,
+                                isSheetOpen = false,
+                                currentEditingBargainId = null,
+                                error = "",
+                                isEditingBargain = false,
+                                bargainMessage = "",
+                                bargainAmount = ""
+
+                            )
+                        }
+                        getBargainOffersForProduct()
+                    }
+
+                    is Resource.Error -> {
+                        _state.update {
+                            it.copy(
+                                isLoading = false,
+                                error = result.message ?: "Failed to delete offer"
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fun loadMoreBargains() {
+        if (!isLoadingMoreBargains && hasMoreBargains) {
+            getBargainOffersForProduct(loadMore = true)
+        }
+    }
+
+
+    private fun getBargainOffersForProduct(loadMore: Boolean = false) {
+        if (isLoadingMoreBargains || (!loadMore && !hasMoreBargains)) return
+
+        isLoadingMoreBargains = true
+        viewModelScope.launch {
+            try {
+                val pageToLoad = if (loadMore) currentBargainPage else 1
+                val response = productRepository.getOffersForProduct(
+                    productId = productId!!,
+                    page = pageToLoad
+                )
+                val newBargains = response.bargains ?: emptyList()
+                val updatedBargains = if (loadMore) {
+                    _state.value.bargains + newBargains
+                } else {
+                    newBargains
+                }
+                // <-- PLACE THE UPDATE HERE
+                _state.update {
+                    it.copy(
+                        bargains = updatedBargains,
+                        isLoadingMoreBargains = false,
+                        hasMoreBargains = response.hasNextPage
+                    )
+                }
+                currentBargainPage++
+                hasMoreBargains = response.hasNextPage
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(
+                        isLoadingMoreBargains = false,
+                        error = e.message ?: "Failed to fetch bargain offers"
+                    )
+                }
+            } finally {
+                isLoadingMoreBargains = false
+            }
+        }
+    }
+
+
     private fun deleteReply(replyId: String) {
         // First, find the reply and its parent comment ID before deletion
         val replyToDelete = _state.value.commentReplies.values.flatten().find { it._id == replyId }
@@ -525,9 +836,10 @@ class ProductViewModel @Inject constructor(
                     is Resource.Success -> {
                         _state.update { currentState ->
                             // 1️⃣ Filter out the deleted reply
-                            val updatedReplies = currentState.commentReplies.mapValues { (_, replies) ->
-                                replies.filter { it._id != replyId }
-                            }
+                            val updatedReplies =
+                                currentState.commentReplies.mapValues { (_, replies) ->
+                                    replies.filter { it._id != replyId }
+                                }
 
                             // 2️⃣ Decrement replyCount on the parent Comment if we found the parentCommentId
                             val updatedComments = if (parentCommentId != null) {
@@ -731,7 +1043,7 @@ class ProductViewModel @Inject constructor(
             // 3️⃣ Emit new state with both changes
             current.copy(
                 commentReplies = current.commentReplies + (newReply.commentId to updatedReplies),
-                comments       = updatedComments
+                comments = updatedComments
             )
         }
     }
@@ -780,7 +1092,22 @@ class ProductViewModel @Inject constructor(
                     }
 
                     is Resource.Success -> {
-                        Log.e("ProductDetails", result.data.toString())
+//                        var tenPercentRecommended: Pair<String?, String?> = Pair(null, null)
+//                        var fifteenPercentRecommended: Pair<String?, String?> = Pair(null, null)
+//                        _state.value.productDetail?.price?.cash?.let {
+//                            val tenPercentCash = calculateTenPercent(_state.value.productDetail?.price?.cash?.enteredAmount.toString())
+//                            val fifteenPercentCash = calculateFifteenPercent(_state.value.productDetail?.price?.cash?.enteredAmount.toString())
+//                            tenPercentRecommended = tenPercentRecommended.copy(tenPercentCash)
+//                            fifteenPercentRecommended = fifteenPercentRecommended.copy(fifteenPercentCash)
+//                        }
+//                        _state.value.productDetail?.price?.coin?.let {
+//                            val tenPercentCoin = calculateTenPercent(_state.value.productDetail?.price?.coin?.enteredAmount.toString())
+//                            val fifteenPercentCoin = calculateFifteenPercent(_state.value.productDetail?.price?.coin?.enteredAmount.toString())
+//
+//                            tenPercentRecommended
+//                        }
+
+
                         _state.update {
                             it.copy(
                                 productDetailsResponse = result.data,
@@ -836,7 +1163,36 @@ class ProductViewModel @Inject constructor(
         }
     }
 
+    // Smart title processing for search
+    private fun buildSearchQuery(productName: String): String {
+        // Extract key terms from product name
+        val nameKeywords = productName
+            .split(" ")
+            .filter { it.length > 3 && it.lowercase() !in COMMON_WORDS }
+            .take(3)
+
+        // Format the query
+        return nameKeywords
+            .distinct()
+            .joinToString(" ")
+            .trim()
+    }
+
+    // List of common words to exclude from search
+    private val COMMON_WORDS = setOf(
+        "with", "for", "and", "the", "this", "that", "from", "have", "has"
+    )
+
+
     fun validateAll(): ValidationResult {
+        if (_state.value.bargainMessage.isBlank()) return ValidationResult(
+            false,
+            "Bargain message cannot be empty"
+        )
+        if (_state.value.bargainAmount.isBlank()) return ValidationResult(
+            false,
+            "Bargain amount cannot be empty"
+        )
         if (_state.value.bargainAmount.toInt() < 50) return ValidationResult(
             false,
             "Minimum bargain amount is 50"

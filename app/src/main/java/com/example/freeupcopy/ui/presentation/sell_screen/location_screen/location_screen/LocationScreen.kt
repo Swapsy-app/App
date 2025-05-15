@@ -241,9 +241,9 @@ fun LocationScreen(
                                 scope.launch {
                                     locationViewModel.onEvent(LocationUiEvent.ChangeLoading(true))
                                     locationViewModel.onEvent(LocationUiEvent.OnSetDefault(address._id))
-                                    delay(1000)
+                                    delay(500)
                                     addresses.refresh()
-                                    delay(1000)
+                                    delay(500)
                                     locationViewModel.onEvent(LocationUiEvent.ChangeLoading(false))
                                 }
                             },

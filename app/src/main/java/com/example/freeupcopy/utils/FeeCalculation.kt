@@ -1,5 +1,6 @@
 package com.example.freeupcopy.utils
 
+import com.example.freeupcopy.data.remote.dto.sell.Price
 import kotlin.math.ceil
 
 fun calculateDeliveryFee(weightCategory: String, price: Long): Long {
@@ -38,4 +39,18 @@ fun calculateFifteenPercent(value: String): String {
 fun calculateTenPercent(value: String): String {
     val amount = value.toDouble()
     return (amount - ceil(value.toDouble() * 0.10)).toLong().toString()
+}
+
+fun getListedPrice(price: Price?): String {
+    return when {
+        price?.cash != null -> price.cash.enteredAmount?.toInt().toString()
+        price?.coin != null -> price.coin.enteredAmount?.toInt().toString()
+        price?.mix != null -> {
+            val enteredCash = (price.mix.enteredCash ?: 0.0).toInt()
+            val enteredCoin = (price.mix.enteredCoin ?: 0.0).toInt()
+
+            "₹$enteredCash + $enteredCoin coins"
+        }
+        else -> "No listed price available"
+    }
 }
