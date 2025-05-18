@@ -198,7 +198,7 @@ fun SellerProfileScreen(
             state = pullRefreshState,
             onRefresh = {
                 scope.launch {
-                    viewModel.getProfile()
+                    viewModel.getUserProfile()
                 }
             }
         ) {
@@ -553,7 +553,7 @@ fun SellerProfileScreen(
 
                     Button(
                         shape = ButtonShape,
-                        onClick = { viewModel.getProfile() },
+                        onClick = { viewModel.getUserProfile() },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.tertiary,
                             contentColor = MaterialTheme.colorScheme.onTertiary

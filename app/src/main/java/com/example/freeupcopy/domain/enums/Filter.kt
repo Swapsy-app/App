@@ -14,6 +14,7 @@ enum class Filter(val displayValue: String) {
     OCCASION("Occasion"),
     SHAPE("Shape"),
     LENGTH("Length"),
+    SORT("Sort"),
 }
 
 enum class AvailabilityOption(val displayValue: String, val filterName: String) {

@@ -48,12 +48,15 @@ class ProductCardsPagingSource(
         return try {
 
             val response = repository.fetchProductCards(
+                limit = queryParams.limit,
                 page = page,
                 search = queryParams.search,
                 sort = queryParams.sort,
                 priceType = queryParams.priceType,
-                minPrice = queryParams.minPrice,
-                maxPrice = queryParams.maxPrice,
+                minPriceCash = queryParams.minPriceCash,
+                maxPriceCash = queryParams.maxPriceCash,
+                minPriceCoin = queryParams.minPriceCoin,
+                maxPriceCoin = queryParams.maxPriceCoin,
                 minCashMix = queryParams.minCashMix,
                 maxCashMix = queryParams.maxCashMix,
                 minCoinMix = queryParams.minCoinMix,
@@ -74,11 +77,14 @@ class ProductCardsPagingSource(
 }
 
 data class ProductCardsQueryParameters(
+    val limit: Int = 15,
     val search: String? = null,
     val sort: String? = null,
     val priceType: String? = null,
-    val minPrice: Float? = null,
-    val maxPrice: Float? = null,
+    val minPriceCash: Float? = null,
+    val maxPriceCash: Float? = null,
+    val minPriceCoin: Float? = null,
+    val maxPriceCoin: Float? = null,
     val minCashMix: Float? = null,
     val maxCashMix: Float? = null,
     val minCoinMix: Float? = null,

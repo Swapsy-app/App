@@ -31,6 +31,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.freeupcopy.R
+import com.example.freeupcopy.data.remote.dto.sell.Cash
+import com.example.freeupcopy.data.remote.dto.sell.Coin
+import com.example.freeupcopy.data.remote.dto.sell.Mix
 import com.example.freeupcopy.ui.theme.ButtonShape
 import com.example.freeupcopy.ui.theme.CashColor1
 import com.example.freeupcopy.ui.theme.CustomOrangeColor
@@ -40,10 +43,10 @@ import com.example.freeupcopy.utils.dashedBorder
 @Composable
 fun ProductScreenBottomBar(
     modifier: Modifier = Modifier,
-    specialOffer: Pair<String, String>,
-    coinsOffered: String,
+    specialOffer: Mix?,
+    coinsOffered: Coin?,
     mrp: String,
-    priceOffered: String
+    priceOffered: Cash?
 ) {
     Column(
         modifier = modifier
@@ -56,68 +59,40 @@ fun ProductScreenBottomBar(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Column {
-            Row(
-                modifier = Modifier
-                    .heightIn(min = 45.dp)
-                    .fillMaxWidth()
-                    .clip(ButtonShape)
-                    .clickable { }
-                    .dashedBorder(
-                        color = CashColor1,
-                        shape = ButtonShape,
-                        strokeWidth = 3.dp,
-                        gapLength = 5.dp,
-                        dashLength = 2.dp,
-                        cap = StrokeCap.Square
-                    )
-                    .background(
-                        brush = Brush.linearGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.tertiary.copy(alpha = 0.5f),
-                                CustomOrangeColor.copy(alpha = 0.5f)
-                            ),
-                            start = Offset(0f, 0f),
-                            end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
-                        )
-                    )
-                ,
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "₹${specialOffer.first}  +  ${specialOffer.second}",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
-                )
-                Spacer(modifier = Modifier.size(4.dp))
-                Image(
-                    painter = painterResource(id = R.drawable.coin),
-                    contentDescription = "coin",
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-            Spacer(modifier = Modifier.size(8.dp))
-            Row {
+            specialOffer?.let {
                 Row(
                     modifier = Modifier
-                        .weight(0.70f)
-                        .heightIn(min = 50.dp)
+                        .heightIn(min = 45.dp)
                         .fillMaxWidth()
                         .clip(ButtonShape)
                         .clickable { }
-                        .border(
-                            1.dp,
-                            MaterialTheme.colorScheme.onPrimaryContainer.copy(0.3f),
-                            ButtonShape
+                        .dashedBorder(
+                            color = CashColor1,
+                            shape = ButtonShape,
+                            strokeWidth = 3.dp,
+                            gapLength = 5.dp,
+                            dashLength = 2.dp,
+                            cap = StrokeCap.Square
+                        )
+                        .background(
+                            brush = Brush.linearGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.tertiary.copy(alpha = 0.5f),
+                                    CustomOrangeColor.copy(alpha = 0.5f)
+                                ),
+                                start = Offset(0f, 0f),
+                                end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
+                            )
                         ),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = coinsOffered,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        text = "₹${
+                            specialOffer?.enteredCash?.toInt().toString()
+                        }  +  ${specialOffer?.enteredCoin?.toInt().toString()}",
                         fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
+                        fontSize = 18.sp
                     )
                     Spacer(modifier = Modifier.size(4.dp))
                     Image(
@@ -125,37 +100,73 @@ fun ProductScreenBottomBar(
                         contentDescription = "coin",
                         modifier = Modifier.size(24.dp)
                     )
-
                 }
                 Spacer(modifier = Modifier.size(8.dp))
-                Row(
-                    modifier = Modifier
-                        .weight(0.70f)
-                        .heightIn(min = 50.dp)
-                        .fillMaxWidth()
-                        .clip(ButtonShape)
-                        .clickable { }
-                        .border(
-                            1.dp,
-                            MaterialTheme.colorScheme.onPrimaryContainer.copy(0.3f),
-                            ButtonShape
-                        ),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = "₹$mrp",
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        textDecoration = TextDecoration.LineThrough,
-                        fontSize = 15.sp
-                    )
-                    Spacer(modifier = Modifier.size(8.dp))
-                    Text(
-                        text = "₹$priceOffered",
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
-                    )
+
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                coinsOffered?.let {
+                    Row(
+                        modifier = Modifier
+                            .weight(0.70f)
+                            .heightIn(min = 50.dp)
+                            .fillMaxWidth()
+                            .clip(ButtonShape)
+                            .clickable { }
+                            .border(
+                                1.dp,
+                                MaterialTheme.colorScheme.onPrimaryContainer.copy(0.3f),
+                                ButtonShape
+                            ),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = coinsOffered.enteredAmount?.toInt().toString(),
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
+                        )
+                        Spacer(modifier = Modifier.size(4.dp))
+                        Image(
+                            painter = painterResource(id = R.drawable.coin),
+                            contentDescription = "coin",
+                            modifier = Modifier.size(24.dp)
+                        )
+
+                    }
+                }
+
+                priceOffered?.let {
+                    Row(
+                        modifier = Modifier
+                            .weight(0.70f)
+                            .heightIn(min = 50.dp)
+                            .fillMaxWidth()
+                            .clip(ButtonShape)
+                            .clickable { }
+                            .border(
+                                1.dp,
+                                MaterialTheme.colorScheme.onPrimaryContainer.copy(0.3f),
+                                ButtonShape
+                            ),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "₹$mrp",
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            textDecoration = TextDecoration.LineThrough,
+                            fontSize = 15.sp
+                        )
+                        Spacer(modifier = Modifier.size(8.dp))
+                        Text(
+                            text = "₹${priceOffered.enteredAmount?.toInt().toString()}",
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
+                        )
+                    }
                 }
             }
         }
@@ -163,15 +174,26 @@ fun ProductScreenBottomBar(
     }
 }
 
-@Preview (showBackground = true)
+@Preview(showBackground = true)
 @Composable
 fun ProductScreenBottomBarPreview() {
     SwapGoTheme {
         ProductScreenBottomBar(
-            specialOffer = Pair("100", "50"),
-            coinsOffered = "100",
-            mrp = "1000",
-            priceOffered = "500"
+            specialOffer = Mix(
+                enteredCash = 1000.0,
+                enteredCoin = 500.0,
+                sellerReceivesCash = 800.0,
+                sellerReceivesCoin = 200.0
+            ),
+            coinsOffered = Coin(
+                enteredAmount = 500.0,
+                sellerReceivesCoin = 200.0
+            ),
+            mrp = "3500",
+            priceOffered = Cash(
+                enteredAmount = 1000.0,
+                sellerReceivesCash = 800.0
+            )
         )
     }
 }

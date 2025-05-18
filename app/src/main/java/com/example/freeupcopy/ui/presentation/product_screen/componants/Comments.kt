@@ -1,12 +1,16 @@
 package com.example.freeupcopy.ui.presentation.product_screen.componants
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,62 +18,95 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Send
 import androidx.compose.material.icons.rounded.AccountCircle
-import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.SubcomposeAsyncImage
 import com.example.freeupcopy.R
-import com.example.freeupcopy.domain.model.Comment
-import com.example.freeupcopy.domain.model.Reply
+import com.example.freeupcopy.common.Constants.BASE_URL_AVATAR
+import com.example.freeupcopy.data.remote.dto.product.Comment
+import com.example.freeupcopy.data.remote.dto.product.Reply
+import com.example.freeupcopy.data.remote.dto.product.User
+import com.example.freeupcopy.data.remote.dto.product.UserSearchResult
 import com.example.freeupcopy.ui.theme.ButtonShape
+import com.example.freeupcopy.ui.theme.NoteContainerLight
 import com.example.freeupcopy.ui.theme.TextFieldContainerColor
 import com.example.freeupcopy.ui.theme.TextFieldShape
 import com.example.freeupcopy.utils.clearFocusOnKeyboardDismiss
+import com.example.freeupcopy.utils.getTimeAgo
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun Comments(
-    comment: List<Comment>,
+    user: User?,
+    comments: List<Comment>,
     userComment: String,
-//    userReply: String,
     onCommentChange: (String) -> Unit,
-//    onReplyChange: (String) -> Unit,
     sendComment: () -> Unit,
-    onReplyClick: (String?) -> Unit,
-//    sendReply: (String) -> Unit,
-//    toReplyId: String?,
+    onUserClick: (String) -> Unit,
+
+    onReplyClickComment: (String?) -> Unit,
+    onReplyClickReply: (String?, String?) -> Unit,
+
+    // NEW parameters for comment pagination:
+    isLoadingMore: Boolean,
+    hasMoreComments: Boolean,
+    loadMoreComments: () -> Unit,
+
+    onCancelMention: () -> Unit,
+    onLongPressComment: (String, String) -> Unit,
+    onLongPressReply: (String, String) -> Unit,
+
+    isMentioning: Boolean,
+    mentionResults: List<UserSearchResult>,
+    onSelectMention: (UserSearchResult) -> Unit,
+
+    commentReplies: Map<String, List<Reply>>,
+    loadMoreReplies: (String) -> Unit, // New parameter to handle reply loading
+    canLoadMoreReplies: (String, Int) -> Boolean // New parameter to check if more replies can be loaded
 ) {
+
+    val showMentionSuggestions by remember(isMentioning, mentionResults) {
+        mutableStateOf(isMentioning && mentionResults.isNotEmpty())
+    }
+
     Column(
         modifier = Modifier
             .clearFocusOnKeyboardDismiss()
@@ -92,6 +129,36 @@ fun Comments(
         }
         Spacer(modifier = Modifier.size(16.dp))
 
+
+        AnimatedVisibility(
+            visible = showMentionSuggestions,
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically()
+        ) {
+            Surface(
+                modifier = Modifier.padding(bottom = 12.dp),
+//                shape = RoundedCornerShape(8.dp),
+//                shadowElevation = 4.dp,
+                color = Color.Transparent
+            ) {
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(mentionResults) {
+                        MentionSuggestionItem(
+                            user = it,
+                            onClick = {
+                                onSelectMention(it)
+                            }
+                        )
+                    }
+                }
+            }
+        }
+
+
+
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -99,7 +166,9 @@ fun Comments(
         ) {
             OutlinedTextField(
                 value = userComment,
-                onValueChange = { onCommentChange(it) },
+                onValueChange = { newValue ->
+                    onCommentChange(newValue)
+                },
                 placeholder = {
                     Text(
                         modifier = Modifier.fillMaxWidth(),
@@ -113,14 +182,33 @@ fun Comments(
                 modifier = Modifier.weight(1f),
                 shape = TextFieldShape,
                 leadingIcon = {
-                    Icon(
-                        modifier = Modifier
-                            .padding(start = 6.dp, end = 4.dp)
-                            .size(48.dp),
-                        imageVector = Icons.Rounded.AccountCircle,
-                        contentDescription = "user profile",
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f)
-                    )
+                    if (user != null) {
+                        SubcomposeAsyncImage(
+                            modifier = Modifier
+                                .padding(start = 6.dp, end = 4.dp)
+                                .size(42.dp)
+                                .clip(CircleShape),
+                            model = user.avatar,
+                            loading = {
+                                painterResource(id = R.drawable.im_user)
+                            },
+                            error = {
+                                painterResource(id = R.drawable.im_user)
+                            },
+                            contentDescription = "profile",
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Icon(
+                            modifier = Modifier
+                                .padding(start = 6.dp, end = 4.dp)
+                                .size(48.dp),
+                            imageVector = Icons.Rounded.AccountCircle,
+                            contentDescription = "user profile",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f)
+                        )
+                    }
+
                 },
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedContainerColor = TextFieldContainerColor,
@@ -148,79 +236,183 @@ fun Comments(
         }
 
         Spacer(modifier = Modifier.size(24.dp))
-        comment.forEach { commentItem ->
+
+        comments.forEach { commentItem ->
             CommentItem(
                 comment = commentItem,
-//                userReply = userReply,
-//                isReplying = toReplyId == commentItem.id,
-//                onReplyChange = onReplyChange,
-//                sendReply = sendReply,
-                onReplyClick = {
-                    onReplyClick(it)
+                onReplyClickComment = {
+                    onReplyClickComment(it)
                 },
-//                replyToReplyId = toReplyId,
-//                onReplyToReplyClick = { reply ->
-//                    onReplyToReplyClick(reply?.id)
-//                }
+                onReplyClickReply = { replyId ->
+                    onReplyClickReply(commentItem._id, replyId)
+                },
+                onLongPress = { commentId ->
+                    onLongPressComment(commentId, commentItem.userId._id)
+                },
+                onLongPressReply = { reply ->
+                    onLongPressReply(reply._id, reply.userId._id)
+                },
+                onUserClick = { userId ->
+                    onUserClick(userId)
+                },
+                commentReplies = commentReplies,
+                onLoadMoreReplies = { commentId ->
+                    loadMoreReplies(commentId)
+                },
+                canLoadMoreReplies = { commentId, replyCount ->
+                    canLoadMoreReplies(commentId, replyCount)
+                }
+
             )
             Spacer(modifier = Modifier.size(16.dp))
+        }
+
+        // — Load more indicator / button —
+        when {
+            isLoadingMore -> {
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(Modifier.size(24.dp))
+                }
+            }
+
+            hasMoreComments -> {
+                Button(
+                    onClick = loadMoreComments,
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(vertical = 8.dp)
+                ) {
+                    Text("Load more comments")
+                }
+            }
+
+            else -> {
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (comments.isEmpty()) {
+                        Text("No comments yet")
+                    } else
+                        Text("No more comments to load")
+                }
+            }
         }
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun CommentItem(
     comment: Comment,
-//    isReplying: Boolean,
-//    replyToReplyId: String?,
-//    onReplyChange: (String) -> Unit,
-//    userReply: String,
-//    sendReply: (String) -> Unit,
-    onReplyClick: (String?) -> Unit,
+    onReplyClickComment: (String?) -> Unit,
+    onReplyClickReply: (String?) -> Unit,
+    onLongPress: (String) -> Unit,
+    onUserClick: (String) -> Unit,
+    onLongPressReply: (Reply) -> Unit,
+
+    commentReplies: Map<String, List<Reply>>,
+    onLoadMoreReplies: (String) -> Unit, // New parameter to handle reply loading
+    canLoadMoreReplies: (String, Int) -> Boolean // New parameter to check if more replies can be loaded
 ) {
-    val focusRequester = remember { FocusRequester() }
-    val focusManager = LocalFocusManager.current
-    var showReplies by remember { mutableStateOf(false) }
+    var showReplies by rememberSaveable { mutableStateOf(false) }
+
+    val replies = commentReplies[comment._id] ?: emptyList()
+
+    // Check if more replies can be loaded
+    val canLoadMoreRepliesForComment = canLoadMoreReplies(comment._id, comment.replyCount)
 
     Row(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
     ) {
         Column(
             modifier = Modifier.fillMaxWidth()
         ) {
             Row(
-                verticalAlignment = Alignment.Top
-            ) {
-                Icon(
-                    modifier = Modifier.size(30.dp),
-                    imageVector = Icons.Rounded.AccountCircle,
-                    contentDescription = "User image",
+                verticalAlignment = Alignment.Top,
+
+                ) {
+                SubcomposeAsyncImage(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clip(CircleShape)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = {
+                                onUserClick(comment.userId._id)
+                            }
+                        ),
+                    model = BASE_URL_AVATAR + comment.userId.avatar,
+                    loading = {
+                        painterResource(id = R.drawable.im_user)
+                    },
+                    error = {
+                        painterResource(id = R.drawable.im_user)
+                    },
+                    contentDescription = "profile",
+                    contentScale = ContentScale.Crop
                 )
                 Spacer(modifier = Modifier.size(8.dp))
                 Column {
-                    Row {
-                        Text(
-                            text = comment.username,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                        Spacer(modifier = Modifier.size(8.dp))
-                        Text(
-                            text = comment.timeStamp,
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
-                        )
-                    }
-                    Spacer(modifier = Modifier.size(6.dp))
-                    Text(
-                        text = comment.text
-                    )
-
-                    Row(
-                        modifier = Modifier.padding(vertical = 4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(24.dp)
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .combinedClickable(
+                                onClick = { /* Handle click */ },
+                                onLongClick = {
+                                    onLongPress(comment._id)
+                                },
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }
+                            )
                     ) {
-                        // Only show Reply button if no reply UI is open
-//                        if (!isReplying) {
+
+                        Row {
+                            Text(
+                                modifier = Modifier
+                                    .clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = null,
+                                        onClick = {
+                                            onUserClick(comment.userId._id)
+                                        }
+                                    ),
+                                text = comment.userId.username,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                            Spacer(modifier = Modifier.size(8.dp))
+                            Text(
+                                text = getTimeAgo(comment.createdAt),
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
+                            )
+                        }
+                        Spacer(modifier = Modifier.size(6.dp))
+
+                        // Use updated ClickableMentionsText with taggedUsers
+                        ClickableMentionsText(
+                            text = comment.commentText,
+                            taggedUsers = comment.taggedUsers,
+                            onMentionClick = { userId ->
+                                // Now we directly get userId, not username
+                                onUserClick(userId)
+                            }
+                        )
+
+                        Row(
+                            modifier = Modifier.padding(vertical = 4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(24.dp)
+                        ) {
                             Text(
                                 text = "Reply",
                                 fontSize = 14.sp,
@@ -231,73 +423,35 @@ fun CommentItem(
                                         interactionSource = remember { MutableInteractionSource() },
                                         indication = null,
                                         onClick = {
-                                            onReplyClick(comment.id)
+                                            onReplyClickComment(comment._id)
                                         }
                                     )
                             )
-//                        }
 
-                        // Show replies count and toggle
-                        if (comment.replies.isNotEmpty()) {
-                            Text(
-                                text = if (showReplies) "Hide Replies" else "Show ${comment.replies.size} Replies",
-                                fontSize = 14.sp,
-                                color = Color.Gray,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier
-                                    .clickable(
-                                        interactionSource = remember { MutableInteractionSource() },
-                                        indication = null,
-                                        onClick = {
-                                            showReplies = !showReplies
-                                        }
-                                    )
-                            )
+
+                            if (comment.replyCount > 0) {
+                                Text(
+                                    text = if (showReplies) "Hide Replies"
+                                    else "Show ${comment.replyCount} Replies",
+                                    fontSize = 14.sp,
+                                    color = Color.Gray,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier
+                                        .clickable(
+                                            interactionSource = remember { MutableInteractionSource() },
+                                            indication = null,
+                                            onClick = {
+                                                showReplies = !showReplies
+                                                if (showReplies && replies.isEmpty()) {
+                                                    // Load replies if not already loaded
+                                                    onLoadMoreReplies(comment._id)
+                                                }
+                                            }
+                                        )
+                                )
+                            }
                         }
                     }
-
-                    // Show reply UI for main comment
-//                    AnimatedVisibility(isReplying) {
-//                        Row(
-//                            modifier = Modifier.padding(top = 8.dp),
-//                            verticalAlignment = Alignment.Top
-//                        ) {
-//                            Icon(
-//                                modifier = Modifier
-//                                    .rotate(180f)
-//                                    .offset(x = 4.dp),
-//                                painter = painterResource(id = R.drawable.ic_reply),
-//                                contentDescription = "post reply",
-//                            )
-//
-//                            ReplyTextField(
-//                                value = userReply,
-//                                onValueChange = { onReplyChange(it) },
-//                                modifier = Modifier
-//                                    .weight(1f)
-//                                    .focusRequester(focusRequester),
-//                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-//                                keyboardActions = KeyboardActions(
-//                                    onDone = {
-//                                        onReplyClick(null)
-//                                        focusManager.clearFocus()
-//                                    }
-//                                ),
-//                                placeholder = "Add a reply..."
-//                            )
-//
-//                            IconButton(
-//                                onClick = {
-//                                    onReplyClick(null)
-//                                }
-//                            ) {
-//                                Icon(
-//                                    imageVector = Icons.Rounded.Close,
-//                                    contentDescription = "post reply",
-//                                )
-//                            }
-//                        }
-//                    }
 
                     // Show replies only when showReplies is true
                     AnimatedVisibility(
@@ -308,20 +462,35 @@ fun CommentItem(
                         Column(
                             modifier = Modifier.padding(top = 12.dp)
                         ) {
-                            comment.replies.forEachIndexed { i, reply ->
+                            replies.forEachIndexed { i, reply ->
                                 ReplyItem(
                                     reply = reply,
-                                    parentCommentId = comment.id,
-//                                    isReplying = replyToReplyId == reply.id,
-                                    onReplyClick = {
-                                        onReplyClick(it?.id)
+                                    onReplyClick = { replyId ->
+                                        onReplyClickReply(replyId)
                                     },
-//                                    onReplyChange = onReplyChange,
-//                                    userReply = userReply,
-//                                    sendReply = sendReply
+                                    onUserClick = { userId ->
+                                        onUserClick(userId)
+                                    },
+                                    onLongPress = {
+                                        onLongPressReply(reply)
+                                    }
                                 )
-                                if (i != comment.replies.size - 1) {
+                                if (i != replies.size - 1) {
                                     Spacer(modifier = Modifier.size(12.dp))
+                                }
+                            }
+
+                            // Load more replies button
+                            if (canLoadMoreRepliesForComment) {
+                                Button(
+                                    onClick = {
+                                        onLoadMoreReplies(comment._id)
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 8.dp)
+                                ) {
+                                    Text("Load More Replies")
                                 }
                             }
                         }
@@ -332,242 +501,209 @@ fun CommentItem(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ReplyItem(
     reply: Reply,
-    parentCommentId: String,
-//    isReplying: Boolean,
-    onReplyClick: (Reply?) -> Unit,
-//    onReplyChange: (String) -> Unit,
-//    userReply: String,
-//    sendReply: (String) -> Unit
+    onLongPress: () -> Unit,
+    onReplyClick: (String) -> Unit,
+    onUserClick: (String) -> Unit
 ) {
-    val focusRequester = remember { FocusRequester() }
-    val focusManager = LocalFocusManager.current
-
     Column {
         Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .combinedClickable(
+                    onClick = { /* Handle click */ },
+                    onLongClick = {
+                        onLongPress()
+                    },
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() }
+                ),
             verticalAlignment = Alignment.Top
         ) {
-            Icon(
-                imageVector = Icons.Rounded.AccountCircle,
-                contentDescription = "User image",
+            SubcomposeAsyncImage(
+                modifier = Modifier
+                    .size(24.dp)
+                    .clip(CircleShape)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = {
+                            onUserClick(reply.userId._id)
+                        }
+                    ),
+                model = BASE_URL_AVATAR + reply.userId.avatar,
+                loading = {
+                    painterResource(id = R.drawable.im_user)
+                },
+                error = {
+                    painterResource(id = R.drawable.im_user)
+                },
+                contentDescription = "profile",
+                contentScale = ContentScale.Crop
             )
+
             Spacer(modifier = Modifier.size(8.dp))
+
             Column {
                 Row {
                     Text(
-                        text = reply.user,
+                        modifier = Modifier
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                                onClick = {
+                                    onUserClick(reply.userId._id)
+                                }
+                            ),
+                        text = reply.userId.username,
                         fontWeight = FontWeight.SemiBold,
                     )
                     Spacer(modifier = Modifier.size(8.dp))
                     Text(
-                        text = reply.timeStamp,
+                        text = getTimeAgo(reply.createdAt),
                         fontSize = 14.sp,
                         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
                     )
                 }
-                Text(
-                    text = reply.text
+
+                // Use the updated ClickableMentionsText with taggedUsers
+                ClickableMentionsText(
+                    text = reply.replyText,
+                    taggedUsers = reply.taggedUsers ?: emptyList(), // Handle possible null
+                    onMentionClick = { userId ->
+                        // Now we directly receive userId
+                        onUserClick(userId)
+                    },
+//                    style = TextStyle(fontSize = 14.sp)
                 )
 
-//                if (!isReplying) {
-                    Text(
-                        text = "Reply",
-                        fontSize = 14.sp,
-                        color = Color.Gray,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.clickable {
-                            onReplyClick(reply)
-                        }
-                    )
-//                }
-
-//                AnimatedVisibility(isReplying) {
-//                    Row(
-//                        modifier = Modifier.padding(top = 8.dp),
-//                        verticalAlignment = Alignment.Top
-//                    ) {
-//                        Icon(
-//                            modifier = Modifier
-//                                .size(20.dp)
-//                                .rotate(180f)
-//                                .offset(x = 4.dp),
-//                            painter = painterResource(id = R.drawable.ic_reply),
-//                            contentDescription = "post reply",
-//                        )
-//
-//                        ReplyTextField(
-//                            value = userReply,
-//                            onValueChange = { onReplyChange(it) },
-//                            modifier = Modifier
-//                                .weight(1f)
-//                                .focusRequester(focusRequester),
-//                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-//                            keyboardActions = KeyboardActions(
-//                                onSend = {
-//                                    onReplyClick(null)
-//                                    focusManager.clearFocus()
-//                                }
-//                            ),
-//                            placeholder = "Reply to ${reply.user}..."
-//                        )
-//
-//                        IconButton(
-//                            onClick = {
-//                                //sendReply(parentCommentId)
-//                                onReplyClick(null)
-//                            }
-//                        ) {
-//                            Icon(
-//                                imageVector = Icons.Rounded.Close,
-//                                contentDescription = "post reply",
-//                            )
-//                        }
-//                    }
-//                }
+                Text(
+                    text = "Reply",
+                    fontSize = 14.sp,
+                    color = Color.Gray,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.clickable {
+                        onReplyClick(reply._id)
+                    }
+                )
             }
         }
     }
 }
 
+@Composable
+fun MentionSuggestionItem(
+    user: UserSearchResult,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(ButtonShape)
+            .clickable { onClick() }
+            .background(color = NoteContainerLight.copy(0.5f))
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // User avatar
+        SubcomposeAsyncImage(
+            modifier = Modifier
+                .size(32.dp)
+                .clip(CircleShape),
+            model = BASE_URL_AVATAR + user.avatar,
+            loading = {
+                painterResource(id = R.drawable.im_user)
+            },
+            error = {
+                painterResource(id = R.drawable.im_user)
+            },
+            contentDescription = "user avatar",
+            contentScale = ContentScale.Crop
+        )
 
-//@Preview(
-//    showBackground = true
-//)
-//@Composable
-//fun CommentsPreview() {
-//    SwapsyTheme {
-//        Comments(
-//            comment = listOf(
-//                Comment(
-//                    id = "c1",
-//                    user = "Alice",
-//                    userId = "u1",
-//                    text = "This is a great post! Thanks for sharing.",
-//                    replies = listOf(
-//                        Reply(
-//                            id = "r1",
-//                            user = "Bob",
-//                            userId = "u2",
-//                            text = "I agree, very insightful!",
-//                            timeStamp = "25 Dec"
-//                        ),
-//                        Reply(
-//                            id = "r2",
-//                            user = "Charlie",
-//                            userId = "u3",
-//                            text = "Thanks for the info, Alice!",
-//                            timeStamp = "25 Dec"
-//                        )
-//                    ),
-//                    timeStamp = "25 Dec"
-//                ),
-//                Comment(
-//                    id = "c2",
-//                    user = "David",
-//                    userId = "u4",
-//                    text = "Can someone explain this part in more detail?",
-//                    replies = listOf(
-//                        Reply(
-//                            id = "r3",
-//                            user = "Eve",
-//                            userId = "u5",
-//                            text = "Sure, I can help. Which part do you need clarification on?",
-//                            timeStamp = "25 Dec"
-//                        )
-//                    ),
-//                    timeStamp = "25 Dec"
-//                ),
-//                Comment(
-//                    id = "c3",
-//                    user = "Frank",
-//                    userId = "u6",
-//                    text = "Interesting perspective, but I think there's another way to look at this.",
-//                    replies = emptyList(),
-//                    timeStamp = "25 Dec"
-//                )
-//            ),
-//            userComment = "",
-//            onCommentChange = {},
-//            sendComment = { },
-//            sendReply = {},
-//            userReply = "",
-//            onReplyChange = {},
-//            onReplyClick = {},
-//            toReplyId = null
-//        )
-//    }
-//}
+        Spacer(modifier = Modifier.width(12.dp))
 
-
-//@Preview(
-//    showBackground = true
-//)
-//@Composable
-//fun CommentItemPreview() {
-//    SwapsyTheme {
-//        CommentItem(
-//            Comment(
-//                id = "c2",
-//                user = "David",
-//                userId = "u4",
-//                text = "Can someone explain this part in more detail?",
-//                replies = listOf(
-//                    Reply(
-//                        id = "r3",
-//                        user = "Eve",
-//                        userId = "u5",
-//                        text = "Sure, I can help. Which part do you need clarification on?",
-//                        timeStamp = "2 days ago"
-//                    )
-//                ),
-//                timeStamp = "4 days ago"
-//            ),
-//            sendReply = {},
-//            onReplyClick = {},
-//            userReply = "",
-//            onReplyChange = {},
-//            isReplying = true,
-//            replyToReplyId = "",
-//        )
-//    }
-//}
+        // Username
+        Text(
+            text = user.username,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Medium
+        )
+    }
+}
 
 @Composable
-fun ReplyTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
-    placeholder: String,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    keyboardActions: KeyboardActions = KeyboardActions.Default,
-    colors: TextFieldColors = OutlinedTextFieldDefaults.colors()
+fun ClickableMentionsText(
+    text: String,
+    taggedUsers: List<User>,
+    onMentionClick: (String) -> Unit,
+    style: TextStyle = LocalTextStyle.current,
+    color: Color = Color.Unspecified
 ) {
+    val mentionPattern = "@(\\w+)".toRegex()
+    val matches = mentionPattern.findAll(text)
 
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        placeholder = {
-            Text(
-                text = placeholder,
-                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(
-                    alpha = 0.4f
-                ),
-                fontStyle = FontStyle.Italic,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        },
-        modifier = modifier,
-        keyboardActions = keyboardActions,
-        shape = TextFieldShape,
-        keyboardOptions = keyboardOptions,
-//        colors = OutlinedTextFieldDefaults.colors(
-//            unfocusedContainerColor = TextFieldContainerColor
-//        ),
-        colors = colors,
-        singleLine = true,
-        maxLines = 1
+    if (matches.none() || taggedUsers.isEmpty()) {
+        // If no mentions found or no tagged users, just display regular text
+        Text(text = text, style = style, color = color)
+        return
+    }
+
+    // Create a map of username -> userId for quick lookup
+    val taggedUserMap = taggedUsers.associateBy({ it.username }, { it._id })
+
+    // Set up the annotated string for clickable spans
+    val annotatedString = buildAnnotatedString {
+        var lastIndex = 0
+
+        for (match in matches) {
+            // Add text before the mention
+            append(text.substring(lastIndex, match.range.first))
+
+            // Add the mention with styling and tag
+            val username = match.groupValues[1]
+            val mention = match.value // The full @username
+
+            // Only make it clickable if this username is in the taggedUsers list
+            val userId = taggedUserMap[username]
+            if (userId != null) {
+                // This is a valid mention - make it clickable and style it
+                pushStringAnnotation(tag = "MENTION", annotation = userId)
+                withStyle(style = SpanStyle(
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
+                )) {
+                    append(mention)
+                }
+                pop()
+            } else {
+                // This is just text that happens to look like a mention
+                append(mention)
+            }
+
+            lastIndex = match.range.last + 1
+        }
+
+        // Add any remaining text after the last mention
+        if (lastIndex < text.length) {
+            append(text.substring(lastIndex))
+        }
+    }
+
+    // Create the Text with clickable mentions
+    ClickableText(
+        text = annotatedString,
+        style = style,
+        onClick = { offset ->
+            annotatedString.getStringAnnotations(tag = "MENTION", start = offset, end = offset)
+                .firstOrNull()?.let { annotation ->
+                    // annotation.item is now the userId, not username
+                    onMentionClick(annotation.item)
+                }
+        }
     )
 }

@@ -4,6 +4,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,10 +20,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -36,7 +40,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
+import coil.compose.SubcomposeAsyncImage
 import com.example.freeupcopy.R
+import com.example.freeupcopy.data.remote.dto.sell.ProductCard
 import com.example.freeupcopy.ui.theme.CardShape
 import com.example.freeupcopy.ui.theme.SwapGoTheme
 import kotlin.math.max
@@ -45,14 +53,11 @@ import kotlin.random.Random
 @Composable
 fun BestInMen(
     modifier: Modifier = Modifier,
-    images: List<Int> = listOf(
-        R.drawable.p1,
-        R.drawable.p2,
-        R.drawable.p3,
-        R.drawable.p4,
-        R.drawable.p5,
-        R.drawable.p6
-    ),
+    bestInMenProducts: List<ProductCard>,
+    isLoading: Boolean,
+    error: String,
+    onRetry: () -> Unit,
+    onProductClick: (ProductCard) -> Unit
 ) {
     Column {
         Box(
@@ -105,54 +110,186 @@ fun BestInMen(
                 )
                 Spacer(Modifier.size(8.dp))
 
-                Row {
-                    images.take(3).forEach { image ->
-                        Column(
+                // Handle different states
+                when {
+                    // Loading state
+                    isLoading -> {
+                        Box(
                             modifier = Modifier
-                                //.size(100.dp)
-                                .aspectRatio(0.75f)
-                                .weight(1f)
-                                .padding(4.dp)
-                                .clip(CardShape.small)
-                                .border(
-                                    1.dp,
-                                    MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f),
-                                    shape = CardShape.medium
-                                )
+                                .fillMaxWidth()
+                                .height(200.dp),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Image(
-                                painter = painterResource(id = image),
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.fillMaxSize()
+                            CircularProgressIndicator()
+                        }
+                    }
+
+                    // Error state
+                    error.isNotEmpty() -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = "Error loading products",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = Color.Black,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Text(
+                                    text = error,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color.Black
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Button(
+                                    onClick = { onRetry() }
+                                ) {
+                                    Text("Refresh")
+                                }
+                            }
+                        }
+                    }
+
+                    // Empty list
+                    bestInMenProducts.isEmpty() -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "No products available",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                             )
                         }
                     }
-                }
-                Row {
-                    images.takeLast(3).forEach { image ->
-                        Column(
-                            modifier = Modifier
-                                //.size(100.dp)
-                                .aspectRatio(0.75f)
-                                .weight(1f)
-                                .padding(8.dp)
-                                .clip(CardShape.medium)
-                                .border(
-                                    1.dp,
-                                    MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f),
-                                    shape = CardShape.medium
-                                )
-                        ) {
-                            Image(
-                                painter = painterResource(id = image),
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.fillMaxSize()
-                            )
+
+                    // Content loaded successfully
+                    else -> {
+                        Row {
+                            (0 until minOf(3, bestInMenProducts.size)).forEach { index ->
+                                Column(
+                                    modifier = Modifier
+                                        .aspectRatio(0.75f)
+                                        .weight(1f)
+                                        .padding(4.dp)
+                                        .clip(CardShape.small)
+                                        .border(
+                                            1.dp,
+                                            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f),
+                                            shape = CardShape.medium
+                                        )
+                                ) {
+                                    SubcomposeAsyncImage(
+                                        model = bestInMenProducts[index].images[0],
+                                        contentDescription = "Product Image",
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .clickable(
+                                                onClick = { onProductClick(bestInMenProducts[index]) },
+                                                indication = null,
+                                                interactionSource = remember { MutableInteractionSource() }
+                                            ),
+                                        contentScale = ContentScale.Crop,
+                                        loading = {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .padding(horizontal = 8.dp),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Image(
+                                                    painter = painterResource(R.drawable.ic_logo_full),
+                                                    contentDescription = null
+                                                )
+                                            }
+                                        },
+                                        error = {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .padding(horizontal = 8.dp),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Image(
+                                                    painter = painterResource(R.drawable.ic_logo_full),
+                                                    contentDescription = null
+                                                )
+                                            }
+                                        }
+                                    )
+                                }
+                            }
+                        }
+
+                        // Second row
+                        Row {
+                            (3 until minOf(6, bestInMenProducts.size)).forEach { index ->
+                                Column(
+                                    modifier = Modifier
+                                        .aspectRatio(0.75f)
+                                        .weight(1f)
+                                        .padding(8.dp)
+                                        .clip(CardShape.medium)
+                                        .border(
+                                            1.dp,
+                                            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f),
+                                            shape = CardShape.medium
+                                        )
+                                ) {
+                                    SubcomposeAsyncImage(
+                                        model = bestInMenProducts[index].images[0],
+                                        contentDescription = "Product Image",
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .clickable(
+                                                onClick = { onProductClick(bestInMenProducts[index]) },
+                                                indication = null,
+                                                interactionSource = remember { MutableInteractionSource() }
+                                            ),
+                                        contentScale = ContentScale.Crop,
+                                        loading = {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .padding(horizontal = 8.dp),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Image(
+                                                    painter = painterResource(R.drawable.ic_logo_full),
+                                                    contentDescription = null
+                                                )
+                                            }
+                                        },
+                                        error = {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .padding(horizontal = 8.dp),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Image(
+                                                    painter = painterResource(R.drawable.ic_logo_full),
+                                                    contentDescription = null
+                                                )
+                                            }
+                                        }
+                                    )
+                                }
+                            }
                         }
                     }
                 }
+
+                // Remove pagination-specific code since we're using a regular List now
             }
         }
     }
@@ -162,7 +299,11 @@ fun BestInMen(
 fun ColorfulBackground(
     modifier: Modifier = Modifier
 ) {
-    Canvas(modifier = modifier.fillMaxSize().blur(radius = 6.dp)) {
+    Canvas(
+        modifier = modifier
+            .fillMaxSize()
+            .blur(radius = 6.dp)
+    ) {
         val canvasWidth = size.width
         val canvasHeight = size.height
 
@@ -190,6 +331,7 @@ fun ColorfulBackground(
                     radius = size / 2,
                     center = Offset(offsetX, offsetY)
                 )
+
                 1 -> drawCircle(
                     color = Color(0xFFADD4EE),
                     radius = size / 2,
@@ -200,10 +342,10 @@ fun ColorfulBackground(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun NinetyNineStorePreview() {
-    SwapGoTheme {
-        BestInMen()
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun NinetyNineStorePreview() {
+//    SwapGoTheme {
+//        BestInMen()
+//    }
+//}

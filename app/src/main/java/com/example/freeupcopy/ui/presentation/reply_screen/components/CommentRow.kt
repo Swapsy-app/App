@@ -8,19 +8,23 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material3.Icon
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.freeupcopy.domain.model.Comment
+import coil.compose.SubcomposeAsyncImage
+import com.example.freeupcopy.R
+import com.example.freeupcopy.common.Constants.BASE_URL_AVATAR
+import com.example.freeupcopy.data.remote.dto.product.User
 import com.example.freeupcopy.ui.theme.CardShape
 import com.example.freeupcopy.ui.theme.NoteContainerLight
 import com.example.freeupcopy.ui.theme.SwapGoTheme
@@ -28,19 +32,32 @@ import com.example.freeupcopy.ui.theme.SwapGoTheme
 @Composable
 fun CommentRow(
     modifier: Modifier = Modifier,
-    comment: Comment
+    commentUser: User,
+    text: String
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
     ) {
         Row {
-            Icon(
-                imageVector = Icons.Default.AccountCircle,
-                contentDescription = "User",
+            SubcomposeAsyncImage(
+                modifier = Modifier
+                    .padding(start = 6.dp, end = 4.dp)
+                    .size(24.dp)
+                    .clip(CircleShape),
+                model = BASE_URL_AVATAR + commentUser.avatar,
+                loading = {
+                    painterResource(id = R.drawable.im_user)
+                },
+                error = {
+                    painterResource(id = R.drawable.im_user)
+                },
+                contentDescription = "profile",
+                contentScale = ContentScale.Crop
             )
+
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = comment?.username ?: "Unknown",
+                text = commentUser.username,
                 modifier = Modifier.weight(1f),
                 fontWeight = FontWeight.W500
             )
@@ -60,7 +77,7 @@ fun CommentRow(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
         ) {
             Text(
-                text = comment?.text ?: "No text",
+                text = text,
                 modifier = Modifier.weight(1f),
             )
         }
@@ -72,14 +89,12 @@ fun CommentRow(
 fun CommentRowPreview() {
     SwapGoTheme {
         CommentRow(
-            comment = Comment(
-                id = "c2",
-                username = "davidloves69",
-                userId = "u4",
-                text = "Can someone explain this part in more detail?",
-                replies = emptyList(),
-                timeStamp = "4 days ago"
+            commentUser = User(
+                _id = "1",
+                username = "John Doe",
+                avatar = "avatar.png"
             ),
+            text = "This is a comment."
         )
     }
 }

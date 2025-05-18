@@ -44,6 +44,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -64,6 +65,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.freeupcopy.R
 import com.example.freeupcopy.common.Constants.MAX_CASH_RANGE
 import com.example.freeupcopy.common.Constants.MAX_COINS_RANGE
+import com.example.freeupcopy.ui.presentation.common.rememberProductClickHandler
 import com.example.freeupcopy.ui.presentation.home_screen.componants.SearchBar
 import com.example.freeupcopy.ui.presentation.product_card.ProductCard
 import com.example.freeupcopy.ui.presentation.product_listing.componants.FiltersBottomSheet
@@ -74,6 +76,8 @@ import com.example.freeupcopy.ui.theme.BottomSheetShape
 import com.example.freeupcopy.ui.theme.ButtonShape
 import com.example.freeupcopy.ui.theme.SwapGoTheme
 import com.example.freeupcopy.ui.theme.TextFieldContainerColor
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.net.UnknownHostException
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -90,9 +94,20 @@ fun ProductListing(
 
     val products = productListingViewModel.productCards.collectAsLazyPagingItems()
 
-    LaunchedEffect(true) {
-        if (query.isNotEmpty() && query != state.searchQuery) {
+    // Create the product click handler
+    val productClickHandler = rememberProductClickHandler(
+        productListingViewModel = productListingViewModel,
+        onProductClick = onProductClick,
+        onLoadingStateChange = { isLoading ->
+            productListingViewModel.onEvent(ProductListingUiEvent.IsLoading(isLoading))
+        }
+    )
+
+    LaunchedEffect(Unit) {
+        if (state.initialQuerySet.not() && query.isNotEmpty()) {
             productListingViewModel.onEvent(ProductListingUiEvent.ChangeSearchQuery(query))
+            // Mark that we've set the initial query
+            productListingViewModel.onEvent(ProductListingUiEvent.SetInitialQuery)
         }
     }
 
@@ -345,13 +360,11 @@ fun ProductListing(
                                             null,
                                     mrp = product.price.mrp?.toInt().toString(),
                                     badge = "null",
+                                    user = product.seller,
                                     isLiked = false,
                                     onLikeClick = {},
                                     onClick = {
-                                        val currentState = lifeCycleOwner.lifecycle.currentState
-                                        if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                                            onProductClick(product._id)
-                                        }
+                                        productClickHandler.handleProductClick(product)
                                     }
                                 )
                             }

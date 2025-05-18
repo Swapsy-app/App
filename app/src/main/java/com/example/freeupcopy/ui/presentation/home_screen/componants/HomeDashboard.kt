@@ -36,7 +36,9 @@ import com.example.freeupcopy.ui.theme.SwapGoTheme
 
 @Composable
 fun HomeDashboard(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    on99StoreClick: () -> Unit,
+    on299CoinStoreClick: () -> Unit,
 ) {
     val items = listOf(
         HomeDashboardItem(
@@ -44,20 +46,20 @@ fun HomeDashboard(
             description = "Incredible deals just for ₹99",
             iconColor = Color.Red,
             image = painterResource(id = R.drawable.ic_99_store),
-            onClick = {}
+            onClick = on99StoreClick
         ),
         HomeDashboardItem(
-            title = "Clearance Sale",
+            title = "Buy Coins",
             description = "Massive discounts on all products",
             iconColor = Color.Blue,
             image = painterResource(id = R.drawable.ic_offer),
             onClick = {}
         ),
         HomeDashboardItem(
-            title = "Refurbished mobiles",
-            description = "Certified refurbished mobiles",
-            iconColor = Color.Black,
-            image = painterResource(id = R.drawable.ic_mobile),
+            title = "Borrow Coins",
+            description = "Borrow coins for your purchases",
+            iconColor = Color.Unspecified,
+            image = painterResource(id = R.drawable.im_borrow),
             onClick = {}
         ),
         HomeDashboardItem(
@@ -65,7 +67,7 @@ fun HomeDashboard(
             description = "Buy products with coins @ ₹299",
             iconColor = Color.Unspecified,
             image = painterResource(id = R.drawable.coin),
-            onClick = {}
+            onClick = on299CoinStoreClick
         ),
         HomeDashboardItem(
             title = "SwapGo Assured",
@@ -153,12 +155,9 @@ fun HomeDashBoardCard(
         modifier = modifier
             .clip(CardShape.small)
             .background(MaterialTheme.colorScheme.primaryContainer)
-            .clickable {  }
-//            .border(
-//                1.dp,
-//                MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f),
-//                shape = CardShape.medium
-//            )
+            .clickable {
+                item.onClick()
+            }
             .padding(horizontal = 8.dp, vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -208,6 +207,9 @@ private fun HomeDashboardPreview() {
 //                onClick = {}
 //            )
 //        )
-        HomeDashboard()
+        HomeDashboard(
+            on99StoreClick = {},
+            on299CoinStoreClick = {}
+        )
     }
 }

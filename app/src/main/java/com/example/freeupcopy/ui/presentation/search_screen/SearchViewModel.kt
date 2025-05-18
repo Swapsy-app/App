@@ -1,14 +1,19 @@
 package com.example.freeupcopy.ui.presentation.search_screen
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.freeupcopy.common.Resource
 import com.example.freeupcopy.data.local.RecentSearch
 import com.example.freeupcopy.data.local.RecentSearchesDao
+import com.example.freeupcopy.data.local.RecentlyViewed
+import com.example.freeupcopy.data.local.RecentlyViewedDao
 import com.example.freeupcopy.domain.repository.SellRepository
+import com.example.freeupcopy.ui.presentation.product_listing.ProductListingUiEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -16,20 +21,31 @@ import javax.inject.Inject
 @HiltViewModel
 class SearchViewModel @Inject constructor(
     private val recentSearchesDao: RecentSearchesDao,
+    private val recentlyViewedDao: RecentlyViewedDao,
     private val sellRepository: SellRepository
 ) : ViewModel() {
     private val _state = MutableStateFlow(SearchUiState())
     val state = _state.asStateFlow()
 
     init {
-        // Load recent searches
         viewModelScope.launch {
-            recentSearchesDao.getRecentSearches().collect { recentSearches ->
-                _state.update {
-                    it.copy(recentSearches = recentSearches)
+            combine(
+                recentSearchesDao.getRecentSearches(),
+                recentlyViewedDao.getRecentlyViewed()
+            ) { recentSearches, recentlyViewed ->
+                Pair(recentSearches, recentlyViewed)
+            }.collect { (recentSearches, recentlyViewed) ->
+                Log.e(
+                    "SearchViewModel",
+                    "Recent Searches: $recentSearches\nRecently Viewed: $recentlyViewed"
+                )
+                _state.update { currentState ->
+                    currentState.copy(
+                        recentSearches = recentSearches,
+                        recentlyViewed = recentlyViewed
+                    )
                 }
             }
-
         }
     }
 
@@ -51,7 +67,8 @@ class SearchViewModel @Inject constructor(
                             val recentSearch = RecentSearch(recentSearch = query)
                             recentSearchesDao.insertRecentSearch(recentSearch)
                         } else {
-                            val updatedSearch = existingSearch.copy(timestamp = System.currentTimeMillis())
+                            val updatedSearch =
+                                existingSearch.copy(timestamp = System.currentTimeMillis())
                             recentSearchesDao.insertRecentSearch(updatedSearch)
                         }
                     }
@@ -82,7 +99,8 @@ class SearchViewModel @Inject constructor(
 
             is SearchUiEvent.SelectRecentSearch -> {
                 viewModelScope.launch {
-                    val updatedSearch = event.recentSearch.copy(timestamp = System.currentTimeMillis())
+                    val updatedSearch =
+                        event.recentSearch.copy(timestamp = System.currentTimeMillis())
                     recentSearchesDao.insertRecentSearch(updatedSearch)
                     _state.update {
                         it.copy(searchQuery = updatedSearch.recentSearch)
@@ -90,7 +108,31 @@ class SearchViewModel @Inject constructor(
                 }
             }
 
+            is SearchUiEvent.ClearAllRecentlyViewed -> {
+                viewModelScope.launch {
+                    recentlyViewedDao.deleteAllRecentlyViewed()
+                }
+            }
 
+            is SearchUiEvent.ProductClicked -> {
+                viewModelScope.launch {
+                    _state.update { it.copy(isLoading = true) }
+
+                    val existingRecentlyViewed = recentlyViewedDao.getRecentlyViewExists(event.productId)
+                    if(existingRecentlyViewed != null) {
+                        val updateRecentlyViewed = existingRecentlyViewed.copy(timestamp = System.currentTimeMillis())
+                        recentlyViewedDao.insertRecentlyViewed(updateRecentlyViewed)
+                    }
+
+                    _state.update { it.copy(isLoading = false) }
+                }
+            }
+
+            is SearchUiEvent.IsLoading -> {
+                _state.update {
+                    it.copy(isLoading = event.isLoading)
+                }
+            }
         }
     }
 

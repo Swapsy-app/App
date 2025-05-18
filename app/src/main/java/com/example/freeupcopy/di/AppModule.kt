@@ -20,13 +20,16 @@ import com.example.freeupcopy.data.remote.dto.auth.RefreshTokenRequest
 import com.example.freeupcopy.data.remote.dto.auth.RefreshTokenResponse
 import com.example.freeupcopy.data.repository.AuthRepositoryImpl
 import com.example.freeupcopy.data.repository.LocationRepositoryImpl
+import com.example.freeupcopy.data.repository.ProductRepositoryImpl
 import com.example.freeupcopy.data.repository.SellRepositoryImpl
 import com.example.freeupcopy.data.repository.SellerProfileRepositoryImpl
 import com.example.freeupcopy.db.SwapsyDatabase
 import com.example.freeupcopy.domain.repository.AuthRepository
 import com.example.freeupcopy.domain.repository.LocationRepository
+import com.example.freeupcopy.domain.repository.ProductRepository
 import com.example.freeupcopy.domain.repository.SellRepository
 import com.example.freeupcopy.domain.repository.SellerProfileRepository
+import com.example.freeupcopy.ui.navigation.AuthStateManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -55,10 +58,11 @@ object AppModule {
     fun provideAuthInterceptor(swapGoPref: SwapGoPref): AuthInterceptor =
         AuthInterceptor(swapGoPref)
 
-    @Singleton
     @Provides
-    fun provideAuthAuthenticator(swapGoPref: SwapGoPref): AuthAuthenticator =
-        AuthAuthenticator(swapGoPref)
+    @Singleton
+    fun provideAuthStateManager(swapGoPref: SwapGoPref): AuthStateManager {
+        return AuthStateManager(swapGoPref)
+    }
 
     @Provides
     @Singleton
@@ -95,8 +99,8 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun providesLocationRepository(addressDao: AddressDao, swapGoPref: SwapGoPref): LocationRepository {
-        return LocationRepositoryImpl(addressDao = addressDao, swapGoPref = swapGoPref)
+    fun providesLocationRepository(): LocationRepository {
+        return LocationRepositoryImpl()
     }
 
     @Provides
@@ -109,6 +113,12 @@ object AppModule {
     @Singleton
     fun providesSellRepository(api: SwapgoApi): SellRepository {
         return SellRepositoryImpl(api)
+    }
+
+    @Provides
+    @Singleton
+    fun provideProductRepository(api: SwapgoApi): ProductRepository {
+        return ProductRepositoryImpl(api)
     }
 
     @Provides
@@ -128,6 +138,10 @@ object AppModule {
     @Provides
     @Singleton
     fun provideRecentSearchesDao(db: SwapsyDatabase): RecentSearchesDao = db.recentSearchesDao
+
+    @Provides
+    @Singleton
+    fun provideRecentlyViewedDao(db: SwapsyDatabase) = db.recentlyViewedDao
 
     @Provides
     @Singleton
@@ -161,21 +175,31 @@ class AuthInterceptor @Inject constructor(
 
 class AuthAuthenticator @Inject constructor(
     private val swapGoPref: SwapGoPref,
+    private val authStateManager: AuthStateManager
 ): Authenticator {
 
     override fun authenticate(route: Route?, response: Response): Request? {
-
-        Log.e("ForgotViewModel", "AuthAuthenticator")
+        Log.e("AuthAuthenticator", "Token refresh attempt")
 
         val token = runBlocking {
             swapGoPref.getRefreshToken().first()
         }
+
+        // If no refresh token exists, signal unauthenticated state
+        if (token.isNullOrEmpty()) {
+            runBlocking {
+                authStateManager.setUnauthenticated()
+            }
+            return null
+        }
+
         return runBlocking {
             val newToken = getNewToken(token)
 
-            if (!newToken.isSuccessful || newToken.body() == null) { //Couldn't refresh the token, so restart the login process
-                swapGoPref.clearRefreshToken()
-                swapGoPref.clearAccessToken()
+            if (!newToken.isSuccessful || newToken.body() == null) {
+                // Token refresh failed - trigger logout flow
+                authStateManager.setUnauthenticated()
+                return@runBlocking null
             }
 
             newToken.body()?.let {

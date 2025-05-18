@@ -70,6 +70,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.freeupcopy.R
+import com.example.freeupcopy.data.remote.dto.product.User
 import com.example.freeupcopy.domain.enums.Currency
 import com.example.freeupcopy.ui.presentation.cash_screen.CashScreen
 import com.example.freeupcopy.ui.presentation.product_card.ProductCard
@@ -273,7 +274,12 @@ fun CoinShop(
                 )[index],
                 isLiked = false,
                 onLikeClick = {},
-                onClick = {}
+                onClick = {},
+                user = User(
+                    _id = "123",
+                    username = "John Doe",
+                    avatar = ""
+                )
             )
         }
     }

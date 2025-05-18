@@ -12,6 +12,8 @@ import com.example.freeupcopy.domain.enums.SellerRatingOption
 data class ProductListingUiState(
 
     val searchQuery: String = "",
+    val initialQuerySet: Boolean = false,
+
     val selectedFilter: Filter = Filter.AVAILABILITY,
     val isFilterBottomSheet: Boolean = false,
     val isSortBottomSheet: Boolean = false,
@@ -22,11 +24,18 @@ data class ProductListingUiState(
     val tempSortOption: String? = null,    // Used for UI selection in the sort bottom sheet.
     val selectedSortOption: String? = null,
 
+//    val primaryCategory: String? = null,
+//    val secondaryCategory: String? = null,
+//    val tertiaryCategory: String? = null,
+
     val availabilityOptions: List<AvailabilityOption> = emptyList(),
     val conditionOptions: List<ConditionOption> = emptyList(),
     val sellerRatingOptions: List<SellerRatingOption> = emptyList(),
     val sellerBadgeOptions: List<SellerBadge> = emptyList(),
+
     val pricingModelOptions: List<NewPricingModel> = emptyList(),
+    val priceType: String = "",
+
     val selectedCashRange: Float? = null,
     val selectedCoinRange: Float? = null,
     val isCombinedPriceSelected: Boolean = false,

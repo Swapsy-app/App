@@ -11,11 +11,22 @@ sealed class Screen {
     @Serializable
     data object SellScreen : Screen()
 
+    @Serializable
+    data object CategorySelectScreen : Screen()
+
     //Sell Screens
     @Serializable
     data object SearchScreen : Screen()
     @Serializable
-    data class ProductListingScreen(val query: String) : Screen()
+    data class ProductListingScreen(
+        val query: String,
+        val priceType: String? = null,
+        val maxPriceCash: String? = null,
+        val maxPriceCoin: String? = null,
+        val primaryCategory: String? = null,
+        val secondaryCategory: String? = null,
+        val tertiaryCategory: String? = null,
+    ) : Screen()
 
     @Serializable
     data object InboxScreen : Screen()
@@ -63,15 +74,15 @@ sealed class Screen {
 
     //Product Screens
     @Serializable
-    data object ProductScreen : Screen()
+    data class ProductScreen(val productId: String) : Screen()
     @Serializable
-    data object ReplyScreen : Screen()
+    data class ReplyScreen(val commentId: String?, val replyId: String?) : Screen()
 
     //Profile Screens
     @Serializable
     data object PostedProductsScreen : Screen()
     @Serializable
-    data object SellerProfileScreen : Screen()
+    data class SellerProfileScreen(val userId: String?) : Screen()
     @Serializable
     data class EditProfileScreen(
         val profilePhotoUrl: String?,

@@ -1,5 +1,7 @@
 package com.example.freeupcopy.data.remote.dto.sell
 
+import com.example.freeupcopy.data.remote.dto.product.User
+
 data class ProductCardsResponse(
     val success: Boolean,
     val page: Int,
@@ -15,7 +17,7 @@ data class ProductCard(
     val title: String,
     val size: Any?,
     val price: ProductPrice,
-    val seller: SellerInfo
+    val seller: User
 )
 
 data class ProductPrice(
