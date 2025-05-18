@@ -18,7 +18,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,57 +28,115 @@ import com.example.freeupcopy.ui.theme.SwapGoTheme
 @Composable
 fun CategoriesHomeRow(
     modifier: Modifier = Modifier,
+    onAllCategoryClick: () -> Unit,
+    onCategoryClick: (String?, String?, String?) -> Unit,
 ) {
     val categories = listOf(
         CategoriesHomeRowItem(
             name = "Categories",
             image = painterResource(R.drawable.im_categories),
-            onClick = {}
+            onClick = {
+                onAllCategoryClick()
+            }
         ),
         CategoriesHomeRowItem(
             name = "Ethnic",
             image = painterResource(R.drawable.im_ethnic),
-            onClick = {}
+            onClick = {
+                onCategoryClick(
+                    "Women",
+                    "Ethnic",
+                    null
+                )
+            }
         ),
         CategoriesHomeRowItem(
             name = "Western",
             image = painterResource(R.drawable.im_western),
-            onClick = {}
+            onClick = {
+                onCategoryClick(
+                    "Women",
+                    "Western",
+                    null
+                )
+            }
         ),
         CategoriesHomeRowItem(
             name = "Men",
             image = painterResource(R.drawable.im_men),
-            onClick = {}
+            onClick = {
+                onCategoryClick(
+                    "Men",
+                    null,
+                    null
+                )
+            }
         ),
         CategoriesHomeRowItem(
             name = "Kids",
             image = painterResource(R.drawable.im_kids),
-            onClick = {}
+            onClick = {
+                onCategoryClick(
+                    "Baby & Kids",
+                    null,
+                    null
+                )
+            }
         ),
         CategoriesHomeRowItem(
             name = "Kitchen",
             image = painterResource(R.drawable.im_kitchen),
-            onClick = {}
+            onClick = {
+                onCategoryClick(
+                    "Home & Kitchen",
+                    "Kitchen & Dining",
+                    null
+                )
+            }
         ),
         CategoriesHomeRowItem(
             name = "Books",
             image = painterResource(R.drawable.im_books),
-            onClick = {}
+            onClick = {
+                onCategoryClick(
+                    "Books",
+                    null,
+                    null
+                )
+            }
         ),
         CategoriesHomeRowItem(
             name = "Decor",
             image = painterResource(R.drawable.im_decor),
-            onClick = {}
+            onClick = {
+                onCategoryClick(
+                    "Home & Kitchen",
+                    "Home Decor",
+                    null
+                )
+            }
         ),
         CategoriesHomeRowItem(
             name = "Gadgets",
             image = painterResource(R.drawable.im_gadgets),
-            onClick = {}
+            onClick = {
+                onCategoryClick(
+                    "Gadgets",
+                    null,
+                    null
+                )
+            }
         ),
         CategoriesHomeRowItem(
             name = "Toys",
             image = painterResource(R.drawable.im_toys),
-            onClick = {}
+            onClick = {
+                onCategoryClick(
+                    "Baby & Kids",
+                    null,
+                    "Toys & Games"
+                )
+            }
         )
     )
 
@@ -136,7 +193,12 @@ private fun PreviewCategoriesHomeRow() {
 //                onClick = {}
 //            )
 //        )
-        CategoriesHomeRow()
+        CategoriesHomeRow(
+            onCategoryClick = { _, _, _ ->
+                // Handle category click
+            },
+            onAllCategoryClick = {}
+        )
     }
 }
 

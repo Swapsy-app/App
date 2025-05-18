@@ -1,6 +1,7 @@
 package com.example.freeupcopy.ui.presentation.home_screen.componants
 
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -23,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,21 +36,36 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.freeupcopy.R
 import com.example.freeupcopy.ui.theme.SwapGoTheme
+import kotlinx.coroutines.delay
 
 @Composable
 fun HomeCarousel(
     modifier: Modifier = Modifier,
-    images: List<Int> = listOf(
-        R.drawable.b1,
-        R.drawable.b2,
-        R.drawable.b3,
-        R.drawable.b4,
-        R.drawable.b5
-    ),
-    onImagePreview: (Int) -> Unit
+    items: List<HomeCarouselItem>,
+    autoScrollDuration: Long = 3000L
 ) {
+    // Create an "infinite" list by repeating the items
+    val infiniteItems = remember {
+        val repeatedList = mutableListOf<HomeCarouselItem>()
+        repeat(10000) { // Large enough to appear infinite
+            repeatedList.addAll(items)
+        }
+        repeatedList
+    }
 
-    val pagerState = rememberPagerState(initialPage = 0) { images.size }
+    val pagerState = rememberPagerState(initialPage = 0) { infiniteItems.size }
+
+    // Auto-scroll effect
+    LaunchedEffect(key1 = pagerState) {
+        while (true) {
+            delay(autoScrollDuration)
+
+            pagerState.animateScrollToPage(
+                page = pagerState.currentPage + 1,
+                animationSpec = tween(durationMillis = 800)
+            )
+        }
+    }
 
     Column(
         modifier = modifier
@@ -58,25 +75,27 @@ fun HomeCarousel(
         Box {
             HorizontalPager(
                 state = pagerState,
-
             ) { currentPage ->
+                // Get the actual item index by taking modulo
+                val actualItemIndex = currentPage % items.size
+
+                val item = items[actualItemIndex]
 
                 Image(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .aspectRatio(1.78f) // 9:16
+                        .aspectRatio(1.78f) // 16:9
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null,
                             onClick = {
-                                onImagePreview(pagerState.currentPage)
+                                item.onClick()
                             }
                         ),
-                    painter = painterResource(id = images[currentPage]),
+                    painter = painterResource(id = item.image),
                     contentDescription = null,
                     contentScale = ContentScale.Crop
                 )
-
             }
 
             Column(
@@ -84,15 +103,15 @@ fun HomeCarousel(
                     .align(Alignment.BottomCenter),
             ) {
                 HomeCarouselPageIndicator(
-                    pageCount = images.size,
-                    currentPage = pagerState.currentPage,
+                    pageCount = items.size,
+                    currentPage = pagerState.currentPage % items.size,
                 )
                 Spacer(modifier = Modifier.size(8.dp))
             }
         }
-
     }
 }
+
 
 @Composable
 fun HomeCarouselPageIndicator(pageCount: Int, currentPage: Int, modifier: Modifier = Modifier) {
@@ -131,19 +150,7 @@ fun HomeCarouselIndicatorDots(isSelected: Boolean, modifier: Modifier) {
     )
 }
 
-@Preview(showBackground = true)
-@Composable
-private fun PreviewHomeCarousel() {
-    SwapGoTheme {
-        HomeCarousel(
-            images = listOf(
-                R.drawable.b1,
-                R.drawable.b2,
-                R.drawable.b3,
-                R.drawable.b4,
-                R.drawable.b5
-            ),
-            onImagePreview = {}
-        )
-    }
-}
+data class HomeCarouselItem(
+    val image: Int,
+    val onClick: () -> Unit
+)

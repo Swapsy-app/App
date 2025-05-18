@@ -51,24 +51,15 @@ fun AppNameTopSection(
         modifier = modifier
             .fillMaxWidth()
             .offset()
-            //.background(MaterialTheme.colorScheme.surface)
             .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 10.dp),
         verticalAlignment = Alignment.Bottom
     ) {
-//        Box(
-//            modifier = Modifier
-//                .clip(CardShape.medium)
-//                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.9f))
-//                .padding(horizontal = 12.dp, vertical = 4.dp),
-//            contentAlignment = Alignment.Center
-//        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_logo_full),
-                contentDescription = "SwapGo",
-                tint = Color.Unspecified,
-                modifier = Modifier.width(120.dp)
-            )
-//        }
+        Icon(
+            painter = painterResource(id = R.drawable.ic_logo_full),
+            contentDescription = "SwapGo",
+            tint = Color.Unspecified,
+            modifier = Modifier.width(120.dp)
+        )
         Spacer(modifier = Modifier.weight(1f))
         CoinButton {
             onCoinClick()
@@ -99,20 +90,11 @@ fun CoinButton(
                     end = Offset(100f, 100f) // Adjust these offsets for tilt
                 ),
             )
-    ){
+    ) {
         Row(
             modifier = Modifier
                 .clip(RoundedCornerShape(100))
                 .clickable { onClick() }
-//                .border(
-//                    1.dp,
-//                    Brush.linearGradient(
-//                        colors = listOf(CoinColor1, CoinColor2),
-//                        start = Offset(0f, 0f),
-//                        end = Offset(100f, 100f) // Adjust these offsets for tilt
-//                    ),
-//                    shape = CircleShape
-//                )
                 .padding(horizontal = 10.dp, vertical = 5.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
@@ -153,23 +135,11 @@ fun CashButton(
                     end = Offset(100f, 100f) // Adjust these offsets for tilt
                 )
             )
-    ){
+    ) {
         Row(
             modifier = Modifier
                 .clip(RoundedCornerShape(100))
                 .clickable { onClick() }
-//                .border(
-//                    1.dp,
-//                    Brush.linearGradient(
-//                        colors = listOf(
-//                            CashColor1,
-//                            CashColor2
-//                        ),
-//                        start = Offset(0f, 0f),
-//                        end = Offset(100f, 100f) // Adjust these offsets for tilt
-//                    ),
-//                    shape = CircleShape
-//                )
                 .padding(horizontal = 8.dp, vertical = 5.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
@@ -188,21 +158,5 @@ fun CashButton(
                 tint = CashColor2
             )
         }
-
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun PreviewHomeScreen() {
-    SwapGoTheme {
-        HomeScreen(
-            lazyColumnState = LazyListState(),
-            onSearchBarClick = {},
-            onInboxClick = {},
-            onCartClick = {},
-            onCoinClick = {},
-            onCashClick = {}
-        )
     }
 }

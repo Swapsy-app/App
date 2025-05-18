@@ -65,6 +65,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.freeupcopy.R
 import com.example.freeupcopy.common.Constants.MAX_CASH_RANGE
 import com.example.freeupcopy.common.Constants.MAX_COINS_RANGE
+import com.example.freeupcopy.ui.presentation.common.rememberProductClickHandler
 import com.example.freeupcopy.ui.presentation.home_screen.componants.SearchBar
 import com.example.freeupcopy.ui.presentation.product_card.ProductCard
 import com.example.freeupcopy.ui.presentation.product_listing.componants.FiltersBottomSheet
@@ -93,7 +94,14 @@ fun ProductListing(
 
     val products = productListingViewModel.productCards.collectAsLazyPagingItems()
 
-    val scope = rememberCoroutineScope()
+    // Create the product click handler
+    val productClickHandler = rememberProductClickHandler(
+        productListingViewModel = productListingViewModel,
+        onProductClick = onProductClick,
+        onLoadingStateChange = { isLoading ->
+            productListingViewModel.onEvent(ProductListingUiEvent.IsLoading(isLoading))
+        }
+    )
 
     LaunchedEffect(Unit) {
         if (state.initialQuerySet.not() && query.isNotEmpty()) {
@@ -352,28 +360,11 @@ fun ProductListing(
                                             null,
                                     mrp = product.price.mrp?.toInt().toString(),
                                     badge = "null",
+                                    user = product.seller,
                                     isLiked = false,
                                     onLikeClick = {},
                                     onClick = {
-                                        val currentState = lifeCycleOwner.lifecycle.currentState
-                                        if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                                            scope.launch {
-                                                productListingViewModel.onEvent(ProductListingUiEvent.IsLoading(true))
-
-                                                productListingViewModel.onEvent(
-                                                    ProductListingUiEvent.ProductClicked(
-                                                        productId = product._id,
-                                                        productImageUrl = if (product.images.size == 1) product.images[0] else "",
-                                                        title = product.title
-                                                    )
-                                                )
-                                                delay(100)
-                                                // Call onProductClick after onEvent has been processed.
-                                                onProductClick(product._id)
-
-                                                productListingViewModel.onEvent(ProductListingUiEvent.IsLoading(false))
-                                            }
-                                        }
+                                        productClickHandler.handleProductClick(product)
                                     }
                                 )
                             }

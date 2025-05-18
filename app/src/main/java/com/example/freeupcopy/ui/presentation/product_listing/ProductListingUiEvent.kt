@@ -22,7 +22,9 @@ sealed class ProductListingUiEvent {
     data class ChangeSelectedCondition(val conditionOption: ConditionOption): ProductListingUiEvent()
     data class ChangeSelectedSellerRating(val sellerRatingOption: SellerRatingOption): ProductListingUiEvent()
     data class ChangeSelectedSellerBadge(val sellerBadge: SellerBadge): ProductListingUiEvent()
+
     data class ChangeSelectedPricingModel(val pricingModel: NewPricingModel): ProductListingUiEvent()
+
     data class ChangeCashRange(val cash: Float): ProductListingUiEvent()
     data class ChangeCoinRange(val coins: Float): ProductListingUiEvent()
     data class ChangeSelectedTertiaryCategory(val tertiaryCategory: FilterTertiaryCategory): ProductListingUiEvent()

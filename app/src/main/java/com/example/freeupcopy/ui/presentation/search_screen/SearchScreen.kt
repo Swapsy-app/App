@@ -359,14 +359,6 @@ fun RecentlyViewedItem(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-//        Image(
-//            painter = image,
-//            contentDescription = null,
-//            modifier = Modifier
-//                .size(90.dp)
-//                .clip(CircleShape),
-//            contentScale = ContentScale.Crop
-//        )
         SubcomposeAsyncImage(
             modifier = Modifier
                 .size(90.dp)
@@ -399,13 +391,12 @@ fun RecentlyViewedItem(
         Text(
             text = recentlyViewed.title,
             fontSize = 14.sp,
-            color = MaterialTheme.colorScheme.onSurface,
+            color = MaterialTheme.colorScheme.onSurface.copy(0.65f),
             modifier = Modifier.padding(top = 8.dp),
             overflow = TextOverflow.Ellipsis,
             maxLines = 2,
             textAlign = TextAlign.Center,
             lineHeight = 17.sp,
-            fontWeight = FontWeight.W500
         )
     }
 }

@@ -48,8 +48,7 @@ class ProductViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val productRepository: ProductRepository,
     private val sellerProfileRepository: SellerProfileRepository,
-    private val getProductCardsUseCase: GetProductCardsUseCase,
-    private val recentlyViewedDao: RecentlyViewedDao
+    private val getProductCardsUseCase: GetProductCardsUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(ProductUiState())
     val state = _state.asStateFlow()
@@ -73,15 +72,14 @@ class ProductViewModel @Inject constructor(
                 val searchQuery = buildSearchQuery(product.title)
 
                 // Build filters map
-                val filters = buildMap<String, String> {
-                    put("category", category.primaryCategory)
+                val filters = buildMap {
+                    put("primaryCategory", category.primaryCategory)
                 }
 
                 // Return the search parameters
                 ProductCardsQueryParameters(
                     search = searchQuery,
-                    filters = filters,
-                    sort = "relevance"
+                    filters = filters
                 )
             }
         }
@@ -187,7 +185,6 @@ class ProductViewModel @Inject constructor(
             }
 
             is ProductUiEvent.ChangeComment -> {
-                Log.e("ProductViewModel", "Comment changed: ${_state.value.mentionedUsers}")
                 val newValue = event.comment
 
                 // 1️⃣ Update the raw comment text
@@ -563,26 +560,6 @@ class ProductViewModel @Inject constructor(
             is ProductUiEvent.IsLoading -> {
                 _state.update {
                     it.copy(isLoading = event.isLoading)
-                }
-            }
-            is ProductUiEvent.SimilarProductClicked -> {
-                viewModelScope.launch {
-                    _state.update { it.copy(isLoading = true) }
-                    val existingRecentlyViewed = recentlyViewedDao.getRecentlyViewExists(event.productId)
-                    if (existingRecentlyViewed == null) {
-                        val recentlyViewed = RecentlyViewed(
-                            productId = event.productId,
-                            imageUrl = event.productImageUrl,
-                            title = event.title
-                        )
-                        recentlyViewedDao.insertWithLimit(recentlyViewed)
-//                        Log.d("ProductListingVM", "Inserted recently viewed: $recentlyViewed")
-                    } else {
-                        // Update the timestamp if the record already exists
-                        val updatedRecentlyViewed = existingRecentlyViewed.copy(timestamp = System.currentTimeMillis())
-                        recentlyViewedDao.insertWithLimit(updatedRecentlyViewed)
-                    }
-                    _state.update { it.copy(isLoading = false) }
                 }
             }
         }

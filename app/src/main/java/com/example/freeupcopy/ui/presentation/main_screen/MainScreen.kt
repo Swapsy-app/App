@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -141,6 +140,47 @@ fun MainScreen(
                                 val currentState = lifecycleOwner.lifecycle.currentState
                                 if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
                                     onNavigate(Screen.CashScreen)
+                                }
+                            },
+                            onProductClick = { productId ->
+                                val currentState = lifecycleOwner.lifecycle.currentState
+                                if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                                    onNavigate(Screen.ProductScreen(productId))
+                                }
+                            },
+                            onAllCategoryClick = {
+                                val currentState = lifecycleOwner.lifecycle.currentState
+                                if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                                    onNavigate(Screen.CategorySelectScreen)
+                                }
+                            },
+                            onBannerCashOrCoinClick = {
+                                val currentState = lifecycleOwner.lifecycle.currentState
+                                if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                                    onNavigate(Screen.ProductListingScreen(query = "", priceType = it))
+                                }
+                            },
+                            on99StoreClick = {
+                                val currentState = lifecycleOwner.lifecycle.currentState
+                                if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                                    onNavigate(Screen.ProductListingScreen(query = "", priceType = "cash", maxPriceCash = "99"))
+                                }
+                            },
+                            on299CoinStoreClick = {
+                                val currentState = lifecycleOwner.lifecycle.currentState
+                                if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                                    onNavigate(Screen.ProductListingScreen(query = "", priceType = "coin", maxPriceCoin = "299"))
+                                }
+                            },
+                            onCategoryClick = { primaryCategory, secondaryCategory, tertiaryCategory ->
+                                val currentState = lifecycleOwner.lifecycle.currentState
+                                if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                                    onNavigate(Screen.ProductListingScreen(
+                                        query = "",
+                                        primaryCategory = primaryCategory,
+                                        secondaryCategory = secondaryCategory,
+                                        tertiaryCategory = tertiaryCategory
+                                    ))
                                 }
                             }
                         )

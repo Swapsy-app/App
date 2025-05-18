@@ -189,11 +189,14 @@ interface SwapgoApi {
     @GET("/api/productcard/products-card-fetch")
     suspend fun fetchProductCards(
         @Query("page") page: Int = 1,
+        @Query("limit") limit: Int = 15,
         @Query("search") search: String? = null,
         @Query("sort") sort: String? = null,
         @Query("priceType") priceType: String? = null,
-        @Query("minPrice") minPrice: Float? = null,
-        @Query("maxPrice") maxPrice: Float? = null,
+        @Query("minPriceCash") minPriceCash: Float? = null,
+        @Query("maxPriceCash") maxPriceCash: Float? = null,
+        @Query("minPriceCoin") minPriceCoin: Float? = null,
+        @Query("maxPriceCoin") maxPriceCoin: Float? = null,
         @Query("minCashMix") minCashMix: Float? = null,
         @Query("maxCashMix") maxCashMix: Float? = null,
         @Query("minCoinMix") minCoinMix: Float? = null,

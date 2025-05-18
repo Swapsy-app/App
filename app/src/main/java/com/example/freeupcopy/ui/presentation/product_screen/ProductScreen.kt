@@ -71,7 +71,10 @@ import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.freeupcopy.data.remote.dto.product.Reply
 import com.example.freeupcopy.ui.navigation.Screen
+import com.example.freeupcopy.ui.presentation.common.rememberProductClickHandler
 import com.example.freeupcopy.ui.presentation.product_card.ProductCard
+import com.example.freeupcopy.ui.presentation.product_listing.ProductListingUiEvent
+import com.example.freeupcopy.ui.presentation.product_listing.ProductListingViewModel
 import com.example.freeupcopy.ui.presentation.product_screen.componants.BargainElement
 import com.example.freeupcopy.ui.presentation.product_screen.componants.BargainOptionsSheet
 import com.example.freeupcopy.ui.presentation.product_screen.componants.Comments
@@ -96,7 +99,8 @@ fun ProductScreen(
     onReplyClickReply: (String?, String?) -> Unit,
     onBack: () -> Unit,
     onUserClick: (String) -> Unit,
-    productViewModel: ProductViewModel = hiltViewModel()
+    productViewModel: ProductViewModel = hiltViewModel(),
+    productListingViewModel: ProductListingViewModel = hiltViewModel(),
 ) {
     val state by productViewModel.state.collectAsState()
     val similarProducts = productViewModel.similarProducts.collectAsLazyPagingItems()
@@ -108,6 +112,13 @@ fun ProductScreen(
     var currentIndex by remember { mutableIntStateOf(0) }
 
     val scope = rememberCoroutineScope()
+
+    val productClickHandler = rememberProductClickHandler(
+        productListingViewModel = productListingViewModel,
+        onProductClick = { productId ->
+            navController.navigate(Screen.ProductScreen(productId))
+        }
+    )
 
     // 1️⃣ Remember the back-stack entry
     val thisEntry = remember(navController) {
@@ -267,7 +278,7 @@ fun ProductScreen(
                             brand = productDetail?.brand ?: "No Brand",
                             description = productDetail?.description ?: "No Description",
                             category =
-                                if(productDetail?.category == null) "No Category"
+                                if (productDetail?.category == null) "No Category"
                                 else productDetail.category.tertiaryCategory
                                     ?: (productDetail.category.primaryCategory),
                             manufacturingCountry = productDetail?.manufacturingCountry ?: "Unknown",
@@ -346,7 +357,7 @@ fun ProductScreen(
                             }
                         },
                         isLoadingMore = productViewModel.isLoadingMore,
-                        hasMoreComments  = productViewModel.hasMoreComments,
+                        hasMoreComments = productViewModel.hasMoreComments,
                         loadMoreComments = { productViewModel.loadMoreComments() },
                         // Mention-related props
                         isMentioning = state.isMentioning,
@@ -358,16 +369,20 @@ fun ProductScreen(
                             productViewModel.onEvent(ProductUiEvent.CancelMention)
                         },
                         onLongPressComment = { commentId, commentSenderId ->
-                            productViewModel.onEvent(ProductUiEvent.ToggleConfirmDeleteDialog(
-                                commentId,
-                                commentSenderId
-                            ))
+                            productViewModel.onEvent(
+                                ProductUiEvent.ToggleConfirmDeleteDialog(
+                                    commentId,
+                                    commentSenderId
+                                )
+                            )
                         },
                         onLongPressReply = { replyId, replySenderId ->
-                            productViewModel.onEvent(ProductUiEvent.ToggleConfirmDeleteReply(
-                                replyId,
-                                replySenderId
-                            ))
+                            productViewModel.onEvent(
+                                ProductUiEvent.ToggleConfirmDeleteReply(
+                                    replyId,
+                                    replySenderId
+                                )
+                            )
                         },
                         onUserClick = {
                             val currentState = lifeCycleOwner.lifecycle.currentState
@@ -386,7 +401,7 @@ fun ProductScreen(
                 }
 
                 item {
-                    Column (
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(MaterialTheme.colorScheme.primaryContainer),
@@ -495,35 +510,9 @@ fun ProductScreen(
                                             badge = "null",
                                             isLiked = false,
                                             onLikeClick = {},
+                                            user = product.seller,
                                             onClick = {
-                                                scope.launch {
-                                                    productViewModel.onEvent(
-                                                        ProductUiEvent.IsLoading(
-                                                            true
-                                                        )
-                                                    )
-
-                                                    productViewModel.onEvent(
-                                                        ProductUiEvent.SimilarProductClicked(
-                                                            productId = product._id,
-                                                            productImageUrl = if (product.images.size == 1) product.images[0] else "",
-                                                            title = product.title
-                                                        )
-                                                    )
-                                                    delay(100)
-                                                    // Call onProductClick after onEvent has been processed.
-                                                    navController.navigate(
-                                                        Screen.ProductScreen(
-                                                            product._id
-                                                        )
-                                                    )
-
-                                                    productViewModel.onEvent(
-                                                        ProductUiEvent.IsLoading(
-                                                            false
-                                                        )
-                                                    )
-                                                }
+                                                productClickHandler.handleProductClick(product)
                                             }
                                         )
                                     }
@@ -653,7 +642,12 @@ fun ProductScreen(
                 productViewModel.onEvent(ProductUiEvent.DeleteComment(state.deleteCommentId))
             },
             onCancel = {
-                productViewModel.onEvent(ProductUiEvent.ToggleConfirmDeleteDialog(state.deleteCommentId, ""))
+                productViewModel.onEvent(
+                    ProductUiEvent.ToggleConfirmDeleteDialog(
+                        state.deleteCommentId,
+                        ""
+                    )
+                )
             },
             dialogTitle = "Confirm Delete",
             confirmButtonText = "Delete",
@@ -661,14 +655,19 @@ fun ProductScreen(
         )
     }
 
-    if(state.isConfirmDeleteReply) {
+    if (state.isConfirmDeleteReply) {
         ConfirmDialogBox(
             dialogText = "Are you sure you want to delete this reply?",
             onConfirm = {
                 productViewModel.onEvent(ProductUiEvent.DeleteReply(state.deleteReplyId))
             },
             onCancel = {
-                productViewModel.onEvent(ProductUiEvent.ToggleConfirmDeleteReply(state.deleteReplyId, ""))
+                productViewModel.onEvent(
+                    ProductUiEvent.ToggleConfirmDeleteReply(
+                        state.deleteReplyId,
+                        ""
+                    )
+                )
             },
             dialogTitle = "Confirm Delete",
             confirmButtonText = "Delete",

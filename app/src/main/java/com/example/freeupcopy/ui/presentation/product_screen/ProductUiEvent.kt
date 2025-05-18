@@ -41,5 +41,4 @@ sealed class ProductUiEvent {
     data object OnFollow : ProductUiEvent()
 
     data class IsLoading(val isLoading: Boolean): ProductUiEvent()
-    data class SimilarProductClicked(val productId: String, val productImageUrl: String, val title: String) : ProductUiEvent()
 }

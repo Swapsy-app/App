@@ -51,11 +51,14 @@ interface SellRepository {
 
     suspend fun fetchProductCards(
         page: Int,
+        limit: Int,
         search: String? = null,
         sort: String? = null,
         priceType: String? = null,
-        minPrice: Float? = null,
-        maxPrice: Float? = null,
+        minPriceCash: Float? = null,
+        maxPriceCash: Float? = null,
+        minPriceCoin: Float? = null,
+        maxPriceCoin: Float? = null,
         minCashMix: Float? = null,
         maxCashMix: Float? = null,
         minCoinMix: Float? = null,

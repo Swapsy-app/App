@@ -222,11 +222,14 @@ class SellRepositoryImpl(
 
     override suspend fun fetchProductCards(
         page: Int,
+        limit: Int,
         search: String?,
         sort: String?,
         priceType: String?,
-        minPrice: Float?,
-        maxPrice: Float?,
+        minPriceCash: Float?,
+        maxPriceCash: Float?,
+        minPriceCoin: Float?,
+        maxPriceCoin: Float?,
         minCashMix: Float?,
         maxCashMix: Float?,
         minCoinMix: Float?,
@@ -235,11 +238,14 @@ class SellRepositoryImpl(
     ): ProductCardsResponse {
         return api.fetchProductCards(
             page = page,
+            limit = limit,
             search = search,
             sort = sort,
             priceType = priceType,
-            minPrice = minPrice,
-            maxPrice = maxPrice,
+            minPriceCash = minPriceCash,
+            maxPriceCash = maxPriceCash,
+            minPriceCoin = minPriceCoin,
+            maxPriceCoin = maxPriceCoin,
             minCashMix = minCashMix,
             maxCashMix = maxCashMix,
             minCoinMix = minCoinMix,

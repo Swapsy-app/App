@@ -1,13 +1,20 @@
 package com.example.freeupcopy.ui.presentation.product_listing
 
 import android.util.Log
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import com.example.freeupcopy.data.local.RecentSearch
 import com.example.freeupcopy.data.local.RecentlyViewed
 import com.example.freeupcopy.data.local.RecentlyViewedDao
+import com.example.freeupcopy.domain.enums.AvailabilityOption
+import com.example.freeupcopy.domain.enums.ConditionOption
 import com.example.freeupcopy.domain.enums.Filter
+import com.example.freeupcopy.domain.enums.FilterCategoryUiModel
+import com.example.freeupcopy.domain.enums.FilterTertiaryCategory
+import com.example.freeupcopy.domain.enums.NewPricingModel
+import com.example.freeupcopy.domain.model.TertiaryCategory
 import com.example.freeupcopy.domain.use_case.GetProductCardsUseCase
 import com.example.freeupcopy.domain.use_case.ProductCardsQueryParameters
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,47 +33,156 @@ import javax.inject.Inject
 @HiltViewModel
 class ProductListingViewModel @Inject constructor(
     private val getProductCardsUseCase: GetProductCardsUseCase,
-    private val recentlyViewedDao: RecentlyViewedDao
+    private val recentlyViewedDao: RecentlyViewedDao,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _state = MutableStateFlow(ProductListingUiState())
     val state = _state.asStateFlow()
 
+    private val priceType: String? = savedStateHandle["priceType"]
+    private val maxPriceCash: String? = savedStateHandle["maxPriceCash"]
+    private val maxPriceCoin: String? = savedStateHandle["maxPriceCoin"]
+    private val primaryCategory: String? = savedStateHandle["primaryCategory"]
+    private val secondaryCategory: String? = savedStateHandle["secondaryCategory"]
+    private val tertiaryCategory: String? = savedStateHandle["tertiaryCategory"]
+
+    init {
+        updateFilterState()
+    }
+
+    private fun updateFilterState() {
+        val pricingModels: List<NewPricingModel> =
+            if (priceType.isNullOrEmpty()) {
+                emptyList()
+            } else {
+                priceType.split(",").mapNotNull { part ->
+                    NewPricingModel.entries.find { it.apiValue == part.trim() }
+                }
+            }
+
+        // Handle category selection
+        val selectedTertiaryCategories = mutableListOf<FilterTertiaryCategory>()
+        val availableFilters = mutableListOf(
+            Filter.AVAILABILITY,
+            Filter.CONDITION,
+            Filter.SELLER_RATING,
+            Filter.PRICE,
+            Filter.CATEGORY,
+            Filter.BRAND
+        )
+
+        // If tertiaryCategory is provided, only select that specific tertiary category
+        if (!tertiaryCategory.isNullOrEmpty()) {
+            // Find the specific tertiary category across all categories
+            var foundTertiaryCategory: FilterTertiaryCategory? = null
+
+            // Search through all categories and subcategories
+            for (category in FilterCategoryUiModel.predefinedCategories) {
+                for (subCategory in category.subcategories) {
+                    val tertiary = subCategory.tertiaryCategories.find { it.name == tertiaryCategory }
+                    if (tertiary != null) {
+                        foundTertiaryCategory = tertiary
+                        break
+                    }
+                }
+                if (foundTertiaryCategory != null) break
+            }
+
+            // Add the found tertiary category to the selected list
+            foundTertiaryCategory?.let {
+                selectedTertiaryCategories.add(it)
+                availableFilters.addAll(it.specialFilters)
+            }
+        }
+        // If no tertiaryCategory but primaryCategory is provided
+        else if (!primaryCategory.isNullOrEmpty()) {
+            val category = FilterCategoryUiModel.predefinedCategories.find { it.name == primaryCategory }
+            category?.let { cat ->
+                // If secondaryCategory is also provided, only select tertiary categories from that subcategory
+                if (!secondaryCategory.isNullOrEmpty()) {
+                    val subCategory = cat.subcategories.find { it.name == secondaryCategory }
+                    subCategory?.let { sub ->
+                        selectedTertiaryCategories.addAll(sub.tertiaryCategories)
+                        // Add special filters from these tertiary categories
+                        sub.tertiaryCategories.forEach { tertiary ->
+                            availableFilters.addAll(tertiary.specialFilters)
+                        }
+                    }
+                } else {
+                    // If only primaryCategory is provided, select all tertiary categories from all subcategories
+                    cat.subcategories.forEach { subCat ->
+                        selectedTertiaryCategories.addAll(subCat.tertiaryCategories)
+                        // Add special filters from these tertiary categories
+                        subCat.tertiaryCategories.forEach { tertiary ->
+                            availableFilters.addAll(tertiary.specialFilters)
+                        }
+                    }
+                }
+            }
+        }
+
+        // Remove duplicates from availableFilters while preserving order
+        val uniqueFilters = availableFilters.distinct()
+
+        _state.update {
+            it.copy(
+                pricingModelOptions = pricingModels,
+                selectedCashRange = maxPriceCash?.toFloat(),
+                selectedCoinRange = maxPriceCoin?.toFloat(),
+//                primaryCategory = primaryCategory,
+//                secondaryCategory = secondaryCategory,
+//                tertiaryCategory = tertiaryCategory,
+                selectedTertiaryCategory = selectedTertiaryCategories,
+                availableFilters = uniqueFilters,
+                // Set the selected filter to CATEGORY if tertiary categories are selected
+                selectedFilter = if (selectedTertiaryCategories.isNotEmpty()) Filter.CATEGORY else it.selectedFilter
+            )
+        }
+    }
+
+
+
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val productCards = _state
-        .map {
-            Triple(
-                it.searchQuery,
-                it.availabilityOptions,
-                Pair(
-                    Triple(it.conditionOptions, it.selectedTertiaryCategory, it.selectedFilter),
-                    it.appliedSortOption
-                )
+        .map { state ->
+            // Create a data object with all the parameters we need to track for changes
+            ProductQueryState(
+                searchQuery = state.searchQuery,
+                availabilityOptions = state.availabilityOptions,
+                conditionOptions = state.conditionOptions,
+                selectedTertiaryCategory = state.selectedTertiaryCategory,
+                selectedFilter = state.selectedFilter,
+                appliedSortOption = state.appliedSortOption ?: "",
+                pricingModelOptions = state.pricingModelOptions,
+                selectedCashRange = Pair(null, state.selectedCashRange),
+                selectedCoinRange = Pair(null, state.selectedCoinRange),
+//                primaryCategory = state.primaryCategory,
+//                secondaryCategory = state.secondaryCategory,
+//                tertiaryCategory = state.tertiaryCategory
             )
         }
         .distinctUntilChanged()
-        .flatMapLatest { (query, availabilityOptions, pairTripleAndSort) ->
-            val (innerTriple, appliedSortOption) = pairTripleAndSort
-            val (conditionOptions, selectedCategories, _) = innerTriple
-
+        .flatMapLatest { queryState ->
             // Format the query: Trim and replace spaces with plus signs.
-            val formattedQuery = query.trim().replace("\\s+".toRegex(), "+")
+            val formattedQuery = queryState.searchQuery.trim().replace("\\s+".toRegex(), "+")
 
             // Build the status filter based on availability options.
-            val statusFilter = if (availabilityOptions.isEmpty()) {
+            val statusFilter = if (queryState.availabilityOptions.isEmpty()) {
                 "available,sold"
             } else {
-                availabilityOptions.joinToString(",") { it.filterName }
+                queryState.availabilityOptions.joinToString(",") { it.filterName }
             }
 
             // Build the condition filter if any condition options exist.
-            val conditionFilter = if (conditionOptions.isEmpty()) {
+            val conditionFilter = if (queryState.conditionOptions.isEmpty()) {
                 null
             } else {
-                conditionOptions.joinToString(",") { it.displayValue }
+                queryState.conditionOptions.joinToString(",") { it.displayValue }
             }
 
             // Map the selected tertiary categories to a combined string for the backend.
-            val combinedCategories = selectedCategories
+            val combinedCategories = queryState.selectedTertiaryCategory
                 .map { "${it.parentCategory.lowercase()}_${it.name.lowercase()}" }
                 .distinct()
 
@@ -77,14 +193,25 @@ class ProductListingViewModel @Inject constructor(
                     // "combinedCategory" will be processed by your backend.
                     put("combinedCategory", combinedCategories.joinToString(","))
                 }
+//
+//                // Add category filters if they exist
+//                queryState.primaryCategory?.let { put("primaryCategory", it) }
+//                queryState.secondaryCategory?.let { put("secondaryCategory", it) }
+//                queryState.tertiaryCategory?.let { put("tertiaryCategory", it) }
             }
 
-            // Pass the appliedSortOption (set when the user hits "Apply")
+
+            // Pass all parameters to the query
             getProductCardsUseCase(
                 ProductCardsQueryParameters(
                     search = formattedQuery,
                     filters = filters,
-                    sort = appliedSortOption
+                    sort = queryState.appliedSortOption,
+                    priceType = queryState.pricingModelOptions.joinToString(",") { it.apiValue },
+                    minPriceCash = queryState.selectedCashRange?.first,
+                    maxPriceCash = queryState.selectedCashRange?.second,
+                    minPriceCoin = queryState.selectedCoinRange?.first,
+                    maxPriceCoin = queryState.selectedCoinRange?.second,
                 )
             )
         }
@@ -153,7 +280,8 @@ class ProductListingViewModel @Inject constructor(
             is ProductListingUiEvent.ProductClicked -> {
                 viewModelScope.launch {
                     _state.update { it.copy(isLoading = true) }
-                    val existingRecentlyViewed = recentlyViewedDao.getRecentlyViewExists(event.productId)
+                    val existingRecentlyViewed =
+                        recentlyViewedDao.getRecentlyViewExists(event.productId)
                     if (existingRecentlyViewed == null) {
                         val recentlyViewed = RecentlyViewed(
                             productId = event.productId,
@@ -164,7 +292,8 @@ class ProductListingViewModel @Inject constructor(
 //                        Log.d("ProductListingVM", "Inserted recently viewed: $recentlyViewed")
                     } else {
                         // Update the timestamp if the record already exists
-                        val updatedRecentlyViewed = existingRecentlyViewed.copy(timestamp = System.currentTimeMillis())
+                        val updatedRecentlyViewed =
+                            existingRecentlyViewed.copy(timestamp = System.currentTimeMillis())
                         recentlyViewedDao.insertWithLimit(updatedRecentlyViewed)
                     }
                     _state.update { it.copy(isLoading = false) }
@@ -441,3 +570,19 @@ class ProductListingViewModel @Inject constructor(
         }
     }
 }
+
+// Data class to hold all query parameters
+data class ProductQueryState(
+    val searchQuery: String,
+    val availabilityOptions: List<AvailabilityOption>,
+    val conditionOptions: List<ConditionOption>,
+    val selectedTertiaryCategory: List<FilterTertiaryCategory>,
+    val selectedFilter: Filter?,
+    val appliedSortOption: String,
+    val pricingModelOptions: List<NewPricingModel>,
+    val selectedCashRange: Pair<Float?, Float?>?,
+    val selectedCoinRange: Pair<Float?, Float?>?,
+//    val primaryCategory: String?,
+//    val secondaryCategory: String?,
+//    val tertiaryCategory: String?
+)

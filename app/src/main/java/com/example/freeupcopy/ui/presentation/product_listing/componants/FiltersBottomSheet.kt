@@ -195,6 +195,7 @@ fun FiltersBottomSheet(
                                 Filter.OCCASION -> false // Add your condition for OCCASION if needed
                                 Filter.SHAPE -> false // Add your condition for SHAPE if needed
                                 Filter.LENGTH -> false // Add your condition for LENGTH if needed
+                                else -> false
                             }
 
                             if (showIndicator) {
@@ -619,6 +620,9 @@ fun FiltersBottomSheet(
 
                     }
                     Filter.LENGTH -> {
+
+                    }
+                    else -> {
 
                     }
                 }

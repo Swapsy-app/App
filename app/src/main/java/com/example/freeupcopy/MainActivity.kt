@@ -43,6 +43,7 @@ import com.example.freeupcopy.ui.presentation.authentication_screen.signup_scree
 import com.example.freeupcopy.ui.presentation.cart_screen.CartScreen
 import com.example.freeupcopy.ui.presentation.cash_screen.CashScreen
 import com.example.freeupcopy.ui.presentation.coin_screen.CoinScreen
+import com.example.freeupcopy.ui.presentation.home_screen.CategorySelectScreen
 import com.example.freeupcopy.ui.presentation.inbox_screen.InboxScreen
 import com.example.freeupcopy.ui.presentation.main_screen.MainScreen
 import com.example.freeupcopy.ui.presentation.product_listing.ProductListing
@@ -98,13 +99,15 @@ class MainActivity : ComponentActivity() {
                 // Monitor auth state changes
                 LaunchedEffect(authState) {
                     when (authState) {
-                         AuthState.UNAUTHENTICATED -> {
+                        AuthState.UNAUTHENTICATED -> {
                             // Navigate to login screen when session expires
                             navController.navigate(Screen.ConnectScreen) {
                                 popUpTo(navController.graph.id) { inclusive = true }
                             }
                         }
-                        else -> { /* No action needed */ }
+
+                        else -> { /* No action needed */
+                        }
                     }
                 }
                 Scaffold(
@@ -138,10 +141,14 @@ class MainActivity : ComponentActivity() {
                                 enterTransition = { fadeIn(tween(700)) },
                                 exitTransition = { fadeOut(tween(700)) }
                             ) {
-                                val sellViewModel = it.sharedViewModel<SellViewModel>(navController = navController)
+                                val sellViewModel =
+                                    it.sharedViewModel<SellViewModel>(navController = navController)
 
-                                val uploadedImages = it.savedStateHandle.get<List<String>>("uploaded_images") ?: emptyList()
-                                val uploadedVideo = it.savedStateHandle.get<String>("uploaded_video") ?: ""
+                                val uploadedImages =
+                                    it.savedStateHandle.get<List<String>>("uploaded_images")
+                                        ?: emptyList()
+                                val uploadedVideo =
+                                    it.savedStateHandle.get<String>("uploaded_video") ?: ""
 
                                 SellScreen(
                                     uploadedImages = uploadedImages,
@@ -151,25 +158,45 @@ class MainActivity : ComponentActivity() {
                                         navController.navigate(Screen.CategoryScreen)
                                     },
                                     onWeightClick = { selectedWeightType ->
-                                        navController.navigate(Screen.WeightScreen(selectedWeightType = selectedWeightType))
+                                        navController.navigate(
+                                            Screen.WeightScreen(
+                                                selectedWeightType = selectedWeightType
+                                            )
+                                        )
                                     },
                                     onConditionClick = { selectedCondition ->
-                                        navController.navigate(Screen.ConditionScreen(selectedCondition = selectedCondition))
+                                        navController.navigate(
+                                            Screen.ConditionScreen(
+                                                selectedCondition = selectedCondition
+                                            )
+                                        )
                                     },
 //                                    onBrandClick = {
 //                                        navController.navigate(Screen.BrandScreen(selectedBrand = selectedBrand))
 //                                    },
                                     onManufacturingClick = { manufacturingCountry ->
-                                        navController.navigate(Screen.ManufacturingScreen(selectedCountry = manufacturingCountry))
+                                        navController.navigate(
+                                            Screen.ManufacturingScreen(
+                                                selectedCountry = manufacturingCountry
+                                            )
+                                        )
                                     },
                                     onLocationClick = { selectedLocationId ->
-                                        navController.navigate(Screen.LocationScreen(selectedLocationId = selectedLocationId))
+                                        navController.navigate(
+                                            Screen.LocationScreen(
+                                                selectedLocationId = selectedLocationId
+                                            )
+                                        )
                                     },
                                     onAdvanceSettingClick = { gst ->
                                         navController.navigate(Screen.GstScreen(gst = gst))
                                     },
                                     onAddImageVideoClick = { numberOfUploadedImages ->
-                                        navController.navigate(Screen.GalleryScreen(numberOfUploadedImages))
+                                        navController.navigate(
+                                            Screen.GalleryScreen(
+                                                numberOfUploadedImages
+                                            )
+                                        )
                                     },
                                     onPriceClick = { price ->
                                         navController.navigate(Screen.PriceScreen(price))
@@ -178,55 +205,71 @@ class MainActivity : ComponentActivity() {
                                         navController.popBackStack()
                                     },
                                     onSpecificationClick = { option ->
-                                        when(option) {
+                                        when (option) {
                                             SpecialOption.FABRIC -> {
 
                                             }
+
                                             SpecialOption.COLOUR -> {
 
                                             }
+
                                             SpecialOption.OCCASION -> {
 
                                             }
+
                                             SpecialOption.BRAND -> {
 
                                             }
+
                                             SpecialOption.MODEL_NUMBER -> {
 
                                             }
+
                                             SpecialOption.INCLUDES -> {
 
                                             }
+
                                             SpecialOption.STORAGE_CAPACITY -> {
 
                                             }
+
                                             SpecialOption.RAM -> {
 
                                             }
+
                                             SpecialOption.BATTERY_CAPACITY -> {
 
                                             }
+
                                             SpecialOption.MOBILE_NETWORK -> {
 
                                             }
+
                                             SpecialOption.SCREEN_SIZE -> {
 
                                             }
+
                                             SpecialOption.SIM_TYPE -> {
 
                                             }
+
                                             SpecialOption.WARRANTY -> {
 
                                             }
+
                                             SpecialOption.SIZE -> {
 
                                             }
+
                                             SpecialOption.SHAPE -> {
 
                                             }
+
                                             SpecialOption.LENGTH -> {
 
                                             }
+
                                             SpecialOption.EXPIRATION_DATE -> {
 
                                             }
@@ -236,7 +279,8 @@ class MainActivity : ComponentActivity() {
                             }
 
                             composable<Screen.CategoryScreen> {
-                                val sellViewModel = it.sharedViewModel<SellViewModel>(navController = navController)
+                                val sellViewModel =
+                                    it.sharedViewModel<SellViewModel>(navController = navController)
                                 CategoryScreen(
                                     sellViewModel = sellViewModel,
                                     onCategoryClick = {
@@ -249,19 +293,20 @@ class MainActivity : ComponentActivity() {
                             }
 
                             composable<Screen.GalleryScreen> {
-                                val sellViewModel = it.sharedViewModel<SellViewModel>(navController = navController)
+                                val sellViewModel =
+                                    it.sharedViewModel<SellViewModel>(navController = navController)
                                 val args = it.toRoute<Screen.GalleryScreen>()
                                 CustomGalleryScreen(
                                     sellViewModel = sellViewModel,
                                     numberOfUploadedImages = args.numberOfUploadedImages ?: 0,
                                     onClose = { uploadedImages, uploadedVideo ->
                                         Log.e("MainActivity", "uploadedVideo: $uploadedVideo")
-                                        if(uploadedImages.isNotEmpty()) {
+                                        if (uploadedImages.isNotEmpty()) {
                                             navController.previousBackStackEntry
                                                 ?.savedStateHandle
                                                 ?.set("uploaded_images", uploadedImages)
                                         }
-                                        if(uploadedVideo?.isNotEmpty() == true) {
+                                        if (uploadedVideo?.isNotEmpty() == true) {
                                             navController.previousBackStackEntry
                                                 ?.savedStateHandle
                                                 ?.set("uploaded_video", uploadedVideo)
@@ -272,7 +317,8 @@ class MainActivity : ComponentActivity() {
                             }
 
                             composable<Screen.WeightScreen> {
-                                val sellViewModel = it.sharedViewModel<SellViewModel>(navController = navController)
+                                val sellViewModel =
+                                    it.sharedViewModel<SellViewModel>(navController = navController)
                                 val args = it.toRoute<Screen.WeightScreen>()
                                 WeightScreen(
                                     selectedWeightType = args.selectedWeightType ?: "",
@@ -284,7 +330,8 @@ class MainActivity : ComponentActivity() {
 
                             composable<Screen.ConditionScreen> {
                                 val args = it.toRoute<Screen.ConditionScreen>()
-                                val sellViewModel = it.sharedViewModel<SellViewModel>(navController = navController)
+                                val sellViewModel =
+                                    it.sharedViewModel<SellViewModel>(navController = navController)
 
                                 ConditionScreen(
                                     sellViewModel = sellViewModel,
@@ -296,7 +343,8 @@ class MainActivity : ComponentActivity() {
 
                             composable<Screen.ManufacturingScreen> {
                                 val args = it.toRoute<Screen.ManufacturingScreen>()
-                                val sellViewModel = it.sharedViewModel<SellViewModel>(navController = navController)
+                                val sellViewModel =
+                                    it.sharedViewModel<SellViewModel>(navController = navController)
 
                                 ManufacturingScreen(
                                     sellViewModel = sellViewModel,
@@ -324,7 +372,8 @@ class MainActivity : ComponentActivity() {
                             }
 
                             composable<Screen.LocationScreen> {
-                                val sellViewModel = it.sharedViewModel<SellViewModel>(navController = navController)
+                                val sellViewModel =
+                                    it.sharedViewModel<SellViewModel>(navController = navController)
                                 val args = it.toRoute<Screen.LocationScreen>()
 
                                 LocationScreen(
@@ -355,7 +404,8 @@ class MainActivity : ComponentActivity() {
 
                             composable<Screen.GstScreen> {
                                 val args = it.toRoute<Screen.GstScreen>()
-                                val sellViewModel = it.sharedViewModel<SellViewModel>(navController = navController)
+                                val sellViewModel =
+                                    it.sharedViewModel<SellViewModel>(navController = navController)
                                 AdvanceSettingScreen(
                                     onClose = {
                                         navController.popBackStack()
@@ -374,9 +424,10 @@ class MainActivity : ComponentActivity() {
                                 )
                             ) {
                                 val args = it.toRoute<Screen.PriceScreen>()
-                                val sellViewModel = it.sharedViewModel<SellViewModel>(navController = navController)
+                                val sellViewModel =
+                                    it.sharedViewModel<SellViewModel>(navController = navController)
                                 PriceScreen(
-                                    price =  args.price ?: Price(
+                                    price = args.price ?: Price(
                                         mrp = "",
                                         pricingModel = emptyList(),
                                         sellingCoin = "",
@@ -481,7 +532,7 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onSuccessfulSignUp = { email ->
                                     navController.navigate(Screen.OtpScreen(email)) {
-                                       // popUpTo(Screen.OtpScreen) { inclusive = true }
+                                        // popUpTo(Screen.OtpScreen) { inclusive = true }
                                     }
                                 }
                             )
@@ -634,10 +685,20 @@ class MainActivity : ComponentActivity() {
                             ProductScreen(
                                 navController = navController,
                                 onReplyClickComment = { commentId ->
-                                    navController.navigate(Screen.ReplyScreen(commentId = commentId, replyId = null))
+                                    navController.navigate(
+                                        Screen.ReplyScreen(
+                                            commentId = commentId,
+                                            replyId = null
+                                        )
+                                    )
                                 },
                                 onReplyClickReply = { commentId, replyId ->
-                                    navController.navigate(Screen.ReplyScreen(commentId = commentId, replyId = replyId))
+                                    navController.navigate(
+                                        Screen.ReplyScreen(
+                                            commentId = commentId,
+                                            replyId = replyId
+                                        )
+                                    )
                                 },
                                 onBack = {
                                     navController.popBackStack()
@@ -722,15 +783,31 @@ class MainActivity : ComponentActivity() {
 
                         composable<Screen.ProductListingScreen> {
                             val args = it.toRoute<Screen.ProductListingScreen>()
+                            val query = args.query ?: ""
 
+                            // Regular search query handling
                             ProductListing(
-                                query = args.query,
+                                query = query,
                                 onBack = {
                                     navController.popBackStack()
                                 },
                                 onProductClick = { productId ->
-                                    //this ensures that productId is passed into the saved state handle, which we can retrieve in the ProductViewModel
                                     navController.navigate(Screen.ProductScreen(productId = productId))
+                                }
+                            )
+                        }
+
+                        composable<Screen.CategorySelectScreen> {
+                            CategorySelectScreen(
+                                onClose = {
+                                    navController.popBackStack()
+                                },
+                                onCategoryClick = { primaryCategory, secondaryCategory, tertiaryCategory ->
+                                    navController.navigate(Screen.ProductListingScreen(query = "",
+                                        primaryCategory = primaryCategory,
+                                        secondaryCategory = secondaryCategory,
+                                        tertiaryCategory = tertiaryCategory
+                                    ))
                                 }
                             )
                         }

@@ -51,6 +51,8 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
 import com.example.freeupcopy.R
+import com.example.freeupcopy.common.Constants.BASE_URL_AVATAR
+import com.example.freeupcopy.data.remote.dto.product.User
 import com.example.freeupcopy.ui.theme.CardShape
 import com.example.freeupcopy.ui.theme.CashColor1
 import com.example.freeupcopy.ui.theme.CashColor2
@@ -75,6 +77,7 @@ fun ProductCard(
         (coinsPrice != null),
         (combinedPrice != null)
     ),
+    user: User,
     isLiked: Boolean,
     onLikeClick: () -> Unit,
     onClick: () -> Unit
@@ -340,14 +343,35 @@ fun ProductCard(
                     modifier = Modifier.padding(top = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(
-                        modifier = Modifier.size(20.dp),
-                        imageVector = Icons.Default.AccountCircle,
-                        contentDescription = "profile picture",
+//                    Icon(
+//                        modifier = Modifier.size(20.dp),
+//                        imageVector = Icons.Default.AccountCircle,
+//                        contentDescription = "profile picture",
+//                    )
+                    SubcomposeAsyncImage(
+                        modifier = Modifier
+                            .size(20.dp)
+                            .clip(CircleShape)
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                                onClick = {
+//                                    onUserClick(comment.userId._id)
+                                }
+                            ),
+                        model = BASE_URL_AVATAR + user.avatar,
+                        loading = {
+                            painterResource(id = R.drawable.im_user)
+                        },
+                        error = {
+                            painterResource(id = R.drawable.im_user)
+                        },
+                        contentDescription = "profile",
+                        contentScale = ContentScale.Crop
                     )
-                    Spacer(modifier = Modifier.width(4.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "sahil_islam",
+                        text = user.username,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                         fontSize = 12.sp
                     )
