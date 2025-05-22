@@ -18,7 +18,6 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val swapGoPref: SwapGoPref,
-    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val _refreshToken = MutableStateFlow<String?>(null)
@@ -36,9 +35,6 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             swapGoPref.getUser().collect { userData ->
                 _user.value = userData
-                if (userData != null) {
-                    savedStateHandle["user"] = userData
-                }
             }
         }
     }
@@ -58,11 +54,6 @@ class MainViewModel @Inject constructor(
                 when (result) {
                     is Resource.Success -> {
                         result.data?.user?.let { user ->
-                            // Store in SavedStateHandle
-                            savedStateHandle["user"] = user
-
-                            Log.e("MainViewModel", "User data: $user")
-
                             // Store in DataStore
                             swapGoPref.saveUser(user)
 

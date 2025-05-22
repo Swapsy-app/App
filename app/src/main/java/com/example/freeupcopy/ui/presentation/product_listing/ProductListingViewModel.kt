@@ -5,9 +5,12 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
+import com.example.freeupcopy.common.Resource
 import com.example.freeupcopy.data.local.RecentSearch
 import com.example.freeupcopy.data.local.RecentlyViewed
 import com.example.freeupcopy.data.local.RecentlyViewedDao
+import com.example.freeupcopy.data.pref.SwapGoPref
+import com.example.freeupcopy.di.AppModule
 import com.example.freeupcopy.domain.enums.AvailabilityOption
 import com.example.freeupcopy.domain.enums.ConditionOption
 import com.example.freeupcopy.domain.enums.Filter
@@ -15,6 +18,7 @@ import com.example.freeupcopy.domain.enums.FilterCategoryUiModel
 import com.example.freeupcopy.domain.enums.FilterTertiaryCategory
 import com.example.freeupcopy.domain.enums.NewPricingModel
 import com.example.freeupcopy.domain.model.TertiaryCategory
+import com.example.freeupcopy.domain.repository.SellRepository
 import com.example.freeupcopy.domain.use_case.GetProductCardsUseCase
 import com.example.freeupcopy.domain.use_case.ProductCardsQueryParameters
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -34,10 +38,17 @@ import javax.inject.Inject
 class ProductListingViewModel @Inject constructor(
     private val getProductCardsUseCase: GetProductCardsUseCase,
     private val recentlyViewedDao: RecentlyViewedDao,
+    private val swapGoPref: SwapGoPref,
+    private val repository: SellRepository, // Add this
+    private val wishlistStateManager: AppModule.WishlistStateManager, // Add this
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _state = MutableStateFlow(ProductListingUiState())
     val state = _state.asStateFlow()
+
+    // Add wishlist states
+    private val _wishlistStates = MutableStateFlow<Map<String, Boolean>>(emptyMap())
+    val wishlistStates = _wishlistStates.asStateFlow()
 
     private val priceType: String? = savedStateHandle["priceType"]
     private val maxPriceCash: String? = savedStateHandle["maxPriceCash"]
@@ -48,6 +59,28 @@ class ProductListingViewModel @Inject constructor(
 
     init {
         updateFilterState()
+
+        // Set up user data collection
+        viewModelScope.launch {
+            swapGoPref.getUser().collect { user ->
+                Log.e("ProductListingViewModel", "User data: $user")
+                _state.update { it.copy(user = user) }
+            }
+        }
+
+        viewModelScope.launch {
+            wishlistStateManager.wishlistUpdates.collect { (productId, isWishlisted) ->
+                updateProductWishlistState(productId, isWishlisted)
+                Log.e("ProductListingViewModel", "Wishlist updated: $productId, $isWishlisted")
+            }
+        }
+    }
+
+    // Add wishlist update method
+    private fun updateProductWishlistState(productId: String, isWishlisted: Boolean) {
+        _wishlistStates.update { current ->
+            current + (productId to isWishlisted)
+        }
     }
 
     private fun updateFilterState() {
@@ -148,6 +181,7 @@ class ProductListingViewModel @Inject constructor(
         .map { state ->
             // Create a data object with all the parameters we need to track for changes
             ProductQueryState(
+                userId = state.user?._id,
                 searchQuery = state.searchQuery,
                 availabilityOptions = state.availabilityOptions,
                 conditionOptions = state.conditionOptions,
@@ -204,6 +238,7 @@ class ProductListingViewModel @Inject constructor(
             // Pass all parameters to the query
             getProductCardsUseCase(
                 ProductCardsQueryParameters(
+                    userId = queryState.userId,
                     search = formattedQuery,
                     filters = filters,
                     sort = queryState.appliedSortOption,
@@ -565,6 +600,69 @@ class ProductListingViewModel @Inject constructor(
                         currentSelectedSpecialOptions.add(event.filterSpecialOption)
                     }
                     currentState.copy(selectedSpecialOptions = currentSelectedSpecialOptions)
+                }
+            }
+
+
+            is ProductListingUiEvent.AddToWishlist -> {
+                viewModelScope.launch {
+                    // Optimistically update UI
+                    updateProductWishlistState(event.productId, true)
+
+                    repository.addToWishlist(event.productId).collect { response ->
+                        when (response) {
+                            is Resource.Success -> {
+                                wishlistStateManager.notifyWishlistChanged(event.productId, true)
+                                _state.update {
+                                    it.copy(isLoading = false, error = "")
+                                }
+                            }
+                            is Resource.Error -> {
+                                // Revert optimistic update
+                                updateProductWishlistState(event.productId, false)
+                                _state.update {
+                                    it.copy(
+                                        isLoading = false,
+                                        error = response.message ?: "Failed to add to wishlist"
+                                    )
+                                }
+                            }
+                            is Resource.Loading -> {
+                                _state.update { it.copy(isLoading = true, error = "") }
+                            }
+                        }
+                    }
+                }
+            }
+
+            is ProductListingUiEvent.RemoveFromWishlist -> {
+                viewModelScope.launch {
+                    // Optimistically update UI
+                    updateProductWishlistState(event.productId, false)
+
+                    repository.removeFromWishlist(event.productId).collect { response ->
+                        when (response) {
+                            is Resource.Success -> {
+                                wishlistStateManager.notifyWishlistChanged(event.productId, false)
+                                _state.update {
+                                    it.copy(isLoading = false, error = "")
+                                }
+                            }
+                            is Resource.Error -> {
+                                // Revert optimistic update
+                                updateProductWishlistState(event.productId, true)
+                                _state.update {
+                                    it.copy(
+                                        isLoading = false,
+                                        error = response.message ?: "Failed to remove from wishlist"
+                                    )
+                                }
+                            }
+                            is Resource.Loading -> {
+                                _state.update { it.copy(isLoading = true, error = "") }
+                            }
+                        }
+                    }
                 }
             }
         }

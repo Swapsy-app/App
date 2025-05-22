@@ -150,6 +150,7 @@ class MainActivity : ComponentActivity() {
             SwapGoTheme(darkTheme = false) {
                 // Get the token from ViewModel
                 val token by viewModel.refreshToken.collectAsState()
+                val user by viewModel.user.collectAsState()
 
                 // Add state for login bottom sheet
                 val showLoginBottomSheet = remember { mutableStateOf(false) }

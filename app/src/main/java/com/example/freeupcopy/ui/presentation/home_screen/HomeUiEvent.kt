@@ -16,6 +16,10 @@ sealed class HomeUiEvent {
     data class IsLoading(val isLoading: Boolean) : HomeUiEvent()
     data class OnLikeClick(val productId: String) : HomeUiEvent()
 
+    data class AddToWishlist(val productId: String) : HomeUiEvent()
+    data class RemoveFromWishlist(val productId: String) : HomeUiEvent()
+
+
     // Filter events
     data class ToggleFilterBottomSheet(val type: String?) : HomeUiEvent()
     data class ChangeSelectedFilter(val filter: Filter) : HomeUiEvent()

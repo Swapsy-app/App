@@ -127,6 +127,9 @@ fun HomeScreen(
 
     val exploreProducts = homeViewModel.exploreProducts.collectAsLazyPagingItems()
 
+    // In your HomeScreen composable, you already have:
+    val wishlistStates by homeViewModel.wishlistStates.collectAsState()
+
     val state by homeViewModel.state.collectAsState()
 
     // Create the product click handler
@@ -286,8 +289,20 @@ fun HomeScreen(
                     onViewAll = {
 
                     },
-                    onLikeClick = { productId->
-                        homeViewModel.onEvent(HomeUiEvent.OnLikeClick(productId))
+                    onLikeClick = { productId ->
+                        // Get current wishlist state
+                        val product = state.bestInWomenWear.find { it._id == productId }
+                        val isWishlisted = if (wishlistStates.containsKey(productId)) {
+                            wishlistStates[productId]!!
+                        } else {
+                            product?.isWishlisted ?: false
+                        }
+
+                        if (isWishlisted) {
+                            homeViewModel.onEvent(HomeUiEvent.RemoveFromWishlist(productId))
+                        } else {
+                            homeViewModel.onEvent(HomeUiEvent.AddToWishlist(productId))
+                        }
                     }
                 )
             }
@@ -302,8 +317,20 @@ fun HomeScreen(
                     onProductClick = { product ->
                         productClickHandler.handleProductClick(product)
                     },
-                    onLikeClick = { productId->
-                        homeViewModel.onEvent(HomeUiEvent.OnLikeClick(productId))
+                    onLikeClick = { productId ->
+                        // Get current wishlist state
+                        val product = state.ethnicWomenProducts.find { it._id == productId }
+                        val isWishlisted = if (wishlistStates.containsKey(productId)) {
+                            wishlistStates[productId]!!
+                        } else {
+                            product?.isWishlisted ?: false
+                        }
+
+                        if (isWishlisted) {
+                            homeViewModel.onEvent(HomeUiEvent.RemoveFromWishlist(productId))
+                        } else {
+                            homeViewModel.onEvent(HomeUiEvent.AddToWishlist(productId))
+                        }
                     }
                 )
             }
@@ -415,8 +442,20 @@ fun HomeScreen(
                     onRetry = {
                         exploreProducts.refresh()
                     },
-                    onLikeClick = { productId->
-                        homeViewModel.onEvent(HomeUiEvent.OnLikeClick(productId))
+                    onLikeClick = { productId ->
+                        // Get current wishlist state from the passed wishlistStates
+                        val currentProduct = exploreProducts.itemSnapshotList.items.find { it._id == productId }
+                        val isWishlisted = if (wishlistStates.containsKey(productId)) {
+                            wishlistStates[productId]!!
+                        } else {
+                            currentProduct?.isWishlisted ?: false
+                        }
+
+                        if (isWishlisted) {
+                            homeViewModel.onEvent(HomeUiEvent.RemoveFromWishlist(productId))
+                        } else {
+                            homeViewModel.onEvent(HomeUiEvent.AddToWishlist(productId))
+                        }
                     }
                 )
             }
@@ -787,7 +826,7 @@ fun FilterButton(
     isActive: Boolean = false,
 ) {
     val backgroundColor = if (isActive) {
-        MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+        MaterialTheme.colorScheme.secondaryContainer
     } else {
         Color.Transparent
     }

@@ -1,5 +1,7 @@
 package com.example.freeupcopy.ui.presentation.product_listing
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -44,12 +46,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -76,8 +78,6 @@ import com.example.freeupcopy.ui.theme.BottomSheetShape
 import com.example.freeupcopy.ui.theme.ButtonShape
 import com.example.freeupcopy.ui.theme.SwapGoTheme
 import com.example.freeupcopy.ui.theme.TextFieldContainerColor
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import java.net.UnknownHostException
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -90,7 +90,9 @@ fun ProductListing(
     productListingViewModel: ProductListingViewModel = hiltViewModel()
 ) {
     val state by productListingViewModel.state.collectAsState()
+    val wishlistStates by productListingViewModel.wishlistStates.collectAsState()
     val lifeCycleOwner = LocalLifecycleOwner.current
+    val context = LocalContext.current
 
     val products = productListingViewModel.productCards.collectAsLazyPagingItems()
 
@@ -108,6 +110,12 @@ fun ProductListing(
             productListingViewModel.onEvent(ProductListingUiEvent.ChangeSearchQuery(query))
             // Mark that we've set the initial query
             productListingViewModel.onEvent(ProductListingUiEvent.SetInitialQuery)
+        }
+    }
+    LaunchedEffect(state.error) {
+        Log.e("ProductListingScreen", "Error: ${state.error}")
+        state.error.takeIf { it.isNotBlank() }?.let {
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -338,6 +346,13 @@ fun ProductListing(
                     ) {
                         items(products.itemCount) {
                             products[it]?.let { product ->
+
+                                val isWishlisted = if (wishlistStates.containsKey(product._id)) {
+                                    wishlistStates[product._id]!!
+                                } else {
+                                    product.isWishlisted
+                                }
+
                                 ProductCard(
                                     brand = product.brand,
                                     title = product.title,
@@ -361,8 +376,19 @@ fun ProductListing(
                                     mrp = product.price.mrp?.toInt().toString(),
                                     badge = "null",
                                     user = product.seller,
-                                    isLiked = false,
-                                    onLikeClick = {},
+                                    isLiked = isWishlisted,
+                                    onLikeClick = {
+                                        // Call the appropriate event based on current state
+                                        if (isWishlisted) {
+                                            productListingViewModel.onEvent(
+                                                ProductListingUiEvent.RemoveFromWishlist(product._id)
+                                            )
+                                        } else {
+                                            productListingViewModel.onEvent(
+                                                ProductListingUiEvent.AddToWishlist(product._id)
+                                            )
+                                        }
+                                    },
                                     onClick = {
                                         productClickHandler.handleProductClick(product)
                                     }

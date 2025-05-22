@@ -1,5 +1,6 @@
 package com.example.freeupcopy.ui.presentation.product_listing
 
+import com.example.freeupcopy.data.remote.dto.product.User
 import com.example.freeupcopy.domain.enums.AvailabilityOption
 import com.example.freeupcopy.domain.enums.ConditionOption
 import com.example.freeupcopy.domain.enums.Filter
@@ -10,6 +11,8 @@ import com.example.freeupcopy.domain.enums.SellerBadge
 import com.example.freeupcopy.domain.enums.SellerRatingOption
 
 data class ProductListingUiState(
+
+    val user: User? = null,
 
     val searchQuery: String = "",
     val initialQuerySet: Boolean = false,

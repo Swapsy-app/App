@@ -39,4 +39,7 @@ sealed class ProductListingUiEvent {
     data object ApplySortOption: ProductListingUiEvent()
 
     data class SpecialOptionSelectedChange(val filterSpecialOption: FilterSpecialOption) : ProductListingUiEvent()
+
+    data class AddToWishlist(val productId: String) : ProductListingUiEvent()
+    data class RemoveFromWishlist(val productId: String) : ProductListingUiEvent()
 }

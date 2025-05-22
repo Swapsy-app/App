@@ -63,6 +63,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             wishlistStateManager.wishlistUpdates.collect { (productId, isWishlisted) ->
                 updateProductWishlistState(productId, isWishlisted)
+                Log.e("HomeViewModel", "Wishlist updated: $productId, $isWishlisted")
             }
         }
     }
@@ -195,16 +196,102 @@ class HomeViewModel @Inject constructor(
                             is Resource.Success -> {
                                 // Notify other screens about the change
                                 wishlistStateManager.notifyWishlistChanged(event.productId, newWishlistState)
+                                _state.update {
+                                    it.copy(
+                                        isLoading = false,
+                                        error = ""
+                                    )
+                                }
                             }
                             is Resource.Error -> {
                                 // Revert the optimistic update if there's an error
                                 updateProductWishlistState(event.productId, !newWishlistState)
+                                _state.update {
+                                    it.copy(
+                                        isLoading = false,
+                                        error = response.message ?: "Unknown error"
+                                    )
+                                }
                             }
-                            else -> { /* Handle loading state */ }
+                            is Resource.Loading -> {
+                                _state.update {
+                                    it.copy(
+                                        isLoading = true,
+                                        error = ""
+                                    )
+                                }
+                            }
                         }
                     }
                 }
             }
+
+            is HomeUiEvent.AddToWishlist -> {
+                viewModelScope.launch {
+                    Log.e("HomeViewModel", "Adding to wishlist: ${event.productId}")
+
+                    // Optimistically update UI
+                    updateProductWishlistState(event.productId, true)
+
+                    repository.addToWishlist(event.productId).collect { response ->
+                        when (response) {
+                            is Resource.Success -> {
+                                wishlistStateManager.notifyWishlistChanged(event.productId, true)
+                                _state.update {
+                                    it.copy(isLoading = false, error = "")
+                                }
+                            }
+                            is Resource.Error -> {
+                                // Revert optimistic update
+                                updateProductWishlistState(event.productId, false)
+                                _state.update {
+                                    it.copy(
+                                        isLoading = false,
+                                        error = response.message ?: "Failed to add to wishlist"
+                                    )
+                                }
+                            }
+                            is Resource.Loading -> {
+                                _state.update { it.copy(isLoading = true, error = "") }
+                            }
+                        }
+                    }
+                }
+            }
+
+            is HomeUiEvent.RemoveFromWishlist -> {
+                viewModelScope.launch {
+                    Log.e("HomeViewModel", "Removing from wishlist: ${event.productId}")
+
+                    // Optimistically update UI
+                    updateProductWishlistState(event.productId, false)
+
+                    repository.removeFromWishlist(event.productId).collect { response ->
+                        when (response) {
+                            is Resource.Success -> {
+                                wishlistStateManager.notifyWishlistChanged(event.productId, false)
+                                _state.update {
+                                    it.copy(isLoading = false, error = "")
+                                }
+                            }
+                            is Resource.Error -> {
+                                // Revert optimistic update
+                                updateProductWishlistState(event.productId, true)
+                                _state.update {
+                                    it.copy(
+                                        isLoading = false,
+                                        error = response.message ?: "Failed to remove from wishlist"
+                                    )
+                                }
+                            }
+                            is Resource.Loading -> {
+                                _state.update { it.copy(isLoading = true, error = "") }
+                            }
+                        }
+                    }
+                }
+            }
+
 
             is HomeUiEvent.ChangeSelectedFilter -> {
                 _state.update { it.copy(selectedFilter = event.filter) }

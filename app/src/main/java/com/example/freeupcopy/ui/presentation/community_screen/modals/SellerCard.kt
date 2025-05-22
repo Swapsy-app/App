@@ -14,8 +14,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -35,9 +37,11 @@ fun SellerCard(
 ) {
     Box(modifier = modifier) {
         ElevatedCard(
-            modifier = Modifier
-                .padding(8.dp),
-            shape = RoundedCornerShape(8.dp)
+            modifier = Modifier,
+            shape = RoundedCornerShape(8.dp),
+            colors = CardDefaults.elevatedCardColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer
+            ),
         ) {
             Column(
                 Modifier.fillMaxWidth().padding(8.dp)
