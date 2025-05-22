@@ -52,6 +52,7 @@ interface SellRepository {
     suspend fun fetchProductCards(
         page: Int,
         limit: Int,
+        userId: String? = null,
         search: String? = null,
         sort: String? = null,
         priceType: String? = null,
@@ -88,7 +89,7 @@ interface SellRepository {
         priceType: String? = null,
         minPrice: Float? = null,
         maxPrice: Float? = null
-    ): Flow<Resource<FetchWishlistResponse>>
+    ): FetchWishlistResponse
 
     // 4️⃣ Get the wishlist count for a specific product
     suspend fun getWishlistCount(productId: String): Flow<Resource<WishlistCountResponse>>

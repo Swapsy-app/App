@@ -1,5 +1,6 @@
 package com.example.freeupcopy.ui.navigation
 
+import com.example.freeupcopy.domain.enums.Settings
 import com.example.freeupcopy.domain.model.Price
 import kotlinx.serialization.Serializable
 
@@ -98,4 +99,10 @@ sealed class Screen {
 
     @Serializable
     data class GalleryScreen(val numberOfUploadedImages: Int?): Screen()
+
+    @Serializable
+    data object SettingsScreen : Screen()
+
+    @Serializable
+    data class SecondarySettingsScreen(val screenType: Settings?) : Screen()
 }

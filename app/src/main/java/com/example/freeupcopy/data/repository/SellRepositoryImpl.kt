@@ -223,6 +223,7 @@ class SellRepositoryImpl(
     override suspend fun fetchProductCards(
         page: Int,
         limit: Int,
+        userId: String?,
         search: String?,
         sort: String?,
         priceType: String?,
@@ -239,6 +240,7 @@ class SellRepositoryImpl(
         return api.fetchProductCards(
             page = page,
             limit = limit,
+            userId = userId,
             search = search,
             sort = sort,
             priceType = priceType,
@@ -329,10 +331,7 @@ class SellRepositoryImpl(
         priceType: String?,
         minPrice: Float?,
         maxPrice: Float?
-    ): Flow<Resource<FetchWishlistResponse>> = flow {
-        emit(Resource.Loading())
-        try {
-            val res = api.fetchWishlist(
+    ) = api.fetchWishlist(
                 page = page,
                 sort = sort,
                 status = status,
@@ -344,16 +343,6 @@ class SellRepositoryImpl(
                 minPrice = minPrice,
                 maxPrice = maxPrice
             )
-            emit(Resource.Success(res))
-        } catch(e: HttpException) {
-            val errorBody = e.response()?.errorBody()?.string()
-            val json = errorBody?.let { JSONObject(it) }
-            val errorMessage = json?.getString("message") ?: e.message ?: "An error occurred fetching wishlist"
-            emit(Resource.Error(message = errorMessage))
-        } catch(e: Exception) {
-            emit(Resource.Error(message = e.message?: "An unexpected error occurred"))
-        }
-    }.flowOn(Dispatchers.IO)
 
     override suspend fun getWishlistCount(productId: String): Flow<Resource<WishlistCountResponse>> = flow {
         emit(Resource.Loading())

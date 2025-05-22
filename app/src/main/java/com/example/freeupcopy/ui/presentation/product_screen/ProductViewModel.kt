@@ -2,7 +2,6 @@ package com.example.freeupcopy.ui.presentation.product_screen
 
 import android.util.Log
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
@@ -11,28 +10,23 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.filter
 import com.example.freeupcopy.common.Resource
-import com.example.freeupcopy.data.local.RecentlyViewed
-import com.example.freeupcopy.data.local.RecentlyViewedDao
 import com.example.freeupcopy.data.remote.dto.product.AddCommentRequest
 import com.example.freeupcopy.data.remote.dto.product.BargainOfferRequest
-import com.example.freeupcopy.data.remote.dto.product.Comment
 import com.example.freeupcopy.data.remote.dto.product.Reply
 import com.example.freeupcopy.domain.enums.Currency
 import com.example.freeupcopy.domain.enums.getCurrencyFromString
 import com.example.freeupcopy.domain.repository.ProductRepository
 import com.example.freeupcopy.domain.repository.SellRepository
-import com.example.freeupcopy.domain.repository.SellerProfileRepository
+import com.example.freeupcopy.domain.repository.ProfileRepository
 import com.example.freeupcopy.domain.use_case.GetProductCardsUseCase
 import com.example.freeupcopy.domain.use_case.ProductCardsQueryParameters
 import com.example.freeupcopy.utils.ValidationResult
 import com.example.freeupcopy.utils.calculateFifteenPercent
-import com.example.freeupcopy.utils.calculateTenPercent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
@@ -47,7 +41,7 @@ class ProductViewModel @Inject constructor(
     private val sellRepository: SellRepository,
     savedStateHandle: SavedStateHandle,
     private val productRepository: ProductRepository,
-    private val sellerProfileRepository: SellerProfileRepository,
+    private val profileRepository: ProfileRepository,
     private val getProductCardsUseCase: GetProductCardsUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(ProductUiState())
@@ -1109,7 +1103,7 @@ class ProductViewModel @Inject constructor(
 
     private fun getSellerBasicInfo() {
         viewModelScope.launch {
-            sellerProfileRepository.getUserBasicInfo().collect { result ->
+            profileRepository.getUserBasicInfo().collect { result ->
                 when (result) {
                     is Resource.Loading -> {
                         _state.update {

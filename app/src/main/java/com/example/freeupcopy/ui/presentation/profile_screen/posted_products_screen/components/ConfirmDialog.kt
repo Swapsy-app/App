@@ -29,11 +29,15 @@ import com.example.freeupcopy.ui.theme.SwapGoTheme
 @Composable
 fun ConfirmDialog(
     modifier: Modifier = Modifier,
-    onConfirmDelete: () -> Unit,
-    onDismiss: () -> Unit
+    dialogText: String,
+    onConfirm: () -> Unit,
+    onCancel: () -> Unit,
+    confirmButtonText: String = "Confirm",
+    cancelButtonText: String = "Cancel",
+    dialogTitle: String? = null
 ) {
     Dialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = onCancel,
         properties = DialogProperties(
             usePlatformDefaultWidth = false
         )
@@ -46,39 +50,42 @@ fun ConfirmDialog(
                 .background(MaterialTheme.colorScheme.primaryContainer)
                 .padding(16.dp)
         ) {
+            dialogTitle?.let {
+                Text(
+                    text = dialogTitle,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
+                Spacer(Modifier.size(6.dp))
+            }
             Text(
-                text = "Delete Product",
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp
-            )
-            Spacer(Modifier.size(6.dp))
-            Text(
-                text = "Are you sure you want to delete this product?" +
-                        " This action cannot be undone.",
+//                text = "Are you sure you want to delete this product?" +
+//                        " This action cannot be undone.",
                 //fontSize = 16.sp
+                text = dialogText,
             )
 
             Spacer(Modifier.size(24.dp))
 
             Row {
                 OutlinedButton(
-                    onClick = onDismiss,
+                    onClick = onCancel,
                     modifier = Modifier
                         .weight(1f),
                     shape = ButtonShape
                 ) {
-                    Text("Cancel")
+                    Text(cancelButtonText)
                 }
 
                 Spacer(Modifier.size(8.dp))
 
                 Button(
-                    onClick = onConfirmDelete,
+                    onClick = onConfirm,
                     modifier = Modifier
                         .weight(1f),
                     shape = ButtonShape
                 ) {
-                    Text("Delete")
+                    Text(confirmButtonText)
                 }
             }
         }
@@ -90,8 +97,10 @@ fun ConfirmDialog(
 private fun ConfirmDialogPreview() {
     SwapGoTheme {
         ConfirmDialog(
-            onConfirmDelete = {},
-            onDismiss = {}
+            dialogText = "Are you sure you want to delete this product?" +
+                    " This action cannot be undone.",
+            onConfirm = {},
+            onCancel = {}
         )
     }
 }

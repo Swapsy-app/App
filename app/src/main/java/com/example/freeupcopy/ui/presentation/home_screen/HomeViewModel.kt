@@ -1,8 +1,12 @@
 package com.example.freeupcopy.ui.presentation.home_screen
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
+import com.example.freeupcopy.common.Resource
+import com.example.freeupcopy.data.pref.SwapGoPref
+import com.example.freeupcopy.di.AppModule
 import com.example.freeupcopy.domain.enums.Filter
 import com.example.freeupcopy.domain.repository.SellRepository
 import com.example.freeupcopy.domain.use_case.GetProductCardsUseCase
@@ -24,36 +28,82 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val repository: SellRepository,
-    private val getProductCardsUseCase: GetProductCardsUseCase
+    private val getProductCardsUseCase: GetProductCardsUseCase,
+    private val swapGoPref: SwapGoPref,
+    private val wishlistStateManager: AppModule.WishlistStateManager
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeUiState())
     val state = _state.asStateFlow()
 
+    private val _wishlistStates = MutableStateFlow<Map<String, Boolean>>(emptyMap())
+    val wishlistStates = _wishlistStates.asStateFlow()
 
-    //    // Use stateIn pattern similar to ProductViewModel's similarProducts implementation
-//    @OptIn(ExperimentalCoroutinesApi::class)
-//    val bestInMenProducts = MutableStateFlow(
-//        ProductCardsQueryParameters(
-//            filters = mapOf("primaryCategory" to "Men", "status" to "available"),
-//            limit = 6,
-//            sort = "relevance"
-//        )
-//    )
-//        .flatMapLatest { params ->
-//            getProductCardsUseCase(params)
-//        }
-//        .stateIn(
-//            viewModelScope,
-//            SharingStarted.Lazily,
-//            PagingData.empty()
-//        )
+    init {
+        // Fetch initial data without waiting for user ID
+        fetchInitialProducts()
+
+        // Set up user data collection
+        viewModelScope.launch {
+            swapGoPref.getUser().collect { user ->
+                Log.e("HomeViewModel", "User data: $user")
+                val previousUser = _state.value.user
+                _state.update { it.copy(user = user) }
+
+                // Only refresh products if user ID changed
+                if (previousUser?._id != user?._id) {
+                    fetchBestInMenProducts()
+                    fetchBestInWomenWear()
+                    fetchEthnicWomenProducts()
+                }
+            }
+        }
+
+        // Listen for wishlist updates
+        viewModelScope.launch {
+            wishlistStateManager.wishlistUpdates.collect { (productId, isWishlisted) ->
+                updateProductWishlistState(productId, isWishlisted)
+            }
+        }
+    }
+
+    // Update this method to also update the wishlist states map
+    private fun updateProductWishlistState(productId: String, isWishlisted: Boolean) {
+        // Update static lists (your existing code)
+        _state.update { currentState ->
+            currentState.copy(
+                bestInMenProducts = currentState.bestInMenProducts.map {
+                    if (it._id == productId) it.copy(isWishlisted = isWishlisted) else it
+                },
+                bestInWomenWear = currentState.bestInWomenWear.map {
+                    if (it._id == productId) it.copy(isWishlisted = isWishlisted) else it
+                },
+                ethnicWomenProducts = currentState.ethnicWomenProducts.map {
+                    if (it._id == productId) it.copy(isWishlisted = isWishlisted) else it
+                }
+            )
+        }
+
+        // Also update the wishlist states map
+        _wishlistStates.update { current ->
+            current + (productId to isWishlisted)
+        }
+    }
+    // Initial fetch without personalization
+    private fun fetchInitialProducts() {
+        fetchBestInMenProducts()
+        fetchBestInWomenWear()
+        fetchEthnicWomenProducts()
+    }
+
+
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val exploreProducts = _state
         .map { state ->
             // Create a data object with all the parameters we need to track for changes
             ProductQueryState(
+                userId = state.user?._id,
                 searchQuery = "",
                 availabilityOptions = state.availabilityOptions, // Use applied values
                 conditionOptions = state.conditionOptions,       // Use applied values
@@ -92,6 +142,7 @@ class HomeViewModel @Inject constructor(
             getProductCardsUseCase(
                 ProductCardsQueryParameters(
                     search = "",
+                    userId = queryState.userId,
                     filters = filters,
                     sort = queryState.appliedSortOption,
                     priceType = queryState.pricingModelOptions.joinToString(",") { it.apiValue },
@@ -108,15 +159,6 @@ class HomeViewModel @Inject constructor(
             PagingData.empty()
         )
 
-
-
-    init {
-        // Fetch all product categories on initialization
-        fetchBestInMenProducts()
-        fetchBestInWomenWear()
-        fetchEthnicWomenProducts()
-    }
-
     fun onEvent(event: HomeUiEvent) {
         when (event) {
             is HomeUiEvent.RefreshWomenWear -> fetchBestInWomenWear()
@@ -132,6 +174,37 @@ class HomeViewModel @Inject constructor(
                 _state.update { it.copy(isLoading = event.isLoading) }
             }
 
+            is HomeUiEvent.OnLikeClick -> {
+                viewModelScope.launch {
+                    // Find current wishlist state
+                    val currentProduct = findProductById(event.productId)
+                    val newWishlistState = !(currentProduct?.isWishlisted ?: false)
+
+                    // Optimistically update UI
+                    updateProductWishlistState(event.productId, newWishlistState)
+
+                    // Make API call
+                    val apiCall = if (newWishlistState) {
+                        repository.addToWishlist(event.productId)
+                    } else {
+                        repository.removeFromWishlist(event.productId)
+                    }
+
+                    apiCall.collect { response ->
+                        when (response) {
+                            is Resource.Success -> {
+                                // Notify other screens about the change
+                                wishlistStateManager.notifyWishlistChanged(event.productId, newWishlistState)
+                            }
+                            is Resource.Error -> {
+                                // Revert the optimistic update if there's an error
+                                updateProductWishlistState(event.productId, !newWishlistState)
+                            }
+                            else -> { /* Handle loading state */ }
+                        }
+                    }
+                }
+            }
 
             is HomeUiEvent.ChangeSelectedFilter -> {
                 _state.update { it.copy(selectedFilter = event.filter) }
@@ -381,6 +454,7 @@ class HomeViewModel @Inject constructor(
                 _state.update { it.copy(isBestInMenLoading = true, bestInMenError = "") }
 
                 val response = repository.fetchProductCards(
+                    userId = state.value.user?._id,
                     limit = 6,
                     page = 1,
                     search = null,
@@ -417,6 +491,7 @@ class HomeViewModel @Inject constructor(
 
                 val response = repository.fetchProductCards(
                     limit = 12,
+                    userId = state.value.user?._id,
                     page = 1,
                     search = null,
                     sort = "relevance",
@@ -453,6 +528,7 @@ class HomeViewModel @Inject constructor(
 
                 val response = repository.fetchProductCards(
                     limit = 12,
+                    userId = state.value.user?._id,
                     page = 1,
                     search = null,
                     sort = "relevance",
@@ -482,4 +558,10 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+
+    // Helper method to find a product by ID
+    private fun findProductById(productId: String) =
+        _state.value.bestInMenProducts.find { it._id == productId } ?:
+        _state.value.bestInWomenWear.find { it._id == productId } ?:
+        _state.value.ethnicWomenProducts.find { it._id == productId }
 }

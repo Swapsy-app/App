@@ -573,6 +573,7 @@ class ProductListingViewModel @Inject constructor(
 
 // Data class to hold all query parameters
 data class ProductQueryState(
+    val userId: String? = null,
     val searchQuery: String,
     val availabilityOptions: List<AvailabilityOption>,
     val conditionOptions: List<ConditionOption>,

@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.freeupcopy.common.Resource
 import com.example.freeupcopy.data.remote.dto.your_profile.UpdateProfileResponse
-import com.example.freeupcopy.domain.repository.SellerProfileRepository
+import com.example.freeupcopy.domain.repository.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,7 +14,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class EditProfileViewModel @Inject constructor(
-    private val profileRepository: SellerProfileRepository
+    private val profileRepository: ProfileRepository
 ): ViewModel() {
     private val _state = MutableStateFlow(EditProfileUiState())
     val state = _state.asStateFlow()

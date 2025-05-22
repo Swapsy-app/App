@@ -3,6 +3,7 @@ package com.example.freeupcopy.data.pref
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import com.example.freeupcopy.data.remote.dto.product.User
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -33,21 +34,6 @@ class SwapGoPrefImpl(private val dataStore: DataStore<Preferences>) : SwapGoPref
         }
     }
 
-    //    override fun getUserToken(): Flow<String?> = dataStore.data.map { preferences ->
-//        preferences[USER_KEY] ?: ""
-//    }
-//
-//    override suspend fun saveUserToken(user: String) {
-//        dataStore.edit {
-//            it[USER_KEY] = user
-//        }
-//    }
-//
-//    override suspend fun clearUserToken() {
-//        dataStore.edit {
-//            it.remove(USER_KEY)
-//        }
-//    }
     override fun getAccessToken(): Flow<String?> {
         return dataStore.data.map { preferences ->
             preferences[ACCESS_TOKEN_KEY]
@@ -81,6 +67,38 @@ class SwapGoPrefImpl(private val dataStore: DataStore<Preferences>) : SwapGoPref
     override suspend fun clearRefreshToken() {
         dataStore.edit {
             it.remove(REFRESH_TOKEN_KEY)
+            // Also clear user data when refresh token is cleared
+            it.remove(USER_ID_KEY)
+            it.remove(USER_NAME_KEY)
+            it.remove(USER_AVATAR_KEY)
+        }
+    }
+
+    override fun getUser(): Flow<User?> = dataStore.data.map { preferences ->
+        val id = preferences[USER_ID_KEY]
+        val username = preferences[USER_NAME_KEY]
+        val avatar = preferences[USER_AVATAR_KEY]
+
+        if (id != null && username != null) {
+            User(_id = id, username = username, avatar = avatar)
+        } else {
+            null
+        }
+    }
+
+    override suspend fun saveUser(user: User) {
+        dataStore.edit { preferences ->
+            preferences[USER_ID_KEY] = user._id
+            preferences[USER_NAME_KEY] = user.username
+            preferences[USER_AVATAR_KEY] = user.avatar ?: ""
+        }
+    }
+
+    override suspend fun clearUser() {
+        dataStore.edit { preferences ->
+            preferences.remove(USER_ID_KEY)
+            preferences.remove(USER_NAME_KEY)
+            preferences.remove(USER_AVATAR_KEY)
         }
     }
 }

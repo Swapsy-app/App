@@ -7,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.freeupcopy.common.Resource
 import com.example.freeupcopy.data.remote.dto.product.AddReplyRequest
 import com.example.freeupcopy.domain.repository.ProductRepository
-import com.example.freeupcopy.domain.repository.SellerProfileRepository
+import com.example.freeupcopy.domain.repository.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,7 +19,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ReplyViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val sellerProfileRepository: SellerProfileRepository,
+    private val profileRepository: ProfileRepository,
     private val productRepository: ProductRepository
 ): ViewModel() {
     private val _state = MutableStateFlow(ReplyUiState())
@@ -362,7 +362,7 @@ class ReplyViewModel @Inject constructor(
 
     private fun getUserBasicInfo() {
         viewModelScope.launch {
-            sellerProfileRepository.getUserBasicInfo().collect { result ->
+            profileRepository.getUserBasicInfo().collect { result ->
                 when (result) {
                     is Resource.Loading -> {
                         _state.update {

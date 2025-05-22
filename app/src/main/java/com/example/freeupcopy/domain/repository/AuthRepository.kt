@@ -30,7 +30,5 @@ interface AuthRepository {
 
     suspend fun checkLoginStatus(): Flow<Resource<LoginStatusResponse>>
 
-//    suspend fun getProfile(): Flow<Resource<ProfileResponse>>
-
-
+    suspend fun logout(): Flow<Resource<AuthResponse>>
 }

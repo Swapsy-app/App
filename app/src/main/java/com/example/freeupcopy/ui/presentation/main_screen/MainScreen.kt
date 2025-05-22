@@ -27,6 +27,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,6 +42,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.freeupcopy.R
+import com.example.freeupcopy.ui.navigation.AuthStateManager
 import com.example.freeupcopy.ui.navigation.Screen
 import com.example.freeupcopy.ui.presentation.community_screen.CommunityScreen
 import com.example.freeupcopy.ui.presentation.home_screen.HomeScreen
@@ -48,16 +50,21 @@ import com.example.freeupcopy.ui.presentation.home_screen.componants.BottomNavig
 import com.example.freeupcopy.ui.presentation.home_screen.componants.CustomNavigationBarItem
 import com.example.freeupcopy.ui.presentation.profile_screen.ProfileScreen
 import com.example.freeupcopy.ui.theme.SwapGoTheme
+import com.example.freeupcopy.ui.theme.TertiaryLight
+import kotlinx.coroutines.launch
 
 @Composable
 fun MainScreen(
     modifier: Modifier = Modifier,
+    token: String?,
+    onShowLoginBottomSheet: () -> Unit,
     onNavigate: (Screen) -> Unit,
     viewModel: MainViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
     val pagerState = rememberPagerState(pageCount = { 4 })
     val lifecycleOwner = LocalLifecycleOwner.current
+    val scope = rememberCoroutineScope()
 
     val lazyState = rememberScrollPositionListState("home_screen")
 
@@ -91,13 +98,23 @@ fun MainScreen(
                 onWishListClick = {
                     val currentState = lifecycleOwner.lifecycle.currentState
                     if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                        onNavigate(Screen.WishListScreen)
+                        if(token == null) {
+                            onShowLoginBottomSheet()
+                        } else {
+                            onNavigate(Screen.WishListScreen)
+                        }
                     }
                 },
                 onSellClick = {
                     val currentState = lifecycleOwner.lifecycle.currentState
                     if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                        onNavigate(Screen.SellScreen)
+                        scope.launch {
+                            if(token == null) {
+                               onShowLoginBottomSheet()
+                            } else {
+                                onNavigate(Screen.SellScreen)
+                            }
+                        }
                     }
                 }
             )
@@ -187,7 +204,20 @@ fun MainScreen(
                     }
 
                     1 -> {
-                        CommunityScreen()
+                        CommunityScreen(
+                            onBackClick = {
+                                val currentState = lifecycleOwner.lifecycle.currentState
+                                if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+
+                                }
+                            },
+//                            onSellerProfileClick = { sellerId ->
+//                                val currentState = lifecycleOwner.lifecycle.currentState
+//                                if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+//                                    onNavigate(Screen.SellerProfileScreen(sellerId))
+//                                }
+//                            }
+                        )
                     }
 
                     2 -> {
@@ -207,7 +237,13 @@ fun MainScreen(
                                 if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
                                     onNavigate(Screen.SellerProfileScreen(null))
                                 }
-                            }
+                            },
+                            onNavigate = { screen ->
+                                val currentState = lifecycleOwner.lifecycle.currentState
+                                if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                                    onNavigate(screen)
+                                }
+                            },
                         )
                     }
                 }
@@ -251,7 +287,8 @@ fun SwapGoNavigationBar1(
                 text = "Sell",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimary
+//                color = MaterialTheme.colorScheme.onPrimary
+                color = TertiaryLight
             )
         }
     }
@@ -364,15 +401,4 @@ fun rememberScrollPositionListState(
         }
     }
     return scrollState
-}
-
-
-@Preview(showBackground = true)
-@Composable
-private fun PreviewMainScreen() {
-    SwapGoTheme {
-        MainScreen(
-            onNavigate = {},
-        )
-    }
 }

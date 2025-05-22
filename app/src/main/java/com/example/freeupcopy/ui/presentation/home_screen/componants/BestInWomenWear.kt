@@ -54,7 +54,8 @@ fun BestInWomenWear(
     error: String,
     onProductClick: (ProductCard) -> Unit,
     onRetry: () -> Unit,
-    onViewAll: () -> Unit
+    onViewAll: () -> Unit,
+    onLikeClick: (String) -> Unit
 ) {
     Box(
         modifier = modifier
@@ -206,8 +207,10 @@ fun BestInWomenWear(
                                         null,
                                 mrp = product.price.mrp?.toInt().toString(),
                                 badge = "null",
-                                isLiked = false,
-                                onLikeClick = {},
+                                isLiked = product.isWishlisted,
+                                onLikeClick = {
+                                    onLikeClick(product._id)
+                                },
                                 onClick = {
                                     onProductClick(product)
                                 },

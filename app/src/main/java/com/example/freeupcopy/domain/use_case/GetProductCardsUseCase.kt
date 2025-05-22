@@ -22,7 +22,7 @@ class GetProductCardsUseCase @Inject constructor(
     operator fun invoke(queryParams: ProductCardsQueryParameters): Flow<PagingData<ProductCard>> =
         Pager(
             config = PagingConfig(
-                pageSize = 15,
+                pageSize = queryParams.limit,
                 enablePlaceholders = false
             )
         ) {
@@ -48,6 +48,7 @@ class ProductCardsPagingSource(
         return try {
 
             val response = repository.fetchProductCards(
+                userId = queryParams.userId,
                 limit = queryParams.limit,
                 page = page,
                 search = queryParams.search,
@@ -77,7 +78,8 @@ class ProductCardsPagingSource(
 }
 
 data class ProductCardsQueryParameters(
-    val limit: Int = 15,
+    val userId: String? = null,
+    val limit: Int = 10,
     val search: String? = null,
     val sort: String? = null,
     val priceType: String? = null,

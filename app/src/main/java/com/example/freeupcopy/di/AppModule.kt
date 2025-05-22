@@ -11,7 +11,6 @@ import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.room.Room
 import com.example.freeupcopy.common.Constants.BASE_URL
-import com.example.freeupcopy.data.local.AddressDao
 import com.example.freeupcopy.data.local.RecentSearchesDao
 import com.example.freeupcopy.data.pref.SwapGoPref
 import com.example.freeupcopy.data.pref.SwapGoPrefImpl
@@ -22,19 +21,21 @@ import com.example.freeupcopy.data.repository.AuthRepositoryImpl
 import com.example.freeupcopy.data.repository.LocationRepositoryImpl
 import com.example.freeupcopy.data.repository.ProductRepositoryImpl
 import com.example.freeupcopy.data.repository.SellRepositoryImpl
-import com.example.freeupcopy.data.repository.SellerProfileRepositoryImpl
+import com.example.freeupcopy.data.repository.ProfileRepositoryImpl
 import com.example.freeupcopy.db.SwapsyDatabase
 import com.example.freeupcopy.domain.repository.AuthRepository
 import com.example.freeupcopy.domain.repository.LocationRepository
 import com.example.freeupcopy.domain.repository.ProductRepository
 import com.example.freeupcopy.domain.repository.SellRepository
-import com.example.freeupcopy.domain.repository.SellerProfileRepository
+import com.example.freeupcopy.domain.repository.ProfileRepository
 import com.example.freeupcopy.ui.navigation.AuthStateManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import okhttp3.Authenticator
@@ -105,8 +106,8 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun providesSellerProfileRepository(api: SwapgoApi): SellerProfileRepository {
-        return SellerProfileRepositoryImpl(api)
+    fun providesSellerProfileRepository(api: SwapgoApi): ProfileRepository {
+        return ProfileRepositoryImpl(api)
     }
 
     @Provides
@@ -155,8 +156,27 @@ object AppModule {
             }
         )
     }
+
+
     @Provides
     fun providesSellPref(dataStore: DataStore<Preferences>): SwapGoPref = SwapGoPrefImpl(dataStore)
+
+    // Create a new class in your di package
+    @Singleton
+    class WishlistStateManager @Inject constructor() {
+        private val _wishlistUpdates = MutableSharedFlow<Pair<String, Boolean>>(extraBufferCapacity = 1)
+        val wishlistUpdates = _wishlistUpdates.asSharedFlow()
+
+        suspend fun notifyWishlistChanged(productId: String, isWishlisted: Boolean) {
+            _wishlistUpdates.emit(Pair(productId, isWishlisted))
+        }
+    }
+
+    @Provides
+    @Singleton
+    fun provideWishlistStateManager(): WishlistStateManager {
+        return WishlistStateManager()
+    }
 }
 
 class AuthInterceptor @Inject constructor(

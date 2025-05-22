@@ -285,6 +285,9 @@ fun HomeScreen(
                     },
                     onViewAll = {
 
+                    },
+                    onLikeClick = { productId->
+                        homeViewModel.onEvent(HomeUiEvent.OnLikeClick(productId))
                     }
                 )
             }
@@ -298,6 +301,9 @@ fun HomeScreen(
                     },
                     onProductClick = { product ->
                         productClickHandler.handleProductClick(product)
+                    },
+                    onLikeClick = { productId->
+                        homeViewModel.onEvent(HomeUiEvent.OnLikeClick(productId))
                     }
                 )
             }
@@ -394,8 +400,12 @@ fun HomeScreen(
 
             // Explore products section after the sticky header
             item {
+
+                val wishlistStates by homeViewModel.wishlistStates.collectAsState()
+
                 ExploreProducts(
                     modifier = Modifier,
+                    wishlistStates = wishlistStates,
                     exploreProducts = exploreProducts,
                     isLoading = state.isExploreProductsLoading,
                     error = state.exploreProductsError,
@@ -404,6 +414,9 @@ fun HomeScreen(
                     },
                     onRetry = {
                         exploreProducts.refresh()
+                    },
+                    onLikeClick = { productId->
+                        homeViewModel.onEvent(HomeUiEvent.OnLikeClick(productId))
                     }
                 )
             }
@@ -826,9 +839,12 @@ fun ExploreProducts(
     exploreProducts: LazyPagingItems<ProductCard>,
     isLoading: Boolean,
     error: String,
+    wishlistStates: Map<String, Boolean>,
     onProductClick: (ProductCard) -> Unit,
-    onRetry: () -> Unit
+    onRetry: () -> Unit,
+    onLikeClick: (String) -> Unit,
 ) {
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -899,6 +915,8 @@ fun ExploreProducts(
 
                     items(exploreProducts.itemCount) { index ->
                         exploreProducts[index]?.let { product ->
+
+                            val isWishlisted = wishlistStates[product._id] ?: product.isWishlisted
                             ProductCard(
                                 brand = product.brand,
                                 title = product.title,
@@ -916,36 +934,17 @@ fun ExploreProducts(
                                 else null,
                                 mrp = product.price.mrp?.toInt().toString(),
                                 badge = "null",
-                                isLiked = false,
-                                onLikeClick = {},
+                                isLiked = isWishlisted,
+                                onLikeClick = {
+                                    onLikeClick(product._id)
+                                },
                                 user = product.seller,
                                 onClick = { onProductClick(product) }
                             )
                         }
-
-
                     }
                 }
             }
         }
     }
 }
-
-
-//@Preview(showBackground = true)
-//@Composable
-//private fun PreviewHomeScreen() {
-//    SwapGoTheme {
-//        HomeScreen(
-//            lazyColumnState = LazyListState(),
-//            onSearchBarClick = {},
-//            onInboxClick = {},
-//            onCartClick = {},
-//            onCoinClick = {},
-//            onCashClick = {},
-//            onProductClick = {},
-//            onBannerCashOrCoinClick = {},
-//            on99StoreClick = {},
-//        )
-//    }
-//}

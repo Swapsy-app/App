@@ -9,26 +9,52 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
 import androidx.navigation.toRoute
+import com.example.freeupcopy.data.pref.SwapGoPref
+import com.example.freeupcopy.domain.enums.Settings
 import com.example.freeupcopy.domain.enums.SpecialOption
 import com.example.freeupcopy.domain.model.Price
 import com.example.freeupcopy.ui.navigation.AuthState
@@ -65,10 +91,13 @@ import com.example.freeupcopy.ui.presentation.sell_screen.location_screen.locati
 import com.example.freeupcopy.ui.presentation.sell_screen.manufacturing_screen.ManufacturingScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.price_screen.PriceScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.weight_screen.WeightScreen
+import com.example.freeupcopy.ui.presentation.setting.SettingsScreen
+import com.example.freeupcopy.ui.presentation.setting_screen.SecondarySettingsScreen
 import com.example.freeupcopy.ui.presentation.wish_list.WishListScreen
 import com.example.freeupcopy.ui.theme.SwapGoTheme
 import com.example.freeupcopy.utils.sharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.reflect.typeOf
 
@@ -79,37 +108,69 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var authStateManager: AuthStateManager
 
+    @Inject
+    lateinit var swapGoPref: SwapGoPref
+
+    private val viewModel: MainViewModel by viewModels()
+
     @RequiresApi(Build.VERSION_CODES.O)
     @ExperimentalMaterial3Api
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        installSplashScreen()
+        // Load refresh token during splash screen
+        var isTokenLoaded = false
+        var refreshToken: String? = null
+
+        installSplashScreen().apply {
+            setKeepOnScreenCondition {
+                // Keep splash screen visible until both token and user data are loaded
+                if (!isTokenLoaded) {
+                    lifecycleScope.launch {
+                        swapGoPref.getRefreshToken().collect { token ->
+                            refreshToken = token
+                            isTokenLoaded = true
+                            viewModel.setRefreshToken(token)
+                        }
+                    }
+                    return@setKeepOnScreenCondition true
+                }
+
+                // Also wait for user data to be loaded
+                !viewModel.isUserDataLoaded.value
+            }
+        }
+
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
             navigationBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
         )
         setContent {
             SwapGoTheme(darkTheme = false) {
+                // Get the token from ViewModel
+                val token by viewModel.refreshToken.collectAsState()
+
+                // Add state for login bottom sheet
+                val showLoginBottomSheet = remember { mutableStateOf(false) }
 
                 val navController = rememberNavController()
                 val authState by authStateManager.authState.collectAsState()
+
+                val scope = rememberCoroutineScope()
 
                 // Monitor auth state changes
                 LaunchedEffect(authState) {
                     when (authState) {
                         AuthState.UNAUTHENTICATED -> {
-                            // Navigate to login screen when session expires
-                            navController.navigate(Screen.ConnectScreen) {
-                                popUpTo(navController.graph.id) { inclusive = true }
-                            }
+                            // Show login bottom sheet instead of direct navigation
+                            showLoginBottomSheet.value = true
                         }
 
-                        else -> { /* No action needed */
-                        }
+                        else -> { /* No action needed */ }
                     }
                 }
+
                 Scaffold(
                     modifier = Modifier
                         .fillMaxSize()
@@ -300,7 +361,6 @@ class MainActivity : ComponentActivity() {
                                     sellViewModel = sellViewModel,
                                     numberOfUploadedImages = args.numberOfUploadedImages ?: 0,
                                     onClose = { uploadedImages, uploadedVideo ->
-                                        Log.e("MainActivity", "uploadedVideo: $uploadedVideo")
                                         if (uploadedImages.isNotEmpty()) {
                                             navController.previousBackStackEntry
                                                 ?.savedStateHandle
@@ -445,7 +505,14 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable<Screen.WishListScreen> {
-                            WishListScreen()
+                            WishListScreen(
+                                onProductClick = {
+                                    navController.navigate(Screen.ProductScreen(it))
+                                },
+                                onBackClick = {
+                                    navController.popBackStack()
+                                }
+                            )
                         }
 
                         composable<Screen.SearchScreen> {
@@ -583,8 +650,12 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onSuccessfulLogin = {
                                     navController.navigate(Screen.MainScreen) {
-                                        popUpTo(Screen.MainScreen) { inclusive = true }
+                                        popUpTo(Screen.ConnectScreen) { inclusive = true }
                                     }
+//                                    navController.popBackStack(
+//                                        route = Screen.ConnectScreen,
+//                                        inclusive = true
+//                                    )
                                 },
                             )
                         }
@@ -775,6 +846,10 @@ class MainActivity : ComponentActivity() {
                             exitTransition = { fadeOut(tween(700)) }
                         ) {
                             MainScreen(
+                                token = token,
+                                onShowLoginBottomSheet = {
+                                    showLoginBottomSheet.value = true
+                                },
                                 onNavigate = { screen ->
                                     navController.navigate(screen)
                                 }
@@ -803,17 +878,153 @@ class MainActivity : ComponentActivity() {
                                     navController.popBackStack()
                                 },
                                 onCategoryClick = { primaryCategory, secondaryCategory, tertiaryCategory ->
-                                    navController.navigate(Screen.ProductListingScreen(query = "",
-                                        primaryCategory = primaryCategory,
-                                        secondaryCategory = secondaryCategory,
-                                        tertiaryCategory = tertiaryCategory
-                                    ))
+                                    navController.navigate(
+                                        Screen.ProductListingScreen(
+                                            query = "",
+                                            primaryCategory = primaryCategory,
+                                            secondaryCategory = secondaryCategory,
+                                            tertiaryCategory = tertiaryCategory
+                                        )
+                                    )
                                 }
+                            )
+                        }
+
+                        composable<Screen.SettingsScreen> {
+                            SettingsScreen(
+                                token = token,
+                                onShowLoginBottomSheet = {
+                                    showLoginBottomSheet.value = true
+                                },
+                                onRedirectToHome = {
+
+                                },
+                                onNavigate = { screenType ->
+                                    if (screenType == Settings.MANAGE_TAX_INFO) {
+                                        navController.navigate(Screen.GstScreen(null))
+                                    } else if (screenType == Settings.ADDRESS) {
+                                        navController.navigate(Screen.LocationScreen(null))
+                                    } else {
+                                        navController.navigate(
+                                            Screen.SecondarySettingsScreen(
+                                                screenType
+                                            )
+                                        )
+                                    }
+                                }
+                            )
+                        }
+                        composable<Screen.SecondarySettingsScreen> {
+                            val args = it.toRoute<Screen.SecondarySettingsScreen>()
+                            val screenType = args.screenType ?: Settings.ACCOUNT_SETTINGS
+                            SecondarySettingsScreen(
+                                screenType = screenType,
+                                onBack = {
+                                    navController.popBackStack()
+                                },
                             )
                         }
                     }
                 }
+                // Show login bottom sheet when needed
+                if (showLoginBottomSheet.value) {
+                    LoginBottomSheet(
+                        onDismiss = {
+                            scope.launch {
+                                showLoginBottomSheet.value = false
+                                authStateManager.setAuthenticated()
+                            }
+                        },
+                        onLogin = {
+                            showLoginBottomSheet.value = false
+                            navController.navigate(Screen.ConnectScreen)
+//                            {
+//                                popUpTo(navController.graph.id) { inclusive = true }
+//                            }
+                        },
+                        navController = navController
+                    )
+                }
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun LoginBottomSheet(
+    onDismiss: () -> Unit,
+    onLogin: () -> Unit,
+    navController: NavController
+) {
+    // Get the current back stack entry to determine if we're at the start destination
+    val currentBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = currentBackStackEntry?.destination?.route
+    val startDestination = navController.graph.startDestinationRoute
+    val isAtStartDestination = currentRoute == startDestination
+
+    ModalBottomSheet(
+        onDismissRequest = {
+            // Only pop back if we're not at the start destination
+            if (!isAtStartDestination) {
+                navController.popBackStack()
+            }
+            onDismiss()
+        },
+        sheetState = rememberModalBottomSheetState(),
+        containerColor = MaterialTheme.colorScheme.surface
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = "Please Log In",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = "You need to be logged in to continue using this feature.",
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Button(
+                onClick = { onLogin() },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text(
+                    text = "Log In",
+                    style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
+
+            TextButton(
+                onClick = {
+                    // Only pop back if we're not at the start destination
+                    if (!isAtStartDestination) {
+                        navController.popBackStack()
+                    }
+                    onDismiss()
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "Cancel",
+                    style = MaterialTheme.typography.labelLarge
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }

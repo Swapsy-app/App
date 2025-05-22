@@ -58,7 +58,8 @@ fun EthnicWomenWear(
     isLoading: Boolean,
     error: String,
     onProductClick: (ProductCard) -> Unit,
-    onRetry: () -> Unit
+    onRetry: () -> Unit,
+    onLikeClick: (String) -> Unit
 ) {
     val lifeCycleOwner = LocalLifecycleOwner.current
 
@@ -243,8 +244,10 @@ fun EthnicWomenWear(
                                         null,
                                 mrp = product.price.mrp?.toInt().toString(),
                                 badge = "null",
-                                isLiked = false,
-                                onLikeClick = {},
+                                isLiked = product.isWishlisted,
+                                onLikeClick = {
+                                    onLikeClick(product._id)
+                                },
                                 onClick = {
                                     val currentState = lifeCycleOwner.lifecycle.currentState
                                     if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {

@@ -4,20 +4,17 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.freeupcopy.common.Resource
-import com.example.freeupcopy.domain.repository.AuthRepository
-import com.example.freeupcopy.domain.repository.SellerProfileRepository
+import com.example.freeupcopy.domain.repository.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class SellerProfileViewModel @Inject constructor(
-    private val profileRepository: SellerProfileRepository,
+    private val profileRepository: ProfileRepository,
     savedStateHandle: SavedStateHandle,
 ): ViewModel() {
     private val _state = MutableStateFlow(SellerProfileUiState())

@@ -108,6 +108,7 @@ fun LocationScreen(
             Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
         }
     }
+
     Scaffold(
         modifier = modifier
             .fillMaxSize(),

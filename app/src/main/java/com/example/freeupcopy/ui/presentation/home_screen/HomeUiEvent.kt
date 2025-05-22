@@ -14,6 +14,7 @@ sealed class HomeUiEvent {
     data object RefreshAllProducts : HomeUiEvent()
 
     data class IsLoading(val isLoading: Boolean) : HomeUiEvent()
+    data class OnLikeClick(val productId: String) : HomeUiEvent()
 
     // Filter events
     data class ToggleFilterBottomSheet(val type: String?) : HomeUiEvent()

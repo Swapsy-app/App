@@ -20,6 +20,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.freeupcopy.ui.navigation.Screen
 import com.example.freeupcopy.ui.presentation.profile_screen.componants.BalanceSection
 import com.example.freeupcopy.ui.presentation.profile_screen.componants.ProfileBanner
 import com.example.freeupcopy.ui.presentation.profile_screen.componants.ProfileTopBar
@@ -31,10 +32,10 @@ import com.example.freeupcopy.ui.theme.SwapGoTheme
 fun ProfileScreen(
     profileViewModel: ProfileViewModel = hiltViewModel(),
     onPostedProductClick: () -> Unit,
-    onViewProfileClick: () -> Unit
+    onViewProfileClick: () -> Unit,
+    onNavigate: (Screen) -> Unit
 ) {
     val state by profileViewModel.state.collectAsState()
-
 
     Scaffold(
         modifier = Modifier
@@ -48,7 +49,7 @@ fun ProfileScreen(
                 userName = state.userName,
                 userRating = state.userRating,
                 onSettingsClick = {
-
+                    onNavigate(Screen.SettingsScreen)
                 },
                 onViewProfileClick = {
                     onViewProfileClick()
@@ -209,7 +210,8 @@ fun ProfileScreenPreview() {
     SwapGoTheme {
         ProfileScreen(
             onPostedProductClick = {},
-            onViewProfileClick = {}
+            onViewProfileClick = {},
+            onNavigate = {}
         )
     }
 }

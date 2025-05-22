@@ -17,8 +17,36 @@ data class ProductCard(
     val title: String,
     val size: Any?,
     val price: ProductPrice,
-    val seller: User
+    val seller: User,
+    val isWishlisted: Boolean,
 )
+
+fun getWishlist(wishlistProduct: WishlistedProduct): ProductCard {
+    return ProductCard(
+        _id = wishlistProduct.productId,
+        images = listOf(wishlistProduct.image),
+        brand = wishlistProduct.brand,
+        title = wishlistProduct.title,
+        size = wishlistProduct.size,
+        price = ProductPrice(
+            mrp = null,
+            cashPrice = null,
+            coinPrice = null,
+            mixPrice = null,
+            sellerReceivesCash = 0f,
+            sellerReceivesCoin = 0f,
+            sellerReceivesmixCash = 0f,
+            sellerReceivesmixCoin = 0f
+        ),
+        seller = wishlistProduct.seller ?: User(
+            _id = "",
+            username = "unknown",
+            avatar = null
+        ),
+        isWishlisted = true
+    )
+}
+
 
 data class ProductPrice(
     val mrp: Float?,

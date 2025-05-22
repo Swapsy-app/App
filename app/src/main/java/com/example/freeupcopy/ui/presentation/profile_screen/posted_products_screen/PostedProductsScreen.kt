@@ -239,8 +239,17 @@ fun PostedProductsScreen(
 
         if (showConfirmDialog) {
             ConfirmDialog(
-                onConfirmDelete = { /* Handle confirm delete action */ },
-                onDismiss = { showConfirmDialog = false }
+                dialogText = "Are you sure you want to delete this product?" +
+                        " This action cannot be undone.",
+                onConfirm = {
+                    showConfirmDialog = false
+                    // Handle delete action
+                },
+                onCancel = {
+                    showConfirmDialog = false
+                },
+                cancelButtonText = "Cancel",
+                confirmButtonText = "Delete",
             )
         }
 

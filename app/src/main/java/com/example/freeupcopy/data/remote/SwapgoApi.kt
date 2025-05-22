@@ -1,5 +1,6 @@
 package com.example.freeupcopy.data.remote
 
+import com.example.freeupcopy.data.remote.dto.OnlyMessageResponse
 import com.example.freeupcopy.data.remote.dto.auth.AuthResponse
 import com.example.freeupcopy.data.remote.dto.your_profile.AvatarsResponse
 import com.example.freeupcopy.data.remote.dto.auth.ForgotPasswordRequest
@@ -42,6 +43,8 @@ import com.example.freeupcopy.data.remote.dto.sell.WishlistRequest
 import com.example.freeupcopy.data.remote.dto.sell.address.AddAddressRequest
 import com.example.freeupcopy.data.remote.dto.sell.address.AddressesResponse
 import com.example.freeupcopy.data.remote.dto.sell.address.UserAddressResponse
+import com.example.freeupcopy.data.remote.dto.your_profile.FollowersResponse
+import com.example.freeupcopy.data.remote.dto.your_profile.FollowingResponse
 import com.example.freeupcopy.data.remote.dto.your_profile.UpdateProfileResponse
 import okhttp3.MultipartBody
 import retrofit2.http.Body
@@ -101,6 +104,9 @@ interface SwapgoApi {
 
     @GET("/api/auth/check-login-status")
     suspend fun checkLoginStatus(): LoginStatusResponse
+
+    @POST("/api/auth/logout")
+    suspend fun logout(): AuthResponse
 
     // basic-info
     @GET("/api/userProfile/basic-info")
@@ -191,6 +197,7 @@ interface SwapgoApi {
         @Query("page") page: Int = 1,
         @Query("limit") limit: Int = 15,
         @Query("search") search: String? = null,
+        @Query("userId") userId: String? = null,
         @Query("sort") sort: String? = null,
         @Query("priceType") priceType: String? = null,
         @Query("minPriceCash") minPriceCash: Float? = null,
@@ -365,5 +372,30 @@ interface SwapgoApi {
     suspend fun getReplyById(
         @Path("replyId") replyId: String
     ): ReplyResponse
+
+    // Follow/Unfollow endpoints
+    @POST("/api/follow/follow/{id}")
+    suspend fun followUser(
+        @Path("id") userId: String
+    ): Unit
+
+    @POST("/api/follow/unfollow/{id}")
+    suspend fun unfollowUser(
+        @Path("id") userId: String
+    ): Unit
+
+    @GET("/api/follow/followers/{id}")
+    suspend fun getFollowers(
+        @Path("id") userId: String,
+        @Query("page") page: Int = 1,
+        @Query("limit") limit: Int = 20
+    ): FollowersResponse
+
+    @GET("/api/follow/following/{id}")
+    suspend fun getFollowing(
+        @Path("id") userId: String,
+        @Query("page") page: Int = 1,
+        @Query("limit") limit: Int = 20
+    ): FollowingResponse
 
 }

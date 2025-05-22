@@ -231,28 +231,31 @@ class AuthRepositoryImpl(
         }
     }.flowOn(Dispatchers.IO)
 
-//    override suspend fun getProfile(): Flow<Resource<ProfileResponse>> = flow {
-//        emit(Resource.Loading())
-//        try {
-//            val response = authApi.getProfile()
-//            emit(Resource.Success(response))
-//        }
-//        catch (e: HttpException) {
-//            val errorBody = e.response()?.errorBody()?.string()
-//            val json = errorBody?.let { JSONObject(it) }
-//
-//            val errorMessage = json?.getString("message") ?:
-//            e.message ?: "An error occurred during sign up"
-//
-//            emit(Resource.Error(
-//                message = errorMessage
-//            ))
-//        }
-//        catch (e: Exception) {
-//            emit(Resource.Error(
-//                message = e.message ?: "An unexpected error occurred"
-//            ))
-//        }
-//    }.flowOn(Dispatchers.IO)
+    override suspend fun logout(): Flow<Resource<AuthResponse>> = flow {
+        emit(Resource.Loading())
+        try {
+            val response = authApi.logout()
+            // Clear all authentication-related data on successful logout
+            pref.clearAccessToken()
+            pref.clearRefreshToken()
+            emit(Resource.Success(response))
+        }
+        catch (e: HttpException) {
+            val errorBody = e.response()?.errorBody()?.string()
+            val json = errorBody?.let { JSONObject(it) }
+
+            val errorMessage = json?.getString("message") ?:
+            e.message ?: "An error occurred during sign up"
+
+            emit(Resource.Error(
+                message = errorMessage
+            ))
+        }
+        catch (e: Exception) {
+            emit(Resource.Error(
+                message = e.message ?: "An unexpected error occurred"
+            ))
+        }
+    }.flowOn(Dispatchers.IO)
 
 }
