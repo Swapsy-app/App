@@ -1,6 +1,7 @@
 package com.example.freeupcopy.data.remote.dto.your_profile
 
 data class ProfileResponse(
+    val id: String,
     val name: String,
     val username: String,
     val gender: String,
@@ -15,4 +16,5 @@ data class ProfileResponse(
     val lastActive: String,
     val followers: String,
     val following: String,
+    val isFollowing: Boolean? = null, // Add this field
 )

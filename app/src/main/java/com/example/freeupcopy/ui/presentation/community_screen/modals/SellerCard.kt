@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.CardDefaults
@@ -22,19 +24,34 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import coil.compose.SubcomposeAsyncImage
+import com.example.freeupcopy.R
+import com.example.freeupcopy.common.Constants
+import com.example.freeupcopy.common.Constants.BASE_URL_AVATAR
+import com.example.freeupcopy.data.remote.dto.your_profile.FollowUser
 import com.example.freeupcopy.ui.theme.SwapGoTheme
 
 @Composable
 fun SellerCard(
     modifier: Modifier = Modifier,
-    isOnline : Boolean,
-    sellerUsername : String,
-    sellerRating:String,
+    isOnline: Boolean,
+    sellerUsername: String,
+    sellerRating: String,
+    followUser: FollowUser?,
+    onSellerClick: () -> Unit
 ) {
+    val lifeCycleOwner = LocalLifecycleOwner.current
+
     Box(modifier = modifier) {
         ElevatedCard(
             modifier = Modifier,
@@ -42,6 +59,12 @@ fun SellerCard(
             colors = CardDefaults.elevatedCardColors(
                 containerColor = MaterialTheme.colorScheme.primaryContainer
             ),
+            onClick = {
+                val currentState = lifeCycleOwner.lifecycle.currentState
+                if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                    onSellerClick()
+                }
+            }
         ) {
             Column(
                 Modifier.fillMaxWidth().padding(8.dp)
@@ -53,11 +76,32 @@ fun SellerCard(
                 ) {
                     Row {
                         Box {
-                            Box(
-                                modifier = Modifier
-                                    .size(40.dp)
-                                    .background(Color.Gray, CircleShape)
-                            )
+                            if (followUser != null) {
+                                SubcomposeAsyncImage(
+                                    modifier = Modifier
+                                        .padding(start = 6.dp, end = 4.dp)
+                                        .size(50.dp)
+                                        .clip(CircleShape),
+                                    model = BASE_URL_AVATAR +  followUser.avatar,
+                                    loading = {
+                                        painterResource(id = R.drawable.im_user)
+                                    },
+                                    error = {
+                                        painterResource(id = R.drawable.im_user)
+                                    },
+                                    contentDescription = "profile",
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                Icon(
+                                    modifier = Modifier
+                                        .padding(start = 6.dp, end = 4.dp)
+                                        .size(50.dp),
+                                    imageVector = Icons.Rounded.AccountCircle,
+                                    contentDescription = "user profile",
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f)
+                                )
+                            }
                             if (isOnline){
                                 Box(
                                     modifier = Modifier
@@ -76,7 +120,9 @@ fun SellerCard(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Icon(
-                                    imageVector = Icons.Rounded.Star,
+                                    modifier = Modifier.size(17.dp),
+                                    tint = Color.Unspecified,
+                                    painter = painterResource(R.drawable.ic_star),
                                     contentDescription = "star icon",
                                 )
                                 Spacer(Modifier.size(4.dp))
@@ -87,7 +133,7 @@ fun SellerCard(
                         }
                     }
                     Icon(
-                        imageVector = Icons.Rounded.KeyboardArrowRight,
+                        imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
                         contentDescription = "view profile",
                     )
                 }
@@ -150,7 +196,9 @@ fun PreviewSellerCard(){
         SellerCard(
             isOnline = true,
             sellerUsername = "they.call.me.zoro",
-            sellerRating = "4.77"
+            sellerRating = "4.77",
+            followUser = null,
+            onSellerClick = { /*TODO*/ }
         )
     }
 }

@@ -105,4 +105,7 @@ sealed class Screen {
 
     @Serializable
     data class SecondarySettingsScreen(val screenType: Settings?) : Screen()
+
+    @Serializable
+    data class FollowersScreen(val type: String?, val userId: String?) : Screen()
 }

@@ -20,7 +20,7 @@ class SellerProfileViewModel @Inject constructor(
     private val _state = MutableStateFlow(SellerProfileUiState())
     val state = _state.asStateFlow()
 
-    // Retrieve the productId from the saved state
+    // Retrieve the userId from the saved state
     private val userId: String? = savedStateHandle["userId"]
 
     init {
@@ -35,9 +35,10 @@ class SellerProfileViewModel @Inject constructor(
     fun onEvent(event: SellerProfileUiEvent) {
         when (event) {
             is SellerProfileUiEvent.FollowClicked -> {
-                _state.update {
-                    it.copy(isFollowing = !it.isFollowing)
-                }
+//                _state.update {
+//                    it.copy(isFollowing = !it.isFollowing)
+//                }
+                handleFollowClick()
             }
 
             is SellerProfileUiEvent.ProfileActionClicked -> {
@@ -45,8 +46,90 @@ class SellerProfileViewModel @Inject constructor(
                     it.copy(isProfileActionSheetOpen = !it.isProfileActionSheetOpen)
                 }
             }
+
+            is SellerProfileUiEvent.ClearError -> {
+                _state.update { it.copy(error = "") }
+            }
         }
     }
+
+    private fun handleFollowClick() {
+        // Only allow follow/unfollow if we have a valid userId and it's not the user's own profile
+        if (userId == null || _state.value.isMyProfile) return
+
+        val currentFollowState = _state.value.isFollowing
+        val newFollowState = !currentFollowState
+
+        // Optimistically update the UI
+        _state.update {
+            it.copy(
+                isFollowing = newFollowState,
+                isFollowLoading = true
+            )
+        }
+
+        viewModelScope.launch {
+            try {
+                val result = if (newFollowState) {
+                    // Follow the user
+                    profileRepository.followUser(userId)
+                } else {
+                    // Unfollow the user
+                    profileRepository.unfollowUser(userId)
+                }
+
+                result.collect { resource ->
+                    when (resource) {
+                        is Resource.Loading -> {
+                            _state.update {
+                                it.copy(isFollowLoading = true)
+                            }
+                        }
+                        is Resource.Success -> {
+                            _state.update {
+                                it.copy(
+                                    isFollowing = newFollowState,
+                                    isFollowLoading = false,
+                                    // Update follower count
+                                    followers = updateFollowerCount(it.followers, newFollowState)
+                                )
+                            }
+                        }
+                        is Resource.Error -> {
+                            // Revert the optimistic update on error
+                            _state.update {
+                                it.copy(
+                                    isFollowing = currentFollowState,
+                                    isFollowLoading = false,
+                                    error = resource.message ?: "Failed to update follow status"
+                                )
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                // Revert the optimistic update on exception
+                _state.update {
+                    it.copy(
+                        isFollowing = currentFollowState,
+                        isFollowLoading = false,
+                        error = e.message ?: "An unexpected error occurred"
+                    )
+                }
+            }
+        }
+    }
+
+    private fun updateFollowerCount(currentCount: String, isFollowing: Boolean): String {
+        return try {
+            val count = currentCount.toInt()
+            val newCount = if (isFollowing) count + 1 else maxOf(0, count - 1)
+            newCount.toString()
+        } catch (e: NumberFormatException) {
+            currentCount // Return original if parsing fails
+        }
+    }
+
 
     fun getUserProfile() {
         if (userId != null) {
@@ -70,9 +153,9 @@ class SellerProfileViewModel @Inject constructor(
                         }
                     }
                     is Resource.Success -> {
-//                        delay(1000)
                         _state.update {
                             it.copy(
+                                sellerId = result.data?.id ?: "",
                                 sellerName = result.data?.name ?: "",
                                 sellerUsername = result.data?.username ?: "",
                                 sellerBio = result.data?.aboutMe ?: "",
@@ -88,13 +171,13 @@ class SellerProfileViewModel @Inject constructor(
 //                                rating = result.data.rating,
 //                                numberOfReviews = result.data.numberOfReviews,
 //                                cancelled = result.data.cancelled,
+
                                 isLoading = false,
                                 error = ""
                             )
                         }
                     }
                     is Resource.Error -> {
-//                        delay(1000)
                         _state.update {
                             it.copy(
                                 isLoading = false,
@@ -109,7 +192,7 @@ class SellerProfileViewModel @Inject constructor(
 
     private fun getProfileById() {
         viewModelScope.launch {
-            profileRepository.getProfileById(userId!!).collect { result ->
+            profileRepository.getProfileById(userId!!, ).collect { result ->
                 when (result) {
                     is Resource.Loading -> {
                         _state.update {
@@ -120,9 +203,9 @@ class SellerProfileViewModel @Inject constructor(
                         }
                     }
                     is Resource.Success -> {
-//                        delay(1000)
                         _state.update {
                             it.copy(
+                                sellerId = result.data?.id ?: "",
                                 sellerName = result.data?.name ?: "",
                                 sellerUsername = result.data?.username ?: "",
                                 sellerBio = result.data?.aboutMe ?: "",
@@ -138,13 +221,13 @@ class SellerProfileViewModel @Inject constructor(
 //                                rating = result.data.rating,
 //                                numberOfReviews = result.data.numberOfReviews,
 //                                cancelled = result.data.cancelled,
+                                isFollowing = result.data?.isFollowing ?: false,
                                 isLoading = false,
                                 error = ""
                             )
                         }
                     }
                     is Resource.Error -> {
-//                        delay(1000)
                         _state.update {
                             it.copy(
                                 isLoading = false,
@@ -170,6 +253,7 @@ class SellerProfileViewModel @Inject constructor(
                     is Resource.Success -> {
                         _state.update {
                             it.copy(
+                                currentUser = result.data?.user,
                                 isMyProfile = result.data!!.user._id == userId,
                                 isLoading = false
                             )

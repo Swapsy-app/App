@@ -22,7 +22,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LocationViewModel @Inject constructor(
-    private val repository: LocationRepository,
     private val getAddressesUseCase: GetAddressesUseCase,
     private val sellRepository: SellRepository
 ) : ViewModel() {

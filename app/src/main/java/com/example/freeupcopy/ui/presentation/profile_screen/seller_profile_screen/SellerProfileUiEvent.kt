@@ -3,4 +3,5 @@ package com.example.freeupcopy.ui.presentation.profile_screen.seller_profile_scr
 sealed class SellerProfileUiEvent {
     data object FollowClicked : SellerProfileUiEvent()
     data object ProfileActionClicked : SellerProfileUiEvent()
+    data object ClearError : SellerProfileUiEvent()
 }

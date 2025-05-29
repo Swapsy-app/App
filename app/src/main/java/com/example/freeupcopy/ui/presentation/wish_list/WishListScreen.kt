@@ -398,7 +398,7 @@ fun WishListScreen(
                     }
                 }
 
-                LoadState.Loading -> {
+                is LoadState.Loading -> {
                     Box(Modifier.fillMaxSize()) {
                         PleaseWaitLoading(Modifier.align(Alignment.Center))
                     }
@@ -473,8 +473,6 @@ private fun EmptyWishlistMessage() {
             )
         }
     }
-
-
 }
 
 
@@ -851,14 +849,4 @@ fun SelectedFilterChip(
             }
         }
     }
-}
-
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewWishList() {
-    WishListScreen(
-        onProductClick = {},
-        onBackClick = {}
-    )
 }

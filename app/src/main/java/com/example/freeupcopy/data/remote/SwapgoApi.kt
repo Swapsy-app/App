@@ -374,24 +374,24 @@ interface SwapgoApi {
     ): ReplyResponse
 
     // Follow/Unfollow endpoints
-    @POST("/api/follow/follow/{id}")
+    @POST("/api/community/follow/{id}")
     suspend fun followUser(
         @Path("id") userId: String
     ): Unit
 
-    @POST("/api/follow/unfollow/{id}")
+    @POST("/api/community/unfollow/{id}")
     suspend fun unfollowUser(
         @Path("id") userId: String
     ): Unit
 
-    @GET("/api/follow/followers/{id}")
+    @GET("/api/community/followers/{id}")
     suspend fun getFollowers(
         @Path("id") userId: String,
         @Query("page") page: Int = 1,
         @Query("limit") limit: Int = 20
     ): FollowersResponse
 
-    @GET("/api/follow/following/{id}")
+    @GET("/api/community/following/{id}")
     suspend fun getFollowing(
         @Path("id") userId: String,
         @Query("page") page: Int = 1,

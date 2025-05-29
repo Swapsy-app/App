@@ -63,7 +63,6 @@ class ProductListingViewModel @Inject constructor(
         // Set up user data collection
         viewModelScope.launch {
             swapGoPref.getUser().collect { user ->
-                Log.e("ProductListingViewModel", "User data: $user")
                 _state.update { it.copy(user = user) }
             }
         }
@@ -71,7 +70,6 @@ class ProductListingViewModel @Inject constructor(
         viewModelScope.launch {
             wishlistStateManager.wishlistUpdates.collect { (productId, isWishlisted) ->
                 updateProductWishlistState(productId, isWishlisted)
-                Log.e("ProductListingViewModel", "Wishlist updated: $productId, $isWishlisted")
             }
         }
     }

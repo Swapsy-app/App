@@ -1,4 +1,4 @@
-package com.example.freeupcopy.ui.presentation.setting.componants.blocked
+package com.example.freeupcopy.ui.presentation.setting_screen.componants.blocked
 
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,7 +24,9 @@ fun BlockedUsers(){
                 modifier = Modifier.padding(8.dp,0.dp,8.dp,8.dp,),
                 isOnline = true,
                 sellerUsername = "they.call.me.zoro",
-                sellerRating = "4.77"
+                sellerRating = "4.77",
+                followUser = null,
+                onSellerClick = { /*TODO*/ }
             )
         }
     }

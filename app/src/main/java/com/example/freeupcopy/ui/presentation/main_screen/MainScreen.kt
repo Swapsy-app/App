@@ -93,7 +93,11 @@ fun MainScreen(
             SwapGoNavigationBar1(
                 selectedIndex = pagerState.currentPage,
                 onSelectedChange = {
-                    viewModel.onEvent(MainUiEvent.CurrentPageChange(it))
+                    if(token == null && it == 1) {
+                        onShowLoginBottomSheet()
+                    } else {
+                        viewModel.onEvent(MainUiEvent.CurrentPageChange(it))
+                    }
                 },
                 onWishListClick = {
                     val currentState = lifecycleOwner.lifecycle.currentState
@@ -205,18 +209,12 @@ fun MainScreen(
 
                     1 -> {
                         CommunityScreen(
-                            onBackClick = {
+                            onSellerClick = { sellerId ->
                                 val currentState = lifecycleOwner.lifecycle.currentState
                                 if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-
+                                    onNavigate(Screen.SellerProfileScreen(sellerId))
                                 }
-                            },
-//                            onSellerProfileClick = { sellerId ->
-//                                val currentState = lifecycleOwner.lifecycle.currentState
-//                                if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-//                                    onNavigate(Screen.SellerProfileScreen(sellerId))
-//                                }
-//                            }
+                            }
                         )
                     }
 

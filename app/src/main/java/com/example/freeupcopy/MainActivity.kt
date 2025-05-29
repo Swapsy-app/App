@@ -75,6 +75,7 @@ import com.example.freeupcopy.ui.presentation.main_screen.MainScreen
 import com.example.freeupcopy.ui.presentation.product_listing.ProductListing
 import com.example.freeupcopy.ui.presentation.product_screen.ProductScreen
 import com.example.freeupcopy.ui.presentation.profile_screen.edit_profile_screen.EditProfileScreen
+import com.example.freeupcopy.ui.presentation.profile_screen.follow_screens.FollowersScreen
 import com.example.freeupcopy.ui.presentation.profile_screen.posted_products_screen.PostedProductsScreen
 import com.example.freeupcopy.ui.presentation.profile_screen.seller_profile_screen.SellerProfileScreen
 import com.example.freeupcopy.ui.presentation.reply_screen.ReplyScreen
@@ -823,6 +824,11 @@ class MainActivity : ComponentActivity() {
                                             occupation = occupation
                                         )
                                     )
+                                },
+                                onNavigateFollow = { type, userId ->
+                                    navController.navigate(
+                                        Screen.FollowersScreen(type = type, userId = userId)
+                                    )
                                 }
                             )
                         }
@@ -922,6 +928,20 @@ class MainActivity : ComponentActivity() {
                                 screenType = screenType,
                                 onBack = {
                                     navController.popBackStack()
+                                },
+                            )
+                        }
+
+                        composable<Screen.FollowersScreen> {
+                            val args = it.toRoute<Screen.FollowersScreen>()
+                            val screenType = args.type ?: "followers"
+                            FollowersScreen(
+                                type = screenType,
+                                onBackClick = {
+                                    navController.popBackStack()
+                                },
+                                onSellerClick = { userId ->
+                                    navController.navigate(Screen.SellerProfileScreen(userId))
                                 },
                             )
                         }

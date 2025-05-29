@@ -45,12 +45,17 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -76,6 +81,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import coil.compose.SubcomposeAsyncImage
 import com.example.freeupcopy.R
 import com.example.freeupcopy.ui.presentation.profile_screen.seller_profile_screen.components.SellerProfileActionsBottomSheet
+import com.example.freeupcopy.ui.presentation.sell_screen.location_screen.location_screen.PleaseWaitLoading
 import com.example.freeupcopy.ui.theme.ButtonShape
 import com.example.freeupcopy.ui.theme.CardShape
 import com.example.freeupcopy.ui.theme.SwapGoTheme
@@ -88,6 +94,7 @@ fun SellerProfileScreen(
     modifier: Modifier = Modifier,
     onBack: () -> Unit,
     onEditProfile: (String, String, String, String, String, String) -> Unit,
+    onNavigateFollow: (String, String) -> Unit,
     viewModel: SellerProfileViewModel = hiltViewModel()
 ) {
     val lifeCycleOwner = LocalLifecycleOwner.current
@@ -97,16 +104,61 @@ fun SellerProfileScreen(
     val state by viewModel.state.collectAsState()
     val pullRefreshState = rememberPullToRefreshState()
 
-    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
+    val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+
+    // Handle error with Snackbar
+    LaunchedEffect(state.error) {
+        if (state.error.isNotBlank() && !state.isLoading) {
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = state.error,
+                    duration = SnackbarDuration.Short
+                )
+                // Clear error after showing
+                viewModel.onEvent(SellerProfileUiEvent.ClearError)
+            }
+            Log.e("SellerProfileScreen", "Error: ${state.error}")
+        }
+    }
 
     Scaffold(
         modifier = modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.primaryContainer)
             .navigationBarsPadding(),
         containerColor = MaterialTheme.colorScheme.primaryContainer,
+        snackbarHost = {
+            SnackbarHost(
+                hostState = snackbarHostState,
+                snackbar = { snackbarData ->
+                    Snackbar(
+                        snackbarData = snackbarData,
+                        containerColor = if (state.error.contains(
+                                "already following",
+                                ignoreCase = true
+                            )
+                        ) {
+                            MaterialTheme.colorScheme.primaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.errorContainer
+                        },
+                        contentColor = if (state.error.contains(
+                                "already following",
+                                ignoreCase = true
+                            )
+                        ) {
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.onErrorContainer
+                        }
+                    )
+                }
+            )
+        },
         topBar = {
             Column {
                 TopAppBar(
@@ -181,19 +233,16 @@ fun SellerProfileScreen(
                         scrolledContainerColor = MaterialTheme.colorScheme.primaryContainer,
                     )
                 )
-
                 HorizontalDivider(
                     modifier = Modifier.fillMaxWidth(),
                     color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.12f),
                     thickness = 1.dp
                 )
             }
-
         }
     ) { innerPadding ->
         PullToRefreshBox(
-            modifier = Modifier
-                .fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             isRefreshing = state.isLoading,
             state = pullRefreshState,
             onRefresh = {
@@ -202,92 +251,99 @@ fun SellerProfileScreen(
                 }
             }
         ) {
-            if (state.isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier
-                        .align(Alignment.Center),
-                    color = MaterialTheme.colorScheme.primary
-                )
-            } else if (state.error.isBlank()) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .verticalScroll(rememberScrollState())
-                        .padding(innerPadding)
-                        .padding(start = 16.dp, end = 16.dp, top = 8.dp)
-                ) {
-                    Row {
-                        if (state.sellerProfileImageUrl.isNotBlank()) {
-                            SubcomposeAsyncImage(
-                                modifier = modifier
-                                    .size(100.dp)
-                                    .clip(CircleShape),
-                                model = state.sellerProfileImageUrl,
-                                loading = {
-                                    painterResource(id = R.drawable.im_user)
-                                },
-                                contentDescription = "profile",
-                                contentScale = ContentScale.Crop
-                            )
-                        } else {
-                            Image(
-                                modifier = modifier
-                                    .size(100.dp)
-                                    .clip(CircleShape),
-                                painter = painterResource(id = R.drawable.im_user),
-                                contentDescription = "profile",
-                                contentScale = ContentScale.Crop
-                            )
-                        }
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(innerPadding)
+                    .padding(start = 16.dp, end = 16.dp, top = 8.dp)
+            ) {
+                // Profile header section
+                Row {
+                    if (state.sellerProfileImageUrl.isNotBlank()) {
+                        SubcomposeAsyncImage(
+                            modifier = modifier
+                                .size(100.dp)
+                                .clip(CircleShape),
+                            model = state.sellerProfileImageUrl,
+                            loading = {
+                                painterResource(id = R.drawable.im_user)
+                            },
+                            contentDescription = "profile",
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Image(
+                            modifier = modifier
+                                .size(100.dp)
+                                .clip(CircleShape),
+                            painter = painterResource(id = R.drawable.im_user),
+                            contentDescription = "profile",
+                            contentScale = ContentScale.Crop
+                        )
+                    }
 
-                        Spacer(modifier = Modifier.size(8.dp))
+                    Spacer(modifier = Modifier.size(8.dp))
 
-                        Column(
-                            modifier = Modifier.padding(top = 8.dp)
-                        ) {
-                            Text(
-                                text = state.sellerName,
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold,
-                            )
-                            Text(
-                                text = "Active ${state.lastActive}",
-                                fontSize = 14.sp,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f),
-                            )
-                            Spacer(modifier = Modifier.size(4.dp))
-                            LazyRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                item {
+                    Column(
+                        modifier = Modifier.padding(top = 8.dp)
+                    ) {
+                        Text(
+                            text = state.sellerName,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Text(
+                            text = "Active ${state.lastActive}",
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f),
+                        )
+                        Spacer(modifier = Modifier.size(4.dp))
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            item {
+                                SellerInfoButton(
+                                    backgroundColor = Color(0xFFE5FFD8),
+                                    text = "Ships in ${state.shippingTime ?: "1-2 days"}"
+                                )
+                            }
+                            item {
+                                if (state.occupation.isNotBlank()) {
                                     SellerInfoButton(
-                                        backgroundColor = Color(0xFFE5FFD8),
-                                        text = "Ships in ${state.shippingTime}"
+                                        backgroundColor = MaterialTheme.colorScheme.secondaryContainer.copy(
+                                            0.8f
+                                        ),
+                                        text = state.occupation
                                     )
-                                }
-                                item {
-                                    if (state.occupation.isNotBlank()) {
-                                        SellerInfoButton(
-                                            backgroundColor = MaterialTheme.colorScheme.secondaryContainer.copy(
-                                                0.8f
-                                            ),
-                                            text = state.occupation
-                                        )
-                                    }
                                 }
                             }
                         }
                     }
+                }
 
-                    Spacer(modifier = Modifier.size(16.dp))
+                Spacer(modifier = Modifier.size(16.dp))
 
-                    Text(
-                        text = state.sellerBio,
-                        fontSize = 15.sp,
-                        lineHeight = 20.sp
-                    )
+                Text(
+                    text = state.sellerBio,
+                    fontSize = 15.sp,
+                    lineHeight = 20.sp
+                )
 
-                    Spacer(modifier = Modifier.size(20.dp))
+                Spacer(modifier = Modifier.size(20.dp))
 
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                // Followers/Following section
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        modifier = Modifier.clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = {
+                                val currentState = lifeCycleOwner.lifecycle.currentState
+                                if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                                    onNavigateFollow("followers", state.sellerId)
+                                }
+                            }
+                        )
+                    ) {
                         Text(
                             text = state.followers,
                             fontSize = 16.sp,
@@ -297,9 +353,22 @@ fun SellerProfileScreen(
                             text = " Followers",
                             fontSize = 15.sp
                         )
+                    }
 
-                        Spacer(modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.size(16.dp))
 
+                    Row(
+                        modifier = Modifier.clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = {
+                                val currentState = lifeCycleOwner.lifecycle.currentState
+                                if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                                    onNavigateFollow("following", state.sellerId)
+                                }
+                            }
+                        )
+                    ) {
                         Text(
                             text = state.following,
                             fontSize = 16.sp,
@@ -310,111 +379,122 @@ fun SellerProfileScreen(
                             fontSize = 15.sp,
                         )
                     }
-                    Spacer(modifier = Modifier.size(10.dp))
+                }
 
-                    Row(
+                Spacer(modifier = Modifier.size(10.dp))
+
+                // Seller info section
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(ButtonShape)
+                        .background(TextFieldContainerColor)
+                        .padding(horizontal = 8.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        modifier = Modifier.size(20.dp),
+                        painter = painterResource(id = R.drawable.ic_ranks),
+                        contentDescription = "ranks",
+                    )
+                    Spacer(modifier = Modifier.size(8.dp))
+                    Text(
+                        text = "Achiever Seller  •  Joined ${state.joinedTime}",
+                        fontSize = 14.sp,
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    Icon(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(ButtonShape)
-                            .background(TextFieldContainerColor)
-                            .padding(horizontal = 8.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            modifier = Modifier.size(20.dp),
-                            painter = painterResource(id = R.drawable.ic_ranks),
-                            contentDescription = "ranks",
-                        )
-                        Spacer(modifier = Modifier.size(8.dp))
-                        Text(
-                            text = "Achiever Seller  •  Joined ${state.joinedTime}",
-                            fontSize = 14.sp,
-                        )
-                        Spacer(modifier = Modifier.weight(1f))
-                        Icon(
-                            modifier = Modifier
-                                .size(18.dp)
-                                .alpha(0.5f),
-                            imageVector = Icons.Outlined.Info,
-                            contentDescription = "info",
-                        )
-                    }
+                            .size(18.dp)
+                            .alpha(0.5f),
+                        imageVector = Icons.Outlined.Info,
+                        contentDescription = "info",
+                    )
+                }
 
-                    Spacer(modifier = Modifier.size(24.dp))
+                Spacer(modifier = Modifier.size(24.dp))
 
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        if (state.isMyProfile) {
-                            OutlinedButton(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(50.dp),
-                                onClick = {
-                                    onEditProfile(
-                                        state.sellerProfileImageUrl,
-                                        state.sellerName,
-                                        state.sellerUsername,
-                                        state.sellerBio,
-                                        state.gender,
-                                        state.occupation,
-                                    )
-                                },
-                                shape = ButtonShape,
-                                border = BorderStroke(
-                                    width = 1.dp,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
-                                )
-                            ) {
-                                Text(
-                                    "Edit Profile"
-                                )
-                            }
-                        }
-
+                // Action buttons section
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    if (state.isMyProfile) {
                         OutlinedButton(
                             modifier = Modifier
                                 .weight(1f)
                                 .height(50.dp),
-                            onClick = {},
+                            onClick = {
+                                onEditProfile(
+                                    state.sellerProfileImageUrl,
+                                    state.sellerName,
+                                    state.sellerUsername,
+                                    state.sellerBio,
+                                    state.gender,
+                                    state.occupation,
+                                )
+                            },
                             shape = ButtonShape,
                             border = BorderStroke(
                                 width = 1.dp,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
                             )
                         ) {
-                            Row {
-                                Icon(
-                                    modifier = Modifier.size(20.dp),
-                                    imageVector = Icons.Outlined.Share,
-                                    contentDescription = "share",
-                                )
-                                Spacer(modifier = Modifier.size(8.dp))
-                                Text(
-                                    "Share"
-                                )
-                            }
+                            Text("Edit Profile")
                         }
+                    }
 
-                        if (!state.isMyProfile) {
+                    OutlinedButton(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(50.dp),
+                        onClick = {},
+                        shape = ButtonShape,
+                        border = BorderStroke(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
+                        )
+                    ) {
+                        Row {
+                            Icon(
+                                modifier = Modifier.size(20.dp),
+                                imageVector = Icons.Outlined.Share,
+                                contentDescription = "share",
+                            )
+                            Spacer(modifier = Modifier.size(8.dp))
+                            Text("Share")
+                        }
+                    }
 
-                            Button(
-                                modifier = Modifier
-                                    .weight(1.4f)
-                                    .height(50.dp),
-                                onClick = { viewModel.onEvent(SellerProfileUiEvent.FollowClicked) },
-                                shape = ButtonShape,
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = if (!state.isFollowing) Color.Black else Color.Transparent,
-                                    contentColor = if (!state.isFollowing) Color.White else MaterialTheme.colorScheme.primary
-                                ),
-                                border = BorderStroke(
-                                    width = 1.dp,
-                                    color = if (!state.isFollowing) Color.Black else MaterialTheme.colorScheme.onPrimaryContainer.copy(
-                                        alpha = 0.6f
-                                    )
+                    if (!state.isMyProfile) {
+                        Button(
+                            modifier = Modifier
+                                .weight(1.4f)
+                                .height(50.dp),
+                            onClick = {
+                                if (!state.isFollowLoading) {
+                                    viewModel.onEvent(SellerProfileUiEvent.FollowClicked)
+                                }
+                            },
+                            enabled = !state.isFollowLoading,
+                            shape = ButtonShape,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (!state.isFollowing) Color.Black else Color.Transparent,
+                                contentColor = if (!state.isFollowing) Color.White else MaterialTheme.colorScheme.primary
+                            ),
+                            border = BorderStroke(
+                                width = 1.dp,
+                                color = if (!state.isFollowing) Color.Black else MaterialTheme.colorScheme.onPrimaryContainer.copy(
+                                    alpha = 0.6f
                                 )
-                            ) {
+                            )
+                        ) {
+                            if (state.isFollowLoading) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(20.dp),
+                                    strokeWidth = 2.dp,
+                                    color = if (!state.isFollowing) Color.White else MaterialTheme.colorScheme.primary
+                                )
+                            } else {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -431,151 +511,123 @@ fun SellerProfileScreen(
                             }
                         }
                     }
-
-                    Spacer(modifier = Modifier.size(16.dp))
-
-                    LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        item {
-                            Column(
-                                modifier = Modifier
-                                    .widthIn(110.dp)
-                                    .clip(ButtonShape)
-                                    .background(TextFieldContainerColor.copy(alpha = 0.5f))
-                                    .border(
-                                        width = 1.dp,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(
-                                            alpha = 0.2f
-                                        ),
-                                        shape = ButtonShape
-                                    )
-                                    .padding(horizontal = 8.dp, vertical = 16.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(
-                                        text = state.rating,
-                                        fontSize = 20.sp,
-                                        fontWeight = FontWeight.Bold,
-                                    )
-                                    Spacer(modifier = Modifier.size(4.dp))
-                                    Icon(
-                                        modifier = Modifier.size(20.dp),
-                                        painter = painterResource(id = R.drawable.ic_star),
-                                        contentDescription = "star",
-                                        tint = Color.Unspecified
-                                    )
-                                }
-                                Text(
-                                    text = "${state.numberOfReviews} reviews",
-                                    fontSize = 14.sp,
-                                )
-                            }
-
-                        }
-                        item {
-                            Column(
-                                modifier = Modifier
-                                    .widthIn(110.dp)
-                                    .clip(ButtonShape)
-                                    .background(Color(0xFFE5FFD8).copy(0.5f))
-                                    .border(
-                                        width = 1.dp,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(
-                                            alpha = 0.2f
-                                        ),
-                                        shape = ButtonShape
-                                    )
-                                    .padding(horizontal = 8.dp, vertical = 16.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Text(
-                                    text = state.sold,
-                                    fontSize = 20.sp,
-                                    fontWeight = FontWeight.Bold,
-                                )
-                                Text(
-                                    text = "Sold",
-                                    fontSize = 14.sp,
-                                )
-                            }
-                        }
-                        item {
-                            Column(
-                                modifier = Modifier
-                                    .widthIn(110.dp)
-                                    .clip(ButtonShape)
-                                    .background(Color(0xFFFF928F).copy(alpha = 0.12f))
-                                    .border(
-                                        width = 1.dp,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(
-                                            alpha = 0.2f
-                                        ),
-                                        shape = ButtonShape
-                                    )
-                                    .padding(horizontal = 8.dp, vertical = 16.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Text(
-                                    text = state.cancelled,
-                                    fontSize = 20.sp,
-                                    fontWeight = FontWeight.Bold,
-                                )
-                                Text(
-                                    text = "Cancelled as Seller",
-                                    fontSize = 14.sp,
-                                )
-                            }
-                        }
-                    }
                 }
 
-            } else {
-                Column(
-                    modifier = Modifier.align(Alignment.Center),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.im_error),
-                        contentDescription = null
-                    )
-                    Text(
-                        text = "Unexpected error occurred. Please\ncheck you connection.",
-                        fontSize = 15.sp,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontWeight = FontWeight.W500
-                    )
+                Spacer(modifier = Modifier.size(16.dp))
 
-                    Spacer(Modifier.size(16.dp))
-
-                    Button(
-                        shape = ButtonShape,
-                        onClick = { viewModel.getUserProfile() },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.tertiary,
-                            contentColor = MaterialTheme.colorScheme.onTertiary
-                        )
-                    ) {
-                        Text("Retry")
+                // Stats section
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    item {
+                        Column(
+                            modifier = Modifier
+                                .widthIn(110.dp)
+                                .clip(ButtonShape)
+                                .background(TextFieldContainerColor.copy(alpha = 0.5f))
+                                .border(
+                                    width = 1.dp,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.2f),
+                                    shape = ButtonShape
+                                )
+                                .padding(horizontal = 8.dp, vertical = 16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = state.rating ?: "4.5",
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                                Spacer(modifier = Modifier.size(4.dp))
+                                Icon(
+                                    modifier = Modifier.size(20.dp),
+                                    painter = painterResource(id = R.drawable.ic_star),
+                                    contentDescription = "star",
+                                    tint = Color.Unspecified
+                                )
+                            }
+                            Text(
+                                text = "${state.numberOfReviews ?: "0"} reviews",
+                                fontSize = 14.sp,
+                            )
+                        }
+                    }
+                    item {
+                        Column(
+                            modifier = Modifier
+                                .widthIn(110.dp)
+                                .clip(ButtonShape)
+                                .background(Color(0xFFE5FFD8).copy(0.5f))
+                                .border(
+                                    width = 1.dp,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.2f),
+                                    shape = ButtonShape
+                                )
+                                .padding(horizontal = 8.dp, vertical = 16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = state.sold ?: "0",
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                            )
+                            Text(
+                                text = "Sold",
+                                fontSize = 14.sp,
+                            )
+                        }
+                    }
+                    item {
+                        Column(
+                            modifier = Modifier
+                                .widthIn(110.dp)
+                                .clip(ButtonShape)
+                                .background(Color(0xFFFF928F).copy(alpha = 0.12f))
+                                .border(
+                                    width = 1.dp,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.2f),
+                                    shape = ButtonShape
+                                )
+                                .padding(horizontal = 8.dp, vertical = 16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = state.cancelled ?: "0",
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                            )
+                            Text(
+                                text = "Cancelled as Seller",
+                                fontSize = 14.sp,
+                            )
+                        }
                     }
                 }
             }
-
         }
-
 
         SellerProfileActionsBottomSheet(
             isVisible = showBottomSheet,
             onDismiss = { showBottomSheet = false },
-            onReport = { /* Handle hide action */ },
+            onReport = { /* Handle report action */ },
             onBlock = {
                 showBottomSheet = false
                 showConfirmDialog = true
             }
         )
+    }
+
+    if (state.isLoading) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(0.3f)),
+            contentAlignment = Alignment.Center
+        ) {
+            PleaseWaitLoading()
+        }
     }
 }
 
@@ -605,53 +657,3 @@ fun SellerInfoButton(
         )
     }
 }
-
-@Preview
-@Composable
-private fun SellerProfileScreenPreview() {
-    SwapGoTheme {
-        SellerProfileScreen(
-            onBack = {},
-            onEditProfile = { _, _, _, _, _, _ ->
-            }
-        )
-    }
-}
-
-//@Composable
-//fun PleaseWaitLoading(
-//    modifier: Modifier = Modifier
-//) {
-//    Box(
-//        modifier = modifier
-////            .height(90.dp)
-//            .shadow(8.dp, CardShape.medium)
-//            .clip(CardShape.medium)
-//            .background(MaterialTheme.colorScheme.background)
-//            .padding(vertical = 16.dp, horizontal = 24.dp),
-//        contentAlignment = Alignment.Center
-//    ) {
-//        Column(
-//            horizontalAlignment = Alignment.CenterHorizontally
-//        ) {
-//            CircularProgressIndicator(
-//                modifier = Modifier.size(24.dp),
-//                color = MaterialTheme.colorScheme.primary
-//            )
-//            Text(
-//                text = "Please wait...",
-//                color = MaterialTheme.colorScheme.onBackground,
-//                fontWeight = FontWeight.SemiBold,
-//                fontSize = 13.5.sp
-//            )
-//        }
-//    }
-//}
-
-//@Preview(showBackground = true)
-//@Composable
-//private fun LoadingPreview() {
-//    SwapGoTheme {
-//        PleaseWaitLoading()
-//    }
-//}

@@ -1,5 +1,7 @@
 package com.example.freeupcopy.ui.presentation.profile_screen.seller_profile_screen
 
+import com.example.freeupcopy.data.remote.dto.product.User
+
 //data class SellerProfileUiState(
 //    val sellerName: String = "Sk Sahil Islam",
 //    val sellerUsername: String = "sahil_islam",
@@ -23,6 +25,12 @@ package com.example.freeupcopy.ui.presentation.profile_screen.seller_profile_scr
 //)
 
 data class SellerProfileUiState(
+    val sellerId: String = "",
+
+    val errorId: Long = 0L, // Add this field
+
+    val currentUser: User? = null,
+
     val sellerName: String = "",
     val sellerUsername: String = "",
     val sellerBio: String = "",
@@ -45,4 +53,6 @@ data class SellerProfileUiState(
 
     val isLoading: Boolean = false,
     val error: String = "",
+
+    val isFollowLoading: Boolean = false,
 )
