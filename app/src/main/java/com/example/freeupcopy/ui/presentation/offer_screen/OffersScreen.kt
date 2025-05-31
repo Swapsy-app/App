@@ -122,6 +122,11 @@ fun OffersScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
+    LaunchedEffect(Unit) {
+        buyerOffers.refresh()
+        sellerOffers.refresh()
+    }
+
     val productClickHandler = rememberProductClickHandler(
         productListingViewModel = productListingViewModel,
         onProductClick = onProductClick,
@@ -143,7 +148,7 @@ fun OffersScreen(
                 // Clear error after showing
                 viewModel.onEvent(OffersUiEvent.ClearError)
             }
-            Log.e("SellerProfileScreen", "Error: ${state.error}")
+            Log.e("OffersScreen", "Error: ${state.error}")
         }
     }
 
@@ -158,7 +163,7 @@ fun OffersScreen(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     scrolledContainerColor = MaterialTheme.colorScheme.primaryContainer
                 ),
-                title = { Text("My Offers", fontWeight = FontWeight.Bold) },
+                title = { Text("Your Offers", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
@@ -175,10 +180,6 @@ fun OffersScreen(
                 Snackbar(
                     snackbarData = snackbarData,
                     containerColor = when {
-                        state.error.contains("accepted", ignoreCase = true) ||
-                                state.error.contains("success", ignoreCase = true) -> {
-                            Color(0xFF4CAF50).copy(alpha = 0.9f) // Green for success
-                        }
                         state.error.contains("already", ignoreCase = true) ||
                                 state.error.contains("duplicate", ignoreCase = true) -> {
                             MaterialTheme.colorScheme.primaryContainer
@@ -193,10 +194,6 @@ fun OffersScreen(
                         }
                     },
                     contentColor = when {
-                        state.error.contains("accepted", ignoreCase = true) ||
-                                state.error.contains("success", ignoreCase = true) -> {
-                            Color.White
-                        }
                         state.error.contains("already", ignoreCase = true) ||
                                 state.error.contains("duplicate", ignoreCase = true) -> {
                             MaterialTheme.colorScheme.onPrimaryContainer

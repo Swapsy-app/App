@@ -89,6 +89,7 @@ fun ProductListing(
     onProductClick: (String) -> Unit,
     productListingViewModel: ProductListingViewModel = hiltViewModel()
 ) {
+
     val state by productListingViewModel.state.collectAsState()
     val wishlistStates by productListingViewModel.wishlistStates.collectAsState()
     val lifeCycleOwner = LocalLifecycleOwner.current

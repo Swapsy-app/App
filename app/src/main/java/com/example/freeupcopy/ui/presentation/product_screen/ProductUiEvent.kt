@@ -3,10 +3,12 @@ package com.example.freeupcopy.ui.presentation.product_screen
 import com.example.freeupcopy.data.remote.dto.product.ProductBargain
 import com.example.freeupcopy.data.remote.dto.product.UserSearchResult
 import com.example.freeupcopy.domain.enums.Currency
-import com.example.freeupcopy.domain.model.BargainOffer
 
 sealed class ProductUiEvent {
     object LikeProduct : ProductUiEvent()
+    data object AddToMainWishlist : ProductUiEvent()
+    data object RemoveFromMainWishlist : ProductUiEvent()
+
     data class ChangePincode(val pincode : String) : ProductUiEvent()
 
     data class ChangeComment(val comment : String) : ProductUiEvent()
@@ -41,4 +43,10 @@ sealed class ProductUiEvent {
     data object OnFollow : ProductUiEvent()
 
     data class IsLoading(val isLoading: Boolean): ProductUiEvent()
+
+    data object ClearError : ProductUiEvent()
+    data object ClearSuccessMessage: ProductUiEvent()
+
+    data class AddToWishlist(val productId: String) : ProductUiEvent()
+    data class RemoveFromWishlist(val productId: String) : ProductUiEvent()
 }

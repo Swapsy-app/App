@@ -2,9 +2,11 @@ package com.example.freeupcopy.data.repository
 
 import com.example.freeupcopy.common.Resource
 import com.example.freeupcopy.data.remote.SwapgoApi
+import com.example.freeupcopy.data.remote.dto.product.AcceptedOfferResponse
 import com.example.freeupcopy.data.remote.dto.product.AddCommentRequest
 import com.example.freeupcopy.data.remote.dto.product.AddReplyRequest
 import com.example.freeupcopy.data.remote.dto.product.BargainCountResponse
+import com.example.freeupcopy.data.remote.dto.product.BargainDetails
 import com.example.freeupcopy.data.remote.dto.product.BargainOfferRequest
 import com.example.freeupcopy.data.remote.dto.product.BargainResponse
 import com.example.freeupcopy.data.remote.dto.product.BuyerBargainsResponse
@@ -141,6 +143,33 @@ class ProductRepositoryImpl(
             emit(Resource.Error(message = e.message ?: "An unexpected error occurred"))
         }
     }.flowOn(Dispatchers.IO)
+
+    override fun getAcceptedOfferForProduct(productId: String): Flow<Resource<AcceptedOfferResponse>> = flow<Resource<AcceptedOfferResponse>> {
+        emit(Resource.Loading())
+        try {
+            val response = api.getAcceptedOfferForProduct(productId)
+            emit(Resource.Success(response))
+        } catch (e: HttpException) {
+            val errorBody = e.response()?.errorBody()?.string()
+            val json = errorBody?.let { JSONObject(it) }
+
+            val errorMessage =
+                json?.getString("message") ?: e.message ?: "An error occurred during sign up"
+
+            emit(Resource.Error(message = errorMessage))
+        } catch (e: Exception) {
+            emit(Resource.Error(message = e.message ?: "An unexpected error occurred"))
+        }
+    }.flowOn(Dispatchers.IO)
+
+    override suspend fun getBargainDetails(bargainId: String): BargainDetails? {
+        return try {
+            val response = api.getBargainDetails(bargainId)
+            response.bargain
+        } catch (e: Exception) {
+            null
+        }
+    }
 
     override fun getOfferCount(productId: String): Flow<Resource<BargainCountResponse>> = flow<Resource<BargainCountResponse>> {
         emit(Resource.Loading())

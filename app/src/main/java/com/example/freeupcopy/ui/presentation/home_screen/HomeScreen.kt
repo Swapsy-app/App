@@ -23,10 +23,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -247,14 +245,13 @@ fun HomeScreen(
 
             item {
                 val items = listOf(
-                    HomeCarouselItem(R.drawable.b1, onClick = {
-
-                    }),
-                    HomeCarouselItem(R.drawable.b2, onClick = {
+                    HomeCarouselItem(R.drawable.banner_coins, onClick = {
                         onBannerCashOrCoinClick("coin") // Special navigation parameter
+                    }),
+                    HomeCarouselItem(R.drawable.coins_wallet, onClick = {
 
                     }),
-                    HomeCarouselItem(R.drawable.b3, onClick = {
+                    HomeCarouselItem(R.drawable.mix_banner, onClick = {
                         onBannerCashOrCoinClick("mix") // Special navigation parameter
                     })
                 )
@@ -427,8 +424,7 @@ fun HomeScreen(
 
             // Explore products section after the sticky header
             item {
-
-                val wishlistStates by homeViewModel.wishlistStates.collectAsState()
+//                val wishlistStates by homeViewModel.wishlistStates.collectAsState()
 
                 ExploreProducts(
                     modifier = Modifier,
@@ -888,7 +884,6 @@ fun ExploreProducts(
         modifier = modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surface)
-//            .padding(vertical = 16.dp)
     ) {
         when {
             isLoading -> {

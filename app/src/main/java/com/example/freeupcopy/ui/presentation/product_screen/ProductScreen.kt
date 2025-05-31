@@ -42,6 +42,10 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -68,12 +72,13 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavHostController
 import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.freeupcopy.data.remote.dto.product.Reply
+import com.example.freeupcopy.data.remote.dto.sell.ProductCard
 import com.example.freeupcopy.ui.navigation.Screen
 import com.example.freeupcopy.ui.presentation.common.rememberProductClickHandler
 import com.example.freeupcopy.ui.presentation.product_card.ProductCard
-import com.example.freeupcopy.ui.presentation.product_listing.ProductListingUiEvent
 import com.example.freeupcopy.ui.presentation.product_listing.ProductListingViewModel
 import com.example.freeupcopy.ui.presentation.product_screen.componants.BargainElement
 import com.example.freeupcopy.ui.presentation.product_screen.componants.BargainOptionsSheet
@@ -86,7 +91,6 @@ import com.example.freeupcopy.ui.presentation.product_screen.componants.ProductS
 import com.example.freeupcopy.ui.presentation.product_screen.componants.SellerDetail
 import com.example.freeupcopy.ui.presentation.sell_screen.location_screen.location_screen.PleaseWaitLoading
 import com.example.freeupcopy.utils.getListedPrice
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @SuppressLint("UnrememberedGetBackStackEntry")
@@ -99,10 +103,14 @@ fun ProductScreen(
     onReplyClickReply: (String?, String?) -> Unit,
     onBack: () -> Unit,
     onUserClick: (String) -> Unit,
+    token: String?,
+    onShowLoginBottomSheet: () -> Unit,
     productViewModel: ProductViewModel = hiltViewModel(),
     productListingViewModel: ProductListingViewModel = hiltViewModel(),
 ) {
     val state by productViewModel.state.collectAsState()
+    val wishlistStates by productViewModel.wishlistStates.collectAsState()
+
     val similarProducts = productViewModel.similarProducts.collectAsLazyPagingItems()
 
     val lifeCycleOwner = LocalLifecycleOwner.current
@@ -112,6 +120,7 @@ fun ProductScreen(
     var currentIndex by remember { mutableIntStateOf(0) }
 
     val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     val productClickHandler = rememberProductClickHandler(
         productListingViewModel = productListingViewModel,
@@ -133,18 +142,38 @@ fun ProductScreen(
     // 3️⃣ Collect it as Compose state
     val newReply by newReplyFlow.collectAsState()
 
-    LaunchedEffect(state.error) {
-        Log.e("ProductScreen", "Error: ${state.error}")
-        state.error.takeIf { it.isNotBlank() }?.let {
-            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
-        }
-    }
-
     // 4️⃣ When a new reply arrives, update your ViewModel and clear it
     LaunchedEffect(newReply) {
         newReply?.let { reply ->
             productViewModel.prependReplyToComment(reply)
             thisEntry.savedStateHandle.remove<Reply>("new_reply")
+        }
+    }
+
+    // Handle error with Snackbar instead of Toast
+    LaunchedEffect(state.error) {
+        if (state.error.isNotBlank() && !state.isLoading) {
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = state.error,
+                    duration = SnackbarDuration.Short
+                )
+                // Clear error after showing
+                productViewModel.onEvent(ProductUiEvent.ClearError)
+            }
+            Log.e("ProductScreen", "Error: ${state.error}")
+        }
+    }
+
+    LaunchedEffect(state.successMessage) {
+        if (state.successMessage.isNotBlank() && !state.isLoading) {
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = state.successMessage,
+                    duration = SnackbarDuration.Short
+                )
+                productViewModel.onEvent(ProductUiEvent.ClearSuccessMessage)
+            }
         }
     }
 
@@ -154,7 +183,6 @@ fun ProductScreen(
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
-
             TopAppBar(
                 scrollBehavior = scrollBehavior,
                 title = {},
@@ -219,6 +247,57 @@ fun ProductScreen(
                 )
             )
         },
+        snackbarHost = {
+            SnackbarHost(snackbarHostState) { snackbarData ->
+                Snackbar(
+                    snackbarData = snackbarData,
+                    containerColor = when {
+                        // Check if it's a success message
+                        state.successMessage.isNotBlank() -> {
+                            Color(0xFF4CAF50).copy(alpha = 0.9f) // Green for success
+                        }
+
+                        // Error message styling
+                        state.error.contains("already", ignoreCase = true) ||
+                                state.error.contains("duplicate", ignoreCase = true) -> {
+                            MaterialTheme.colorScheme.primaryContainer
+                        }
+
+                        state.error.contains("network", ignoreCase = true) ||
+                                state.error.contains("internet", ignoreCase = true) ||
+                                state.error.contains("connection", ignoreCase = true) -> {
+                            Color(0xFFFF9800).copy(alpha = 0.9f) // Orange for network issues
+                        }
+
+                        else -> {
+                            MaterialTheme.colorScheme.errorContainer // Red for general errors
+                        }
+                    },
+                    contentColor = when {
+                        // Success message content color
+                        state.successMessage.isNotBlank() -> {
+                            Color.White
+                        }
+
+                        // Error message content colors
+                        state.error.contains("already", ignoreCase = true) ||
+                                state.error.contains("duplicate", ignoreCase = true) -> {
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        }
+
+                        state.error.contains("network", ignoreCase = true) ||
+                                state.error.contains("internet", ignoreCase = true) ||
+                                state.error.contains("connection", ignoreCase = true) -> {
+                            Color.White
+                        }
+
+                        else -> {
+                            MaterialTheme.colorScheme.onErrorContainer
+                        }
+                    }
+                )
+            }
+        },
         bottomBar = {
             ProductScreenBottomBar(
                 specialOffer = state.productDetail?.price?.mix,
@@ -234,13 +313,22 @@ fun ProductScreen(
             ) {
                 ProductFAB(
                     onClick = {
-                        productViewModel.onEvent(ProductUiEvent.LikeProduct)
+                        if (token == null) {
+                            onShowLoginBottomSheet()
+                        } else {
+                            // Toggle wishlist for the main product
+                            if (state.isWishlisted) {
+                                productViewModel.onEvent(ProductUiEvent.RemoveFromMainWishlist)
+                            } else {
+                                productViewModel.onEvent(ProductUiEvent.AddToMainWishlist)
+                            }
+                        }
                     },
                     icon = {
                         Icon(
-                            imageVector = if (state.isLiked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                            imageVector = if (state.isWishlisted) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
                             contentDescription = "like icon",
-                            tint = if (state.isLiked) Color.Red else LocalContentColor.current,
+                            tint = if (state.isWishlisted) Color.Red else LocalContentColor.current,
                         )
                     }
                 )
@@ -321,8 +409,11 @@ fun ProductScreen(
                     BargainElement(
                         bargainOffers = state.bargains,
                         onOpenPopup = {
-                            //productViewModel.onOpenPopup()
-                            productViewModel.onEvent(ProductUiEvent.BargainOptionsClicked)
+                            if(token == null) {
+                                onShowLoginBottomSheet()
+                            } else {
+                                productViewModel.onEvent(ProductUiEvent.BargainOptionsClicked)
+                            }
                         },
                         onEditOffer = {
                             productViewModel.onEvent(ProductUiEvent.EditBargainOption(it))
@@ -421,133 +512,30 @@ fun ProductScreen(
                     }
                 }
 
-                // Replace the current implementation for similar products
                 item {
-                    when {
-                        // Show loading state when initially loading
-                        similarProducts.loadState.refresh is LoadState.Loading -> {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(200.dp)
-                            ) {
-                                CircularProgressIndicator()
+
+                    SimilarProducts(
+                        similarProducts = similarProducts,
+                        wishlistStates = wishlistStates,
+                        onProductClick = { product ->
+                            productClickHandler.handleProductClick(product)
+                        },
+                        onLikeClick = { productId ->
+                            // Get current wishlist state from the passed wishlistStates
+                            val currentProduct = similarProducts.itemSnapshotList.items.find { it._id == productId }
+                            val isWishlisted = if (wishlistStates.containsKey(productId)) {
+                                wishlistStates[productId]!!
+                            } else {
+                                currentProduct?.isWishlisted ?: false
+                            }
+
+                            if (isWishlisted) {
+                                productViewModel.onEvent(ProductUiEvent.RemoveFromWishlist(productId))
+                            } else {
+                                productViewModel.onEvent(ProductUiEvent.AddToWishlist(productId))
                             }
                         }
-
-                        // Show error state
-                        similarProducts.loadState.refresh is LoadState.Error -> {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp)
-                            ) {
-                                Text(
-                                    text = "Failed to load similar products",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.error
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Button(onClick = { similarProducts.retry() }) {
-                                    Text("Retry")
-                                }
-                            }
-                        }
-
-                        // Show empty state when no products found
-                        similarProducts.itemCount == 0 -> {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(100.dp)
-                            ) {
-                                Text(
-                                    text = "No similar products found",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-
-                        // Show grid when we have products
-                        else -> {
-                            LazyVerticalStaggeredGrid(
-                                columns = StaggeredGridCells.Fixed(2),
-                                contentPadding = PaddingValues(
-                                    start = 8.dp,
-                                    end = 8.dp,
-                                    bottom = 16.dp
-                                ),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalItemSpacing = 8.dp,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .heightIn(max = Short.MAX_VALUE.toInt().dp)
-                            ) {
-                                items(similarProducts.itemCount) { index ->
-                                    similarProducts[index]?.let { product ->
-                                        ProductCard(
-                                            brand = product.brand,
-                                            title = product.title,
-                                            size = "null",
-                                            productThumbnail = if (product.images.size == 1) product.images[0] else null,
-                                            cashPrice = if (product.price.cashPrice != null) product.price.cashPrice.toInt()
-                                                .toString() else null,
-                                            coinsPrice = if (product.price.coinPrice != null) product.price.coinPrice.toInt()
-                                                .toString() else null,
-                                            combinedPrice = if (product.price.mixPrice != null)
-                                                Pair(
-                                                    product.price.mixPrice.enteredCash.toInt()
-                                                        .toString(),
-                                                    product.price.mixPrice.enteredCoin.toInt()
-                                                        .toString()
-                                                )
-                                            else null,
-                                            mrp = product.price.mrp?.toInt().toString(),
-                                            badge = "null",
-                                            isLiked = false,
-                                            onLikeClick = {},
-                                            user = product.seller,
-                                            onClick = {
-                                                productClickHandler.handleProductClick(product)
-                                            }
-                                        )
-                                    }
-                                }
-
-                                // Add loading indicators and error handling
-                                similarProducts.apply {
-                                    when {
-                                        loadState.append is LoadState.Loading -> {
-                                            item(span = StaggeredGridItemSpan.FullLine) {
-                                                Box(
-                                                    contentAlignment = Alignment.Center,
-                                                    modifier = Modifier.padding(vertical = 16.dp)
-                                                ) {
-                                                    CircularProgressIndicator()
-                                                }
-                                            }
-                                        }
-
-                                        loadState.append is LoadState.Error -> {
-                                            item(span = StaggeredGridItemSpan.FullLine) {
-                                                Button(
-                                                    onClick = { retry() },
-                                                    modifier = Modifier.fillMaxWidth()
-                                                ) {
-                                                    Text("Retry")
-                                                }
-                                            }
-                                        }
-
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    )
                 }
             }
         }
@@ -726,4 +714,145 @@ fun ConfirmDialogBox(
         modifier = modifier,
         containerColor = MaterialTheme.colorScheme.primaryContainer
     )
+}
+
+@Composable
+fun SimilarProducts(
+    modifier: Modifier = Modifier,
+    similarProducts: LazyPagingItems<ProductCard>,
+    wishlistStates: Map<String, Boolean>,
+    onProductClick: (ProductCard) -> Unit,
+    onLikeClick: (String) -> Unit,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
+    ) {
+        when {
+            // Show loading state when initially loading
+            similarProducts.loadState.refresh is LoadState.Loading -> {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+
+            // Show error state
+            similarProducts.loadState.refresh is LoadState.Error -> {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    Text(
+                        text = "Failed to load similar products",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(onClick = { similarProducts.retry() }) {
+                        Text("Retry")
+                    }
+                }
+            }
+
+            // Show empty state when no products found
+            similarProducts.itemCount == 0 -> {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp)
+                ) {
+                    Text(
+                        text = "No similar products found",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            // Show grid when we have products
+            else -> {
+                LazyVerticalStaggeredGrid(
+                    columns = StaggeredGridCells.Fixed(2),
+                    contentPadding = PaddingValues(
+                        start = 8.dp,
+                        end = 8.dp,
+                        bottom = 16.dp
+                    ),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalItemSpacing = 8.dp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = Short.MAX_VALUE.toInt().dp)
+                ) {
+                    items(similarProducts.itemCount) { index ->
+                        similarProducts[index]?.let { product ->
+                            // Get wishlist state for this product
+                            val isWishlisted = wishlistStates[product._id] ?: product.isWishlisted
+
+                            ProductCard(
+                                brand = product.brand,
+                                title = product.title,
+                                size = "null",
+                                productThumbnail = if (product.images.isNotEmpty()) product.images[0] else null,
+                                cashPrice = if (product.price.cashPrice != null) product.price.cashPrice.toInt()
+                                    .toString() else null,
+                                coinsPrice = if (product.price.coinPrice != null) product.price.coinPrice.toInt()
+                                    .toString() else null,
+                                combinedPrice = if (product.price.mixPrice != null)
+                                    Pair(
+                                        product.price.mixPrice.enteredCash.toInt().toString(),
+                                        product.price.mixPrice.enteredCoin.toInt().toString()
+                                    )
+                                else null,
+                                mrp = product.price.mrp?.toInt().toString(),
+                                badge = "null",
+                                isLiked = isWishlisted,
+                                onLikeClick = {
+                                    onLikeClick(product._id)
+                                },
+                                user = product.seller,
+                                onClick = { onProductClick(product) }
+                            )
+                        }
+                    }
+
+                    // Add loading indicators and error handling
+                    similarProducts.apply {
+                        when {
+                            loadState.append is LoadState.Loading -> {
+                                item(span = StaggeredGridItemSpan.FullLine) {
+                                    Box(
+                                        contentAlignment = Alignment.Center,
+                                        modifier = Modifier.padding(vertical = 16.dp)
+                                    ) {
+                                        CircularProgressIndicator()
+                                    }
+                                }
+                            }
+
+                            loadState.append is LoadState.Error -> {
+                                item(span = StaggeredGridItemSpan.FullLine) {
+                                    Button(
+                                        onClick = { retry() },
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Text("Retry")
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

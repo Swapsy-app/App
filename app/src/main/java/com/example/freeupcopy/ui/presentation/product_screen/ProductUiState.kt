@@ -1,24 +1,23 @@
 package com.example.freeupcopy.ui.presentation.product_screen
 
-import com.example.freeupcopy.data.remote.dto.product.Bargain
 import com.example.freeupcopy.data.remote.dto.product.Comment
 import com.example.freeupcopy.data.remote.dto.product.ProductBargain
 import com.example.freeupcopy.data.remote.dto.product.Reply
 import com.example.freeupcopy.data.remote.dto.product.User
 import com.example.freeupcopy.data.remote.dto.product.UserSearchResult
+import com.example.freeupcopy.data.remote.dto.sell.Price
 import com.example.freeupcopy.data.remote.dto.sell.ProductDetail
-import com.example.freeupcopy.data.remote.dto.sell.ProductDetailsResponse
 import com.example.freeupcopy.domain.enums.Currency
-import com.example.freeupcopy.domain.model.BargainOffer
 
 data class ProductUiState(
     val productId: String = "",
     val user: User? = null,
+    val successMessage: String = "",
 
-    val productDetailsResponse: ProductDetailsResponse? = null,
     val productDetail: ProductDetail? = null,
+    val originalPriceDetail: Price? = null,
 
-    val isLiked: Boolean = false,
+    val isWishlisted: Boolean = false,
 
     val isConfirmDeleteDialog: Boolean = false,
     val deleteCommentId: String = "",

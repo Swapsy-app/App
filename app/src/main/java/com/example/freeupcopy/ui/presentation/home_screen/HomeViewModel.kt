@@ -175,57 +175,6 @@ class HomeViewModel @Inject constructor(
                 _state.update { it.copy(isLoading = event.isLoading) }
             }
 
-            is HomeUiEvent.OnLikeClick -> {
-                viewModelScope.launch {
-                    // Find current wishlist state
-                    val currentProduct = findProductById(event.productId)
-                    val newWishlistState = !(currentProduct?.isWishlisted ?: false)
-
-                    // Optimistically update UI
-                    updateProductWishlistState(event.productId, newWishlistState)
-
-                    // Make API call
-                    val apiCall = if (newWishlistState) {
-                        repository.addToWishlist(event.productId)
-                    } else {
-                        repository.removeFromWishlist(event.productId)
-                    }
-
-                    apiCall.collect { response ->
-                        when (response) {
-                            is Resource.Success -> {
-                                // Notify other screens about the change
-                                wishlistStateManager.notifyWishlistChanged(event.productId, newWishlistState)
-                                _state.update {
-                                    it.copy(
-                                        isLoading = false,
-                                        error = ""
-                                    )
-                                }
-                            }
-                            is Resource.Error -> {
-                                // Revert the optimistic update if there's an error
-                                updateProductWishlistState(event.productId, !newWishlistState)
-                                _state.update {
-                                    it.copy(
-                                        isLoading = false,
-                                        error = response.message ?: "Unknown error"
-                                    )
-                                }
-                            }
-                            is Resource.Loading -> {
-                                _state.update {
-                                    it.copy(
-                                        isLoading = true,
-                                        error = ""
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
             is HomeUiEvent.AddToWishlist -> {
                 viewModelScope.launch {
                     Log.e("HomeViewModel", "Adding to wishlist: ${event.productId}")

@@ -10,14 +10,17 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.filter
 import com.example.freeupcopy.common.Resource
+import com.example.freeupcopy.data.pref.SwapGoPref
 import com.example.freeupcopy.data.remote.dto.product.AddCommentRequest
 import com.example.freeupcopy.data.remote.dto.product.BargainOfferRequest
 import com.example.freeupcopy.data.remote.dto.product.Reply
+import com.example.freeupcopy.data.remote.dto.sell.Cash
+import com.example.freeupcopy.data.remote.dto.sell.Coin
+import com.example.freeupcopy.di.AppModule
 import com.example.freeupcopy.domain.enums.Currency
 import com.example.freeupcopy.domain.enums.getCurrencyFromString
 import com.example.freeupcopy.domain.repository.ProductRepository
 import com.example.freeupcopy.domain.repository.SellRepository
-import com.example.freeupcopy.domain.repository.ProfileRepository
 import com.example.freeupcopy.domain.use_case.GetProductCardsUseCase
 import com.example.freeupcopy.domain.use_case.ProductCardsQueryParameters
 import com.example.freeupcopy.utils.ValidationResult
@@ -28,7 +31,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -41,11 +44,16 @@ class ProductViewModel @Inject constructor(
     private val sellRepository: SellRepository,
     savedStateHandle: SavedStateHandle,
     private val productRepository: ProductRepository,
-    private val profileRepository: ProfileRepository,
-    private val getProductCardsUseCase: GetProductCardsUseCase
+    private val getProductCardsUseCase: GetProductCardsUseCase,
+    private val swapGoPref: SwapGoPref,
+    private val wishlistStateManager: AppModule.WishlistStateManager
 ) : ViewModel() {
     private val _state = MutableStateFlow(ProductUiState())
     val state = _state.asStateFlow()
+
+    // Add wishlist states for similar products
+    private val _wishlistStates = MutableStateFlow<Map<String, Boolean>>(emptyMap())
+    val wishlistStates = _wishlistStates.asStateFlow()
 
     // Retrieve the productId from the saved state
     private val productId: String? = savedStateHandle["productId"]
@@ -54,32 +62,34 @@ class ProductViewModel @Inject constructor(
     // Paging state for bargain offers
     private var currentBargainPage = 1
 
-    // Similar products implementation using stateIn
     @OptIn(ExperimentalCoroutinesApi::class)
     val similarProducts = _state
         .map { state ->
-            state.productDetail?.let { product ->
-                // Extract category for filtering
-                val category = product.category
+            SimilarityQueryState(
+                searchQuery = state.productDetail?.title,
+                userId = state.user?._id ?: ""
+            )
+        }
+        .distinctUntilChanged()
+        .flatMapLatest { queryState ->
+            // Extract category for filtering
+            val category = state.value.productDetail?.category
 
-                // Build search query from product name
-                val searchQuery = buildSearchQuery(product.title)
-
-                // Build filters map
-                val filters = buildMap {
+            // Build filters map
+            val filters = buildMap {
+                if (category != null) {
                     put("primaryCategory", category.primaryCategory)
                 }
-
-                // Return the search parameters
-                ProductCardsQueryParameters(
-                    search = searchQuery,
-                    filters = filters
-                )
             }
-        }
-        .filterNotNull() // Only proceed when we have valid parameters
-        .flatMapLatest { params ->
-            getProductCardsUseCase(params)
+
+            // Pass all parameters to the query
+            getProductCardsUseCase(
+                ProductCardsQueryParameters(
+                    search = queryState.searchQuery,
+                    userId = queryState.userId,
+                    filters = filters,
+                )
+            )
         }
         .map { pagingData ->
             // Filter out the current product from results
@@ -114,20 +124,56 @@ class ProductViewModel @Inject constructor(
     init {
         productId?.let {
             _state.update { u ->
-                u.copy(
-                    productId = productId
-                )
+                u.copy(productId = productId)
             }
-            getProductDetails(it)
-            getWishlistCount(it)
-            loadMoreComments()
-            getSellerBasicInfo()
-            getBargainOffersForProduct()
+
+            viewModelScope.launch {
+                try {
+                    // Wait for product details to complete first
+                    getProductDetailsSync(it)
+
+                    // Then override with accepted offer if exists
+                    checkAcceptedOfferSync(it)
+
+                    // Run other operations in parallel
+                    launch { getWishlistCount(it) }
+                    launch { loadMoreComments() }
+                    launch { getCurrentUser() }
+                    launch { getBargainOffersForProduct() }
+                } catch (e: Exception) {
+                    _state.update { state ->
+                        state.copy(
+                            isLoading = false,
+                            error = e.message ?: "Failed to load product"
+                        )
+                    }
+                }
+            }
+        }
+
+        // Set up wishlist state collection
+        viewModelScope.launch {
+            wishlistStateManager.wishlistUpdates.collect { (productId, isWishlisted) ->
+                updateProductWishlistState(productId, isWishlisted)
+            }
         }
     }
 
+    // Add wishlist update method
+    private fun updateProductWishlistState(productId: String, isWishlisted: Boolean) {
+        _wishlistStates.update { current ->
+            current + (productId to isWishlisted)
+        }
+    }
+
+
     fun onEvent(event: ProductUiEvent) {
         when (event) {
+            is ProductUiEvent.ClearSuccessMessage -> {
+                _state.update {
+                    it.copy(successMessage = "")
+                }
+            }
 
             is ProductUiEvent.SelectMention -> {
                 // Get current comment text
@@ -168,7 +214,13 @@ class ProductViewModel @Inject constructor(
             is ProductUiEvent.LikeProduct -> {
                 //Later do some network call to update the like status
                 _state.update {
-                    it.copy(isLiked = !it.isLiked)
+                    it.copy(isWishlisted = !it.isWishlisted)
+                }
+            }
+
+            is ProductUiEvent.ClearError -> {
+                _state.update {
+                    it.copy(error = "")
                 }
             }
 
@@ -556,6 +608,226 @@ class ProductViewModel @Inject constructor(
                     it.copy(isLoading = event.isLoading)
                 }
             }
+
+            is ProductUiEvent.AddToWishlist -> {
+                viewModelScope.launch {
+                    Log.e("HomeViewModel", "Adding to wishlist: ${event.productId}")
+
+                    // Optimistically update UI
+                    updateProductWishlistState(event.productId, true)
+
+                    sellRepository.addToWishlist(event.productId).collect { response ->
+                        when (response) {
+                            is Resource.Success -> {
+                                wishlistStateManager.notifyWishlistChanged(event.productId, true)
+                                _state.update {
+                                    it.copy(isLoading = false, error = "")
+                                }
+                            }
+
+                            is Resource.Error -> {
+                                // Revert optimistic update
+                                updateProductWishlistState(event.productId, false)
+                                _state.update {
+                                    it.copy(
+                                        isLoading = false,
+                                        error = response.message ?: "Failed to add to wishlist"
+                                    )
+                                }
+                            }
+
+                            is Resource.Loading -> {
+                                _state.update { it.copy(isLoading = true, error = "") }
+                            }
+                        }
+                    }
+                }
+            }
+
+            is ProductUiEvent.RemoveFromWishlist -> {
+                viewModelScope.launch {
+                    Log.e("HomeViewModel", "Removing from wishlist: ${event.productId}")
+
+                    // Optimistically update UI
+                    updateProductWishlistState(event.productId, false)
+
+                    sellRepository.removeFromWishlist(event.productId).collect { response ->
+                        when (response) {
+                            is Resource.Success -> {
+                                wishlistStateManager.notifyWishlistChanged(event.productId, false)
+                                _state.update {
+                                    it.copy(isLoading = false, error = "")
+                                }
+                            }
+
+                            is Resource.Error -> {
+                                // Revert optimistic update
+                                updateProductWishlistState(event.productId, true)
+                                _state.update {
+                                    it.copy(
+                                        isLoading = false,
+                                        error = response.message ?: "Failed to remove from wishlist"
+                                    )
+                                }
+                            }
+
+                            is Resource.Loading -> {
+                                _state.update { it.copy(isLoading = true, error = "") }
+                            }
+                        }
+                    }
+                }
+            }
+
+            is ProductUiEvent.AddToMainWishlist -> {
+                val currentProductId = _state.value.productId
+
+                viewModelScope.launch {
+                    // Optimistically update UI
+                    _state.update {
+                        it.copy(
+                            isWishlisted = true,
+                            wishlistCount = (it.wishlistCount ?: 0) + 1
+                        )
+                    }
+
+                    sellRepository.addToWishlist(currentProductId).collect { response ->
+                        when (response) {
+                            is Resource.Success -> {
+                                wishlistStateManager.notifyWishlistChanged(currentProductId, true)
+                                _state.update {
+                                    it.copy(
+                                        isLoading = false,
+                                        successMessage = "Added to wishlist"
+                                    )
+                                }
+                            }
+                            is Resource.Error -> {
+                                // Revert optimistic update
+                                _state.update {
+                                    it.copy(
+                                        isWishlisted = false,
+                                        wishlistCount = (it.wishlistCount ?: 1) - 1,
+                                        isLoading = false,
+                                        error = response.message ?: "Failed to add to wishlist"
+                                    )
+                                }
+                            }
+                            is Resource.Loading -> {
+                                _state.update { it.copy(isLoading = true, error = "") }
+                            }
+                        }
+                    }
+                }
+            }
+
+            is ProductUiEvent.RemoveFromMainWishlist -> {
+                val currentProductId = _state.value.productId
+
+                viewModelScope.launch {
+                    // Optimistically update UI
+                    _state.update {
+                        it.copy(
+                            isWishlisted = false,
+                            wishlistCount = (it.wishlistCount ?: 1) - 1
+                        )
+                    }
+
+                    sellRepository.removeFromWishlist(currentProductId).collect { response ->
+                        when (response) {
+                            is Resource.Success -> {
+                                wishlistStateManager.notifyWishlistChanged(currentProductId, false)
+                                _state.update {
+                                    it.copy(
+                                        isLoading = false,
+                                        successMessage = "Removed from wishlist"
+                                    )
+                                }
+                            }
+                            is Resource.Error -> {
+                                // Revert optimistic update
+                                _state.update {
+                                    it.copy(
+                                        isWishlisted = true,
+                                        wishlistCount = (it.wishlistCount ?: 0) + 1,
+                                        isLoading = false,
+                                        error = response.message ?: "Failed to remove from wishlist"
+                                    )
+                                }
+                            }
+                            is Resource.Loading -> {
+                                _state.update { it.copy(isLoading = true, error = "") }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private suspend fun checkAcceptedOfferSync(productId: String) {
+        productRepository.getAcceptedOfferForProduct(productId).collect { resource ->
+            when (resource) {
+                is Resource.Loading -> {
+                    _state.update { state ->
+                        state.copy(isLoading = true, error = "")
+                    }
+                }
+
+                is Resource.Success -> {
+                    resource.data?.let { response ->
+                        if (response.hasAcceptedOffer && response.acceptedOffer != null) {
+                            val offer = response.acceptedOffer
+
+                            when (offer.offeredIn) {
+                                "coin" -> {
+                                    _state.update {
+                                        it.copy(
+                                            productDetail = it.productDetail?.copy(
+                                                price = it.productDetail.price.copy(
+                                                    coin = it.productDetail.price.coin?.copy(
+                                                        enteredAmount = offer.offeredPrice
+                                                    ) ?: Coin(
+                                                        enteredAmount = offer.offeredPrice,
+                                                        sellerReceivesCoin = 0.0
+                                                    )
+                                                )
+                                            )
+                                        )
+                                    }
+                                }
+
+                                "cash" -> {
+                                    _state.update {
+                                        it.copy(
+                                            productDetail = it.productDetail?.copy(
+                                                price = it.productDetail.price.copy(
+                                                    cash = it.productDetail.price.cash?.copy(
+                                                        enteredAmount = offer.offeredPrice
+                                                    ) ?: Cash(
+                                                        enteredAmount = offer.offeredPrice,
+                                                        sellerReceivesCash = 0.0
+                                                    )
+                                                )
+                                            )
+                                        )
+                                    }
+                                }
+                                // Removed the "mix" case entirely since it's not supported
+                            }
+                        }
+                    }
+                }
+
+                is Resource.Error -> {
+                    _state.update { state ->
+                        state.copy(
+                            isLoading = false,
+                            error = resource.message ?: "An unexpected error occurred"
+                        )
+                    }
+                }
+            }
         }
     }
 
@@ -613,27 +885,24 @@ class ProductViewModel @Inject constructor(
                 }
             )
 
-            // Call the repository method
             productRepository.makeOffer(productId, request).collect { result ->
                 when (result) {
                     is Resource.Loading -> {
-                        _state.update { it.copy(isLoading = true, error = "") }
+                        _state.update { it.copy(isLoading = true, error = "", successMessage = "") }
                     }
 
                     is Resource.Success -> {
-                        // Handle successful response
                         _state.update {
                             it.copy(
                                 isLoading = false,
                                 isSheetOpen = false,
                                 bargainMessage = "",
                                 bargainAmount = "",
-                                error = ""
+                                successMessage = "Bargain offer sent successfully!", // Use successMessage
+                                error = "" // Clear any previous errors
                             )
                         }
-
-                        // Refresh the bargain offers list
-                        getBargainOffersForProduct()
+                        getBargainOffersForProduct(forceRefresh = true)
                     }
 
                     is Resource.Error -> {
@@ -641,7 +910,8 @@ class ProductViewModel @Inject constructor(
                             it.copy(
                                 isLoading = false,
                                 isSheetOpen = false,
-                                error = result.message ?: "Failed to make offer"
+                                error = result.message ?: "Failed to make offer",
+                                successMessage = "" // Clear any previous success messages
                             )
                         }
                     }
@@ -651,7 +921,6 @@ class ProductViewModel @Inject constructor(
     }
 
 
-    // Add this method to handle updating an existing bargain offer
     private fun updateOffer() {
         viewModelScope.launch {
             val currentState = _state.value
@@ -674,7 +943,7 @@ class ProductViewModel @Inject constructor(
             productRepository.updateOffer(productId, request).collect { result ->
                 when (result) {
                     is Resource.Loading -> {
-                        _state.update { it.copy(isLoading = true, error = "") }
+                        _state.update { it.copy(isLoading = true, error = "", successMessage = "") }
                     }
 
                     is Resource.Success -> {
@@ -686,56 +955,22 @@ class ProductViewModel @Inject constructor(
                                 bargainAmount = "",
                                 currentEditingBargainId = null,
                                 isEditingBargain = false,
+                                successMessage = "Bargain offer updated successfully!", // Use successMessage
                                 error = ""
                             )
                         }
-                        getBargainOffersForProduct()
+                        getBargainOffersForProduct(forceRefresh = true)
                     }
+
 
                     is Resource.Error -> {
-                        _state.update {
-                            it.copy(
-                                isLoading = false,
-                                isEditingBargain = false,
-                                error = result.message ?: "Failed to update offer"
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // Add this method to handle deleting a bargain offer
-    private fun deleteBargainOffer(bargainId: String) {
-        viewModelScope.launch {
-            productRepository.deleteOffer(bargainId).collect { result ->
-                when (result) {
-                    is Resource.Loading -> {
-                        _state.update { it.copy(isLoading = true, error = "") }
-                    }
-
-                    is Resource.Success -> {
                         _state.update {
                             it.copy(
                                 isLoading = false,
                                 isSheetOpen = false,
-                                currentEditingBargainId = null,
-                                error = "",
                                 isEditingBargain = false,
-                                bargainMessage = "",
-                                bargainAmount = ""
-
-                            )
-                        }
-                        getBargainOffersForProduct()
-                    }
-
-                    is Resource.Error -> {
-                        _state.update {
-                            it.copy(
-                                isLoading = false,
-                                error = result.message ?: "Failed to delete offer"
+                                error = result.message ?: "Failed to update offer",
+                                successMessage = "" // Clear any previous success messages
                             )
                         }
                     }
@@ -743,6 +978,94 @@ class ProductViewModel @Inject constructor(
             }
         }
     }
+
+
+    private fun deleteBargainOffer(bargainId: String) {
+        viewModelScope.launch {
+            try {
+                // First, get the bargain details before deletion
+                val bargainDetails = productRepository.getBargainDetails(bargainId)
+                val wasAcceptedOffer = bargainDetails?.status == "accepted"
+                val offerType = bargainDetails?.offeredIn
+
+                // Then delete the bargain
+                productRepository.deleteOffer(bargainId).collect { result ->
+                    when (result) {
+                        is Resource.Loading -> {
+                            _state.update {
+                                it.copy(
+                                    isLoading = true,
+                                    error = "",
+                                    successMessage = ""
+                                )
+                            }
+                        }
+
+                        is Resource.Success -> {
+                            _state.update {
+                                it.copy(
+                                    successMessage = "Bargain offer deleted successfully!", // Use successMessage
+                                    isLoading = false,
+                                    isSheetOpen = false,
+                                    currentEditingBargainId = null,
+                                    isEditingBargain = false,
+                                    bargainMessage = "",
+                                    bargainAmount = ""
+                                )
+                            }
+
+                            // Revert pricing if it was an accepted offer
+                            if (wasAcceptedOffer && _state.value.originalPriceDetail != null) {
+                                val originalPrice = _state.value.originalPriceDetail!!
+
+                                _state.update { currentState ->
+                                    currentState.copy(
+                                        productDetail = currentState.productDetail?.copy(
+                                            price = when (offerType) {
+                                                "coin" -> currentState.productDetail.price.copy(
+                                                    coin = originalPrice.coin
+                                                )
+
+                                                "cash" -> currentState.productDetail.price.copy(
+                                                    cash = originalPrice.cash
+                                                )
+
+                                                else -> originalPrice // Revert entire price structure
+                                            }
+                                        ),
+                                        successMessage = "Accepted offer deleted. Pricing reverted to original."
+                                    )
+                                }
+                            }
+
+                            // Refresh the bargain offers list automatically
+                            getBargainOffersForProduct(forceRefresh = true)
+                        }
+
+                        is Resource.Error -> {
+                            _state.update {
+                                it.copy(
+                                    isLoading = false,
+                                    error = result.message ?: "Failed to delete offer",
+                                    isSheetOpen = false,
+                                    successMessage = ""
+                                )
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        error = e.message ?: "An unexpected error occurred",
+                        successMessage = ""
+                    )
+                }
+            }
+        }
+    }
+
 
     fun loadMoreBargains() {
         if (!isLoadingMoreBargains && hasMoreBargains) {
@@ -751,24 +1074,29 @@ class ProductViewModel @Inject constructor(
     }
 
 
-    private fun getBargainOffersForProduct(loadMore: Boolean = false) {
-        if (isLoadingMoreBargains || (!loadMore && !hasMoreBargains)) return
+    private fun getBargainOffersForProduct(
+        loadMore: Boolean = false,
+        forceRefresh: Boolean = false
+    ) {
+        // Allow refresh when forceRefresh is true
+        if (!forceRefresh && (isLoadingMoreBargains || (!loadMore && !hasMoreBargains))) return
 
         isLoadingMoreBargains = true
         viewModelScope.launch {
             try {
-                val pageToLoad = if (loadMore) currentBargainPage else 1
+                val pageToLoad = if (loadMore && !forceRefresh) currentBargainPage else 1
                 val response = productRepository.getOffersForProduct(
                     productId = productId!!,
                     page = pageToLoad
                 )
                 val newBargains = response.bargains ?: emptyList()
-                val updatedBargains = if (loadMore) {
+
+                val updatedBargains = if (loadMore && !forceRefresh) {
                     _state.value.bargains + newBargains
                 } else {
-                    newBargains
+                    newBargains // Reset list for refresh
                 }
-                // <-- PLACE THE UPDATE HERE
+
                 _state.update {
                     it.copy(
                         bargains = updatedBargains,
@@ -776,8 +1104,16 @@ class ProductViewModel @Inject constructor(
                         hasMoreBargains = response.hasNextPage
                     )
                 }
-                currentBargainPage++
-                hasMoreBargains = response.hasNextPage
+
+                // Reset pagination when refreshing
+                if (forceRefresh || !loadMore) {
+                    currentBargainPage = 2 // Next page to load
+                    hasMoreBargains = response.hasNextPage
+                } else {
+                    currentBargainPage++
+                    hasMoreBargains = response.hasNextPage
+                }
+
             } catch (e: Exception) {
                 _state.update {
                     it.copy(
@@ -1052,83 +1388,48 @@ class ProductViewModel @Inject constructor(
         }
     }
 
-    private fun getProductDetails(productId: String) {
-        viewModelScope.launch {
-            sellRepository.getProductDetails(productId).collect { result ->
-                when (result) {
-                    is Resource.Loading -> {
-                        _state.update {
-                            it.copy(isLoading = true)
-                        }
+    private suspend fun getProductDetailsSync(productId: String) {
+        sellRepository.getProductDetails(productId).collect { result ->
+            when (result) {
+                is Resource.Success -> {
+                    _state.update {
+                        it.copy(
+                            productDetail = result.data?.product,
+                            originalPriceDetail = result.data?.product?.price,
+                            isWishlisted = result.data?.isWishlisted ?: false,
+                            isLoading = false
+                        )
                     }
+                    return@collect // Exit after success
+                }
 
-                    is Resource.Success -> {
-//                        var tenPercentRecommended: Pair<String?, String?> = Pair(null, null)
-//                        var fifteenPercentRecommended: Pair<String?, String?> = Pair(null, null)
-//                        _state.value.productDetail?.price?.cash?.let {
-//                            val tenPercentCash = calculateTenPercent(_state.value.productDetail?.price?.cash?.enteredAmount.toString())
-//                            val fifteenPercentCash = calculateFifteenPercent(_state.value.productDetail?.price?.cash?.enteredAmount.toString())
-//                            tenPercentRecommended = tenPercentRecommended.copy(tenPercentCash)
-//                            fifteenPercentRecommended = fifteenPercentRecommended.copy(fifteenPercentCash)
-//                        }
-//                        _state.value.productDetail?.price?.coin?.let {
-//                            val tenPercentCoin = calculateTenPercent(_state.value.productDetail?.price?.coin?.enteredAmount.toString())
-//                            val fifteenPercentCoin = calculateFifteenPercent(_state.value.productDetail?.price?.coin?.enteredAmount.toString())
-//
-//                            tenPercentRecommended
-//                        }
-
-
-                        _state.update {
-                            it.copy(
-                                productDetailsResponse = result.data,
-                                productDetail = result.data?.product,
-                                isLoading = false
-                            )
-                        }
+                is Resource.Error -> {
+                    _state.update {
+                        it.copy(
+                            error = result.message ?: "An unexpected error occurred",
+                            isLoading = false
+                        )
                     }
+                    return@collect // Exit after error
+                }
 
-                    is Resource.Error -> {
-                        _state.update {
-                            it.copy(
-                                error = result.message ?: "An unexpected error occurred",
-                                isLoading = false
-                            )
-                        }
-                    }
+                is Resource.Loading -> {
+                    _state.update { it.copy(isLoading = true) }
                 }
             }
         }
     }
 
-    private fun getSellerBasicInfo() {
+
+    // Add this method (similar to CommunityViewModel)
+    private fun getCurrentUser() {
         viewModelScope.launch {
-            profileRepository.getUserBasicInfo().collect { result ->
-                when (result) {
-                    is Resource.Loading -> {
-                        _state.update {
-                            it.copy(isLoading = true)
-                        }
-                    }
-
-                    is Resource.Success -> {
-                        _state.update {
-                            it.copy(
-                                user = result.data?.user,
-                                isLoading = false
-                            )
-                        }
-                    }
-
-                    is Resource.Error -> {
-                        _state.update {
-                            it.copy(
-                                error = result.message ?: "An unexpected error occurred",
-                                isLoading = false,
-                                user = null
-                            )
-                        }
-                    }
+            swapGoPref.getUser().collect { user ->
+                _state.update {
+                    it.copy(
+                        user = user,
+                        isLoading = false
+                    )
                 }
             }
         }
@@ -1173,3 +1474,9 @@ class ProductViewModel @Inject constructor(
 
     }
 }
+
+// Data class to hold all query parameters
+data class SimilarityQueryState(
+    val userId: String? = null,
+    val searchQuery: String? = null,
+)

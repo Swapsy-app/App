@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.freeupcopy.common.Resource
+import com.example.freeupcopy.data.pref.SwapGoPref
 import com.example.freeupcopy.domain.repository.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,6 +16,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SellerProfileViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
+    private val swapGoPref: SwapGoPref,
     savedStateHandle: SavedStateHandle,
 ): ViewModel() {
     private val _state = MutableStateFlow(SellerProfileUiState())
@@ -25,7 +27,7 @@ class SellerProfileViewModel @Inject constructor(
 
     init {
         if (userId != null) {
-            getSellerBasicInfo()
+            getCurrentUser()
             getProfileById()
         } else {
             getProfile()
@@ -49,6 +51,20 @@ class SellerProfileViewModel @Inject constructor(
 
             is SellerProfileUiEvent.ClearError -> {
                 _state.update { it.copy(error = "") }
+            }
+        }
+    }
+
+    private fun getCurrentUser() {
+        viewModelScope.launch {
+            swapGoPref.getUser().collect { user ->
+                _state.update {
+                    it.copy(
+                        currentUser = user,
+                        isMyProfile = user?._id == userId,
+                        isLoading = false
+                    )
+                }
             }
         }
     }
@@ -133,7 +149,7 @@ class SellerProfileViewModel @Inject constructor(
 
     fun getUserProfile() {
         if (userId != null) {
-            getSellerBasicInfo()
+            getCurrentUser() // Replace getSellerBasicInfo() with this
             getProfileById()
         } else {
             getProfile()
@@ -232,40 +248,6 @@ class SellerProfileViewModel @Inject constructor(
                             it.copy(
                                 isLoading = false,
                                 error = result.message ?: "An unexpected error occurred"
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private fun getSellerBasicInfo() {
-        viewModelScope.launch {
-            profileRepository.getUserBasicInfo().collect { result ->
-                when (result) {
-                    is Resource.Loading -> {
-                        _state.update {
-                            it.copy(isLoading = true)
-                        }
-                    }
-
-                    is Resource.Success -> {
-                        _state.update {
-                            it.copy(
-                                currentUser = result.data?.user,
-                                isMyProfile = result.data!!.user._id == userId,
-                                isLoading = false
-                            )
-                        }
-                    }
-
-                    is Resource.Error -> {
-                        _state.update {
-                            it.copy(
-                                error = result.message ?: "An unexpected error occurred",
-                                isLoading = false,
-                                isMyProfile = false
                             )
                         }
                     }

@@ -6,7 +6,8 @@ data class ProductDetailsResponse(
     val success: Boolean,
     val productId: String,
     val product: ProductDetail,
-    val finalPrice: FinalPrice
+    val finalPrice: FinalPrice,
+    val isWishlisted: Boolean
 )
 
 data class ProductDetail(

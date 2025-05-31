@@ -14,9 +14,11 @@ import com.example.freeupcopy.data.remote.dto.auth.RefreshTokenRequest
 import com.example.freeupcopy.data.remote.dto.auth.RefreshTokenResponse
 import com.example.freeupcopy.data.remote.dto.auth.SignUpOtpVerifyResponse
 import com.example.freeupcopy.data.remote.dto.auth.SignUpRequest
+import com.example.freeupcopy.data.remote.dto.product.AcceptedOfferResponse
 import com.example.freeupcopy.data.remote.dto.product.AddCommentRequest
 import com.example.freeupcopy.data.remote.dto.product.AddReplyRequest
 import com.example.freeupcopy.data.remote.dto.product.BargainCountResponse
+import com.example.freeupcopy.data.remote.dto.product.BargainDetailsResponse
 import com.example.freeupcopy.data.remote.dto.product.BargainOfferRequest
 import com.example.freeupcopy.data.remote.dto.product.BargainResponse
 import com.example.freeupcopy.data.remote.dto.product.BuyerBargainsResponse
@@ -306,12 +308,21 @@ interface SwapgoApi {
         @Path("bargainId") bargainId: String
     ): BargainResponse
 
+    @GET("/api/bargain/products/{productId}/accepted-offer")
+    suspend fun getAcceptedOfferForProduct(
+        @Path("productId") productId: String
+    ): AcceptedOfferResponse
+
     //Get Bargain Count for Product
     @GET("/api/bargain/bargain/count/{productId}")
     suspend fun getBargainCount(
         @Path("productId") productId: String
     ): BargainCountResponse
 
+    @GET("/api/bargain/bargain-details/{bargainId}")
+    suspend fun getBargainDetails(
+        @Path("bargainId") bargainId: String
+    ): BargainDetailsResponse
 
     /** 1️⃣ Add a comment **/
     @POST("/api/comments/{productId}")

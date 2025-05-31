@@ -757,6 +757,10 @@ class MainActivity : ComponentActivity() {
                         composable<Screen.ProductScreen> {
                             ProductScreen(
                                 navController = navController,
+                                token = token,
+                                onShowLoginBottomSheet = {
+                                    showLoginBottomSheet.value = true
+                                },
                                 onReplyClickComment = { commentId ->
                                     navController.navigate(
                                         Screen.ReplyScreen(
@@ -996,10 +1000,17 @@ fun LoginBottomSheet(
     val startDestination = navController.graph.startDestinationRoute
     val isAtStartDestination = currentRoute == startDestination
 
+    // Check if we're in ProductScreen (don't pop from ProductScreen)
+    val isInProductScreen = currentRoute?.contains("product_screen") == true ||
+            currentRoute?.contains("ProductScreen") == true
+
+    // Don't pop if we're at start destination or in ProductScreen
+    val shouldNotPop = isAtStartDestination || isInProductScreen
+
     ModalBottomSheet(
         onDismissRequest = {
-            // Only pop back if we're not at the start destination
-            if (!isAtStartDestination) {
+            // Only pop back if we should pop
+            if (!shouldNotPop) {
                 navController.popBackStack()
             }
             onDismiss()
@@ -1043,8 +1054,8 @@ fun LoginBottomSheet(
 
             TextButton(
                 onClick = {
-                    // Only pop back if we're not at the start destination
-                    if (!isAtStartDestination) {
+                    // Only pop back if we should pop
+                    if (!shouldNotPop) {
                         navController.popBackStack()
                     }
                     onDismiss()

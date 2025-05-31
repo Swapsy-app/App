@@ -1,9 +1,11 @@
 package com.example.freeupcopy.domain.repository
 
 import com.example.freeupcopy.common.Resource
+import com.example.freeupcopy.data.remote.dto.product.AcceptedOfferResponse
 import com.example.freeupcopy.data.remote.dto.product.AddCommentRequest
 import com.example.freeupcopy.data.remote.dto.product.AddReplyRequest
 import com.example.freeupcopy.data.remote.dto.product.BargainCountResponse
+import com.example.freeupcopy.data.remote.dto.product.BargainDetails
 import com.example.freeupcopy.data.remote.dto.product.BargainOfferRequest
 import com.example.freeupcopy.data.remote.dto.product.BargainResponse
 import com.example.freeupcopy.data.remote.dto.product.BuyerBargainsResponse
@@ -43,6 +45,10 @@ interface ProductRepository {
     ): SellerBargainsResponse
 
     fun acceptOffer(bargainId: String): Flow<Resource<BargainResponse>>
+
+    fun getAcceptedOfferForProduct(productId: String): Flow<Resource<AcceptedOfferResponse>>
+
+    suspend fun getBargainDetails(bargainId: String): BargainDetails?
 
     fun getOfferCount(productId: String): Flow<Resource<BargainCountResponse>>
 
