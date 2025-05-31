@@ -33,6 +33,7 @@ fun ProfileScreen(
     profileViewModel: ProfileViewModel = hiltViewModel(),
     onPostedProductClick: () -> Unit,
     onViewProfileClick: () -> Unit,
+    userId: String?,
     onNavigate: (Screen) -> Unit
 ) {
     val state by profileViewModel.state.collectAsState()
@@ -69,10 +70,14 @@ fun ProfileScreen(
             ) {
                 item {
                     ProfileBanner(
-                        onClick = {},
+                        onClick = {
+
+                        },
                         onWishlistClick = {},
                         onYourOrdersClick = {},
-                        onYourOffersClick = {}
+                        onYourOffersClick = {
+                            onNavigate(Screen.OfferScreen(userId = userId))
+                        }
                     )
                 }
                 item {
@@ -211,7 +216,8 @@ fun ProfileScreenPreview() {
         ProfileScreen(
             onPostedProductClick = {},
             onViewProfileClick = {},
-            onNavigate = {}
+            onNavigate = {},
+            userId = ""
         )
     }
 }

@@ -1,5 +1,6 @@
 package com.example.freeupcopy.ui.navigation
 
+import com.example.freeupcopy.data.remote.dto.product.User
 import com.example.freeupcopy.domain.enums.Settings
 import com.example.freeupcopy.domain.model.Price
 import kotlinx.serialization.Serializable
@@ -108,4 +109,7 @@ sealed class Screen {
 
     @Serializable
     data class FollowersScreen(val type: String?, val userId: String?) : Screen()
+
+    @Serializable
+    data class OfferScreen(val userId: String?): Screen()
 }

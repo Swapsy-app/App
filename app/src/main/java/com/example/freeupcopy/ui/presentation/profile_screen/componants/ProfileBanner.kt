@@ -130,7 +130,7 @@ fun BannerButton(
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
-            .clickable { }
+            .clickable { onClick() }
             .heightIn(min = 50.dp)
             .background(MaterialTheme.colorScheme.primaryContainer)
             .padding(start = 16.dp, end = 6.dp)

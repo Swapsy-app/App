@@ -68,16 +68,12 @@ fun SelectedOptionsRow(
         }
     }
 
-    // Get the overlap fraction for color transition
-    val colorTransitionFraction = scrollBehavior?.state?.overlappedFraction ?: 0f
-    val fraction = if (colorTransitionFraction > 0.01f) 1f else 0f
-
     // Set up draggable modifier for the row
     val rowDragModifier = if (scrollBehavior != null && !scrollBehavior.isPinned) {
         Modifier.draggable(
             orientation = Orientation.Vertical,
             state = rememberDraggableState { delta ->
-                scrollBehavior.state.heightOffset = scrollBehavior.state.heightOffset + delta
+                scrollBehavior.state.heightOffset += delta
             },
             onDragStopped = { velocity ->
                 settleAppBar(
@@ -135,11 +131,6 @@ fun SelectedOptionsRow(
                             }
                         }
                     }
-
-//                    HorizontalDivider(
-//                        thickness = 1.dp,
-//                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(0.12f)
-//                    )
                 }
             },
             measurePolicy = { measurables, constraints ->

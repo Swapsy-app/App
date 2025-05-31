@@ -30,7 +30,11 @@ interface ProductRepository {
         page: Int
     ): ProductBargainListResponse
 
-    suspend fun getBuyerOffers(userId: String, status: String? = null, page: Int): BuyerBargainsResponse
+    suspend fun getBuyerOffers(
+        userId: String,
+        status: String? = null,
+        page: Int
+    ): BuyerBargainsResponse
 
     suspend fun getSellerOffers(
         sellerId: String,

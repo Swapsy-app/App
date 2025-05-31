@@ -63,8 +63,3 @@ data class MixPrice(
     val enteredCash: Float,
     val enteredCoin: Float
 )
-
-data class SellerInfo(
-    val username: String,
-    val avatar: String?
-)
