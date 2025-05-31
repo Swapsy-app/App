@@ -273,7 +273,7 @@ fun ProductListing(
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.ic_sort),
-                            contentDescription = "filter icon",
+                            contentDescription = "sort icon",
                             modifier = Modifier.size(22.dp)
                         )
                         Spacer(modifier = Modifier.size(8.dp))

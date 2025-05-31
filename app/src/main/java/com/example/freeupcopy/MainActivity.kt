@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -72,6 +71,7 @@ import com.example.freeupcopy.ui.presentation.coin_screen.CoinScreen
 import com.example.freeupcopy.ui.presentation.home_screen.CategorySelectScreen
 import com.example.freeupcopy.ui.presentation.inbox_screen.InboxScreen
 import com.example.freeupcopy.ui.presentation.main_screen.MainScreen
+import com.example.freeupcopy.ui.presentation.offer_screen.OffersScreen
 import com.example.freeupcopy.ui.presentation.product_listing.ProductListing
 import com.example.freeupcopy.ui.presentation.product_screen.ProductScreen
 import com.example.freeupcopy.ui.presentation.profile_screen.edit_profile_screen.EditProfileScreen
@@ -92,7 +92,7 @@ import com.example.freeupcopy.ui.presentation.sell_screen.location_screen.locati
 import com.example.freeupcopy.ui.presentation.sell_screen.manufacturing_screen.ManufacturingScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.price_screen.PriceScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.weight_screen.WeightScreen
-import com.example.freeupcopy.ui.presentation.setting.SettingsScreen
+import com.example.freeupcopy.ui.presentation.setting_screen.SettingsScreen
 import com.example.freeupcopy.ui.presentation.setting_screen.SecondarySettingsScreen
 import com.example.freeupcopy.ui.presentation.wish_list.WishListScreen
 import com.example.freeupcopy.ui.theme.SwapGoTheme
@@ -854,6 +854,7 @@ class MainActivity : ComponentActivity() {
                         ) {
                             MainScreen(
                                 token = token,
+                                userId = user?._id,
                                 onShowLoginBottomSheet = {
                                     showLoginBottomSheet.value = true
                                 },
@@ -943,6 +944,17 @@ class MainActivity : ComponentActivity() {
                                 onSellerClick = { userId ->
                                     navController.navigate(Screen.SellerProfileScreen(userId))
                                 },
+                            )
+                        }
+
+                        composable<Screen.OfferScreen> {
+                            OffersScreen(
+                                onBackClick = {
+                                    navController.popBackStack()
+                                },
+                                onProductClick = { productId->
+                                    navController.navigate(Screen.ProductScreen(productId))
+                                }
                             )
                         }
                     }

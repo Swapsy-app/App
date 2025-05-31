@@ -9,5 +9,6 @@ data class ProductSummary(
     val mrp: Float?,
     val cashPrice: Float?,
     val coinPrice: Float?,
-    val mixPrice: MixPrice?
+    val mixPrice: MixPrice?,
+    val status: String
 )

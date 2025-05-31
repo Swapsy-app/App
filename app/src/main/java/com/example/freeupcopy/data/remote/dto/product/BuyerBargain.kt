@@ -4,6 +4,7 @@ data class BuyerBargain(
     val _id: String,
     val status: String,
     val offeredPrice: Float?,
+    val offeredIn: String,
     val sellerReceives: String?,
     val product: ProductSummary,
     val seller: User

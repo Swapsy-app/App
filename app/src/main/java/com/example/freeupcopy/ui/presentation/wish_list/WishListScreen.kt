@@ -221,7 +221,8 @@ fun WishListScreen(
                     thickness = 1.dp
                 )
             }
-// Content area with handling for different states
+
+            // Content area with handling for different states
             Box(modifier = Modifier.weight(1f)) {
                 if (wishlistItems.itemCount == 0 && wishlistItems.loadState.refresh is LoadState.NotLoading) {
                     EmptyWishlistMessage()

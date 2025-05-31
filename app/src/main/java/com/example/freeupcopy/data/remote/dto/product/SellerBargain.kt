@@ -8,5 +8,6 @@ data class SellerBargain(
     val message: String?,
     val product: ProductSummary,
     val buyer: User,
-    val createdAt: String
+    val createdAt: String,
+    val offeredIn: String
 )

@@ -57,6 +57,7 @@ import kotlinx.coroutines.launch
 fun MainScreen(
     modifier: Modifier = Modifier,
     token: String?,
+    userId: String?,
     onShowLoginBottomSheet: () -> Unit,
     onNavigate: (Screen) -> Unit,
     viewModel: MainViewModel = hiltViewModel()
@@ -242,6 +243,7 @@ fun MainScreen(
                                     onNavigate(screen)
                                 }
                             },
+                            userId = userId
                         )
                     }
                 }

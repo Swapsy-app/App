@@ -1,4 +1,4 @@
-package com.example.freeupcopy.ui.presentation.setting
+package com.example.freeupcopy.ui.presentation.setting_screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -33,11 +33,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.freeupcopy.R
 import com.example.freeupcopy.domain.enums.Settings
-import com.example.freeupcopy.ui.presentation.product_screen.ConfirmDialogBox
-import com.example.freeupcopy.ui.presentation.product_screen.ProductUiEvent
 import com.example.freeupcopy.ui.presentation.profile_screen.posted_products_screen.components.ConfirmDialog
-import com.example.freeupcopy.ui.presentation.setting_screen.SettingsUiEvent
-import com.example.freeupcopy.ui.presentation.setting_screen.SettingsViewModel
 import com.example.freeupcopy.ui.presentation.setting_screen.componants.StarterSetting
 import com.example.freeupcopy.ui.theme.PrimaryLight
 import com.example.freeupcopy.ui.theme.TertiaryLight
@@ -135,14 +131,3 @@ fun SettingsScreen(
     }
 }
 
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewSetting() {
-    SettingsScreen(
-        token = null,
-        onNavigate = {},
-        onRedirectToHome = {},
-        onShowLoginBottomSheet = {},
-    )
-}
