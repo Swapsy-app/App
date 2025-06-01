@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.outlined.Settings
@@ -23,12 +24,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.SubcomposeAsyncImage
 import com.example.freeupcopy.R
+import com.example.freeupcopy.common.Constants.BASE_URL_AVATAR
+import com.example.freeupcopy.data.remote.dto.product.User
 import com.example.freeupcopy.ui.theme.LinkColor
 import com.example.freeupcopy.utils.dashedLine
 
@@ -36,8 +42,8 @@ import com.example.freeupcopy.utils.dashedLine
 @Composable
 fun ProfileTopBar(
     modifier: Modifier = Modifier,
-    profilePhotoUrl: String,
-    userName: String,
+    isLoggedIn: Boolean,
+    user: User?,
     userRating: String,
     onSettingsClick: () -> Unit,
     onViewProfileClick: () -> Unit
@@ -48,68 +54,93 @@ fun ProfileTopBar(
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(
-                        modifier = Modifier.size(48.dp),
-                        imageVector = Icons.Default.AccountCircle,
-                        contentDescription = "profile photo"
-                    )
+                    if(isLoggedIn) {
+                        SubcomposeAsyncImage(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(CircleShape),
+                            model = user?.avatar,
+                            loading = {
+                                painterResource(id = R.drawable.im_user)
+                            },
+                            error = {
+                                painterResource(id = R.drawable.im_user)
+                            },
+                            contentDescription = "profile",
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Icon(
+                            modifier = Modifier.size(48.dp),
+                            painter = painterResource(id = R.drawable.im_user),
+                            contentDescription = "profile photo",
+                            tint = Color.Unspecified
+                        )
+                    }
+
                     Spacer(modifier = Modifier.size(8.dp))
                     Column(
                         modifier = Modifier,
                         verticalArrangement = Arrangement.Center
                     ) {
                         Text(
-                            text = userName,
+                            text = user?.username ?: "Guest User",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.SemiBold,
                             lineHeight = 18.sp
                         )
-                        Spacer(modifier = Modifier.size(3.dp))
-                        Text(
-                            modifier = Modifier
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = null,
-                                    onClick = onViewProfileClick
-                                )
-                                .dashedLine(
-                                    color = LinkColor,
-                                    dashWidth = 4.dp,
-                                    dashGap = 3.dp,
-                                    strokeWidth = 1.dp,
-                                    verticalOffset = (-2).sp
-                                ),
-                            text = "View Profile",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Normal,
-                            lineHeight = 16.sp,
-                            color = LinkColor
-                        )
-                    }
-                    Spacer(modifier = Modifier.size(12.dp))
+                        if(isLoggedIn) {
+                            Spacer(modifier = Modifier.size(3.dp))
 
-                    Column(
-                        modifier = Modifier
-                            .padding(top = 0.dp)
-                            .align(Alignment.Top)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                modifier = Modifier.size(18.dp),
-                                painter = painterResource(R.drawable.ic_star),
-                                contentDescription = "rating",
-                                tint = Color.Unspecified
-                            )
-                            Spacer(modifier = Modifier.size(4.dp))
                             Text(
-                                text = userRating,
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.SemiBold
+                                modifier = Modifier
+                                    .clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = null,
+                                        onClick = onViewProfileClick
+                                    )
+                                    .dashedLine(
+                                        color = LinkColor,
+                                        dashWidth = 4.dp,
+                                        dashGap = 3.dp,
+                                        strokeWidth = 1.dp,
+                                        verticalOffset = (-2).sp
+                                    ),
+                                text = "View Profile",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Normal,
+                                lineHeight = 16.sp,
+                                color = LinkColor
                             )
                         }
                     }
+                    if(isLoggedIn) {
+                        Spacer(modifier = Modifier.size(12.dp))
+
+                        Column(
+                            modifier = Modifier
+                                .padding(top = 0.dp)
+                                .align(Alignment.Top)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    modifier = Modifier.size(18.dp),
+                                    painter = painterResource(R.drawable.ic_star),
+                                    contentDescription = "rating",
+                                    tint = Color.Unspecified
+                                )
+                                Spacer(modifier = Modifier.size(4.dp))
+                                Text(
+                                    text = userRating,
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
+                        }
+                    }
+
                 }
             },
             actions = {

@@ -225,6 +225,8 @@ fun MainScreen(
 
                     3 -> {
                         ProfileScreen(
+                            userId = userId,
+                            token = token,
                             onPostedProductClick = {
                                 val currentState = lifecycleOwner.lifecycle.currentState
                                 if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
@@ -243,7 +245,7 @@ fun MainScreen(
                                     onNavigate(screen)
                                 }
                             },
-                            userId = userId
+                            onShowLoginBottomSheet = onShowLoginBottomSheet
                         )
                     }
                 }

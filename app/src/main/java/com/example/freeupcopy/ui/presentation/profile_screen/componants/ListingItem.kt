@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.rounded.Check
@@ -42,7 +43,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.SubcomposeAsyncImage
 import com.example.freeupcopy.R
+import com.example.freeupcopy.common.Constants.BASE_URL_AVATAR
 import com.example.freeupcopy.domain.enums.Currency
 import com.example.freeupcopy.domain.enums.PricingModel
 import com.example.freeupcopy.ui.theme.ButtonShape
@@ -67,21 +70,10 @@ fun ListingItem(
     favoriteCount: String,
     shareCount: String,
     offerCount: String,
-    isConfirmPending: Boolean = false,
-    isShippingGuide: Boolean = true
+    isConfirmPending: Boolean,
+    isShippingGuide: Boolean
 ) {
 
-//    Card(
-//        modifier = modifier.fillMaxWidth(),
-//        onClick = {
-//            onClick(productId)
-//        },
-//        shape = RectangleShape,
-//        elevation = CardDefaults.cardElevation(0.dp),
-//        colors = CardDefaults.cardColors(
-//            containerColor = MaterialTheme.colorScheme.primaryContainer,
-//        )
-//    ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -91,18 +83,64 @@ fun ListingItem(
                 onClick = { onClick(productId) }
             )
             .background(MaterialTheme.colorScheme.primaryContainer)
-            .padding(horizontal = 16.dp, vertical = 10.dp),
+            .padding(horizontal = 12.dp, vertical = 10.dp),
     ) {
         Row {
-            Image(
-                painter = painterResource(id = R.drawable.p3),
-                contentDescription = "Product Image",
-                modifier = Modifier
-                    .size(90.dp)
-                    .clip(CardShape.medium),
-                contentScale = ContentScale.Crop
-            )
-            Spacer(modifier = Modifier.size(16.dp))
+//            Image(
+//                painter = painterResource(id = R.drawable.p3),
+//                contentDescription = "Product Image",
+//                modifier = Modifier
+//                    .size(90.dp)
+//                    .clip(CardShape.medium),
+//                contentScale = ContentScale.Crop
+//            )
+
+            if(imageUrl.isNotEmpty()) {
+                SubcomposeAsyncImage(
+                    modifier = Modifier
+                        .size(90.dp)
+                        .clip(CardShape.medium),
+                    model = imageUrl,
+                    loading = {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_logo_full),
+                            contentDescription = "Product Image",
+                            modifier = Modifier
+                                .size(90.dp)
+                                .clip(CardShape.medium)
+                                .background(MaterialTheme.colorScheme.surface),
+                            contentScale = ContentScale.Fit
+                        )
+                    },
+                    error = {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_logo_full),
+                            contentDescription = "Product Image",
+                            modifier = Modifier
+                                .size(90.dp)
+                                .clip(CardShape.medium)
+                                .background(MaterialTheme.colorScheme.surface),
+                            contentScale = ContentScale.Fit
+                        )
+                    },
+                    contentDescription = "profile",
+                    contentScale = ContentScale.Crop
+                )
+            }
+            else {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_logo_full),
+                    contentDescription = "Product Image",
+                    modifier = Modifier
+                        .size(90.dp)
+                        .clip(CardShape.medium)
+                        .background(MaterialTheme.colorScheme.surface)
+                        .padding(horizontal = 4.dp)
+                    ,
+                    contentScale = ContentScale.Fit
+                )
+            }
+            Spacer(modifier = Modifier.size(12.dp))
             Column(
                 modifier = Modifier.weight(1f)
             ) {
@@ -112,24 +150,6 @@ fun ListingItem(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-//                        Row(
-//                            modifier = Modifier.alpha(0.6f),
-//                            verticalAlignment = Alignment.CenterVertically
-//                        ) {
-//                            Icon(
-//                                modifier = Modifier.size(16.dp),
-//                                painter = painterResource(id = R.drawable.ic_password_visibility),
-//                                contentDescription = "view count",
-//                            )
-//                            Spacer(modifier = Modifier.size(4.dp))
-//                            Text(
-//                                text = viewCount,
-//                                fontSize = 13.sp,
-//                                fontWeight = FontWeight.SemiBold,
-//                                lineHeight = 20.sp
-//                            )
-//                        }
-
                         Text(
                             text = title,
                             fontSize = 16.sp,
@@ -192,14 +212,6 @@ fun ListingItem(
                                 tint = Color.Unspecified
                             )
                         }
-
-//                            if (pricingModels.size > 1) {
-//                                VerticalDivider(
-//                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-//                                    thickness = 1.dp,
-//                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f)
-//                                )
-//                            }
                     }
                 }
 
@@ -284,16 +296,7 @@ fun ListingItem(
                 ListingButton(
                     modifier = Modifier.weight(0.3f),
                     onClick = {},
-//                        icon = {
-//                            Icon(
-//                                //modifier = Modifier.size(20.dp),
-//                                painter = painterResource(id = R.drawable.ic_campaign),
-//                                contentDescription = "boost",
-//                            )
-//                        },
                     text = "Cancel",
-                    //backgroundColor = MaterialTheme.colorScheme.secondaryContainer.copy(0.5f),
-                    //contentColor = Color(0xFF0079C2)
                 )
                 Spacer(modifier = Modifier.size(12.dp))
                 ListingButton(
@@ -476,7 +479,9 @@ fun ProfileProductListingItemPreview() {
             shareCount = "14",
             offerCount = "2",
             productId = "1",
-            viewCount = "100"
+            viewCount = "100",
+            isConfirmPending = false,
+            isShippingGuide = false
         )
     }
 }

@@ -1,11 +1,11 @@
 package com.example.freeupcopy.ui.presentation.profile_screen
 
+import com.example.freeupcopy.data.remote.dto.product.User
 import com.example.freeupcopy.domain.enums.PricingModel
 import com.example.freeupcopy.domain.model.ProfileProductListing
 
 data class ProfileUiState(
-    val profilePhotoUrl: String = "",
-    val userName: String = "sk_sahil_islam",
+    val user: User? = null,
     val userRating: String = "4.52",
     val cashBalance: String = "120",
     val coinBalance: String = "2000",
@@ -19,4 +19,7 @@ data class ProfileUiState(
     val isListedActionRequired: Boolean = true,
     val isPendingActionRequired: Boolean = false,
     val isDeliveredActionRequired: Boolean = false,
+
+    val error: String = "",
+    val isLoading: Boolean = false,
 )

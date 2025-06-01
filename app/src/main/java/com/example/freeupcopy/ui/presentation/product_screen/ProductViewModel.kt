@@ -66,7 +66,7 @@ class ProductViewModel @Inject constructor(
     val similarProducts = _state
         .map { state ->
             SimilarityQueryState(
-                searchQuery = state.productDetail?.title,
+                searchQuery = buildSearchQuery(state.productDetail?.title ?: ""),
                 userId = state.user?._id ?: ""
             )
         }
@@ -1252,7 +1252,13 @@ class ProductViewModel @Inject constructor(
                     hasMoreComments = false
                 }
             } catch (e: Exception) {
-                // TODO: you can also push an error into state.error here
+                Log.e("ProductViewModel", "Error loading more comments: ${e.message}", e)
+                _state.update {
+                    it.copy(
+                        error = e.message ?: "Failed to load more comments",
+                        isLoading = false
+                    )
+                }
             } finally {
                 isLoadingMore = false
             }

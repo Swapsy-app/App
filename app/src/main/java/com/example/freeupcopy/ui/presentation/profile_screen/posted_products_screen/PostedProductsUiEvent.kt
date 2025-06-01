@@ -6,4 +6,6 @@ sealed class PostedProductsUiEvent {
     data class OnPendingFilterSelected(val index: Int) : PostedProductsUiEvent()
     data class OnDeliveredFilterSelected(val index: Int) : PostedProductsUiEvent()
     data object OnSearchButtonClicked : PostedProductsUiEvent()
+
+    data class IsLoading(val isLoading: Boolean) : PostedProductsUiEvent()
 }

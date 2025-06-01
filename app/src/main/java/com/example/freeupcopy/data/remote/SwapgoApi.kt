@@ -48,6 +48,7 @@ import com.example.freeupcopy.data.remote.dto.sell.address.UserAddressResponse
 import com.example.freeupcopy.data.remote.dto.your_profile.FollowersResponse
 import com.example.freeupcopy.data.remote.dto.your_profile.FollowingResponse
 import com.example.freeupcopy.data.remote.dto.your_profile.UpdateProfileResponse
+import com.example.freeupcopy.data.remote.dto.your_profile.UserProductsResponse
 import okhttp3.MultipartBody
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -212,6 +213,13 @@ interface SwapgoApi {
         @Query("maxCoinMix") maxCoinMix: Float? = null,
         @QueryMap filters: Map<String, String> = emptyMap()
     ): ProductCardsResponse
+
+    @GET("/api/productcard/products-cards/user/{userId}")
+    suspend fun getUserProducts(
+        @Path("userId") userId: String,
+        @Query("page") page: Int = 1,
+        @Query("status") status: String? = null
+    ): UserProductsResponse
 
     @GET("/api/productcard/autocomplete")
     suspend fun getAutocompleteSuggestions(

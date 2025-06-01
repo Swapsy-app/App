@@ -34,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -42,15 +43,19 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.example.freeupcopy.ui.presentation.common.rememberProductClickHandler
 import com.example.freeupcopy.ui.presentation.home_screen.componants.FlexibleTopBar
 import com.example.freeupcopy.ui.presentation.home_screen.componants.FlexibleTopBarDefaults
 import com.example.freeupcopy.ui.presentation.home_screen.componants.SearchBar
+import com.example.freeupcopy.ui.presentation.product_listing.ProductListingUiEvent
+import com.example.freeupcopy.ui.presentation.product_listing.ProductListingViewModel
 import com.example.freeupcopy.ui.presentation.profile_screen.componants.ProfileProductTabRow
 import com.example.freeupcopy.ui.presentation.profile_screen.posted_products_screen.components.ConfirmDialog
 import com.example.freeupcopy.ui.presentation.profile_screen.posted_products_screen.components.DeliveredList
 import com.example.freeupcopy.ui.presentation.profile_screen.posted_products_screen.components.ListedList
 import com.example.freeupcopy.ui.presentation.profile_screen.posted_products_screen.components.PendingList
 import com.example.freeupcopy.ui.presentation.profile_screen.posted_products_screen.components.ProductActionsBottomSheet
+import com.example.freeupcopy.ui.presentation.wish_list.WishlistUiEvent
 import com.example.freeupcopy.ui.theme.SwapGoTheme
 import com.example.freeupcopy.ui.theme.TextFieldContainerColor
 
@@ -59,7 +64,8 @@ import com.example.freeupcopy.ui.theme.TextFieldContainerColor
 fun PostedProductsScreen(
     modifier: Modifier = Modifier,
     onBack: () -> Unit,
-    onProductClick: () -> Unit,
+    onProductClick: (String) -> Unit,
+    productListingViewModel: ProductListingViewModel = hiltViewModel(),
     viewModel: PostedProductsViewModel = hiltViewModel()
 ) {
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -71,6 +77,14 @@ fun PostedProductsScreen(
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     val pagerState = rememberPagerState(initialPage = 0) { 3 }
+
+    val productClickHandler = rememberProductClickHandler(
+        productListingViewModel = productListingViewModel,
+        onProductClick = onProductClick,
+        onLoadingStateChange = { isLoading ->
+            viewModel.onEvent(PostedProductsUiEvent.IsLoading(isLoading))
+        }
+    )
 
     LaunchedEffect(key1 = state.currentTabIndex) {
         pagerState.animateScrollToPage(state.currentTabIndex)
@@ -84,9 +98,7 @@ fun PostedProductsScreen(
     Scaffold(
         modifier = modifier
             .fillMaxSize()
-            .nestedScroll(scrollBehavior.nestedScrollConnection)
-            //.navigationBarsPadding()
-        ,
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.primaryContainer,
         topBar = {
             Column {
@@ -198,21 +210,28 @@ fun PostedProductsScreen(
         Box(
             modifier = Modifier
                 .padding(innerPadding)
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.primaryContainer)
+                .fillMaxSize(),
+            contentAlignment = Alignment.TopCenter
         ) {
 
             HorizontalPager(
                 modifier = Modifier
                     .fillMaxSize(),
                 state = pagerState,
+                verticalAlignment = Alignment.Top
             ) { index ->
                 when (index) {
 
                     0 -> {
                         ListedList(
-                            onProductClick = { onProductClick() },
-                            onActionClick = { showBottomSheet = true }
+//                            onProductClick = onProductClick,
+                            onProductClick = { productId->
+                                productClickHandler.handleProductIdClick(productId)
+                            },
+                            onActionClick = { productId ->
+                                // Handle action click for specific product
+                                showBottomSheet = true
+                            }
                         )
                     }
 

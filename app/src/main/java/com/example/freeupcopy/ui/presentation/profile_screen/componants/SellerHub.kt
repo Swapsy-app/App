@@ -29,97 +29,6 @@ import com.example.freeupcopy.R
 import com.example.freeupcopy.ui.theme.CardShape
 import com.example.freeupcopy.ui.theme.SwapGoTheme
 
-//@Composable
-//fun SellerHub(
-//    modifier: Modifier = Modifier,
-//    isPackingMaterialOn: Boolean,
-//    isBundleOffersOn: Boolean,
-//    isOnlineModeOn: Boolean,
-//    onPackingMaterialClick: () -> Unit,
-//    onBundleOffersClick: () -> Unit,
-//    onRanksClick: () -> Unit,
-//    onOnlineModeClick: () -> Unit
-//) {
-//    Column(
-//        verticalArrangement = Arrangement.Center,
-//        modifier = modifier
-//            .clip(CardShape.medium)
-//            .padding(horizontal = 16.dp)
-//            .background(MaterialTheme.colorScheme.surface)
-//            .fillMaxWidth(),
-//    ) {
-//        Text(
-//            text = "Seller Hub",
-//            fontWeight = FontWeight.Bold,
-//            fontSize = 18.sp
-//        )
-//        Spacer(modifier = Modifier.size(16.dp))
-//        Row(
-//            verticalAlignment = Alignment.CenterVertically,
-//            horizontalArrangement = Arrangement.Center
-//        ) {
-//            SellingToolsButton(
-//                modifier = Modifier.weight(1f),
-//                painter = painterResource(id = R.drawable.ic_your_orders),
-//                label = "Packing Material",
-//                isTurnedOn = isPackingMaterialOn,
-//                onClick = onPackingMaterialClick
-//            )
-//            Spacer(modifier = Modifier.size(8.dp))
-//            SellingToolsButton(
-//                modifier = Modifier.weight(1f),
-//                painter = painterResource(id = R.drawable.ic_bundle_offers),
-//                label = "Bundle Offers",
-//                isTurnedOn = isBundleOffersOn,
-//                onClick = onBundleOffersClick
-//            )
-//        }
-//        Spacer(modifier = Modifier.size(8.dp))
-//        Row(
-//            verticalAlignment = Alignment.CenterVertically,
-//            horizontalArrangement = Arrangement.Center
-//        ) {
-//            Column(
-//                modifier = Modifier
-//                    .weight(1f)
-//                    .clip(ButtonShape)
-//                    .clickable { onRanksClick() }
-//                    .border(
-//                        width = 1.dp,
-//                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.12f),
-//                        shape = ButtonShape
-//                    )
-//                    .background(MaterialTheme.colorScheme.primaryContainer)
-//                    .padding(8.dp)
-//                    .heightIn(min = 50.dp),
-//                verticalArrangement = Arrangement.Center,
-//            ) {
-//                Row(
-//                    verticalAlignment = Alignment.CenterVertically
-//                ) {
-//                    Icon(
-//                        painter = painterResource(R.drawable.ic_ranks),
-//                        contentDescription = "Ranks"
-//                    )
-//                    Spacer(modifier = Modifier.size(8.dp))
-//                    Text(
-//                        text = "Ranks",
-//                        fontSize = 14.sp
-//                    )
-//                }
-//            }
-//            Spacer(modifier = Modifier.size(8.dp))
-//            SellingToolsButton(
-//                modifier = Modifier.weight(1f),
-//                painter = painterResource(id = R.drawable.ic_online_mode),
-//                label = "Online Mode",
-//                isTurnedOn = isOnlineModeOn,
-//                onClick = onOnlineModeClick
-//            )
-//        }
-//    }
-//}
-
 @Composable
 fun SellerHub(
     modifier: Modifier = Modifier,
@@ -189,28 +98,28 @@ fun SellerHub(
                 color = Color.LightGray.copy(0.3f)
             )
 
-            SellingToolsButton(
-                painter = painterResource(id = R.drawable.ic_bundle_offers),
-                label = "Bundle Offers",
-                //isTurnedOn = isBundleOffersOn,
-                onClick = onBundleOffersClick,
-                tint = Color(0xFFB100FF),
-                description = "Create special deals",
-                status = {
-                    Text(
-                        text = if (isBundleOffersOn) "ON" else "OFF",
-                        fontSize = 12.sp,
-                        color = if (isBundleOffersOn) Color(0xFF4CAF50) else Color(0xFFE91E63),
-                        fontWeight = FontWeight.W500
-                    )
-                }
-            )
-
-            HorizontalDivider(
-                thickness = 1.dp,
-                //color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.12f)
-                color = Color.LightGray.copy(0.3f)
-            )
+//            SellingToolsButton(
+//                painter = painterResource(id = R.drawable.ic_bundle_offers),
+//                label = "Bundle Offers",
+//                //isTurnedOn = isBundleOffersOn,
+//                onClick = onBundleOffersClick,
+//                tint = Color(0xFFB100FF),
+//                description = "Create special deals",
+//                status = {
+//                    Text(
+//                        text = if (isBundleOffersOn) "ON" else "OFF",
+//                        fontSize = 12.sp,
+//                        color = if (isBundleOffersOn) Color(0xFF4CAF50) else Color(0xFFE91E63),
+//                        fontWeight = FontWeight.W500
+//                    )
+//                }
+//            )
+//
+//            HorizontalDivider(
+//                thickness = 1.dp,
+//                //color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.12f)
+//                color = Color.LightGray.copy(0.3f)
+//            )
 
             SellingToolsButton(
                 painter = painterResource(id = R.drawable.ic_cash),
@@ -234,43 +143,43 @@ fun SellerHub(
                 color = Color.LightGray.copy(0.3f)
             )
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onRanksClick() }
-                    .background(MaterialTheme.colorScheme.primaryContainer)
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_ranks),
-                    contentDescription = "ranks",
-                    tint = Color(0xFFFFA400)
-                )
-
-                Spacer(modifier = Modifier.size(16.dp))
-
-                Column(
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = "Seller Rank",
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.W500,
-                        lineHeight = 18.sp
-                    )
-                    Text(
-                        text = "Level 2 Seller",
-                        fontSize = 12.sp,
-                        lineHeight = 18.sp
-                    )
-                }
-            }
-
-            HorizontalDivider(
-                thickness = 1.dp,
-                color = Color.LightGray.copy(0.3f)
-            )
+//            Row(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .clickable { onRanksClick() }
+//                    .background(MaterialTheme.colorScheme.primaryContainer)
+//                    .padding(horizontal = 16.dp, vertical = 8.dp),
+//                verticalAlignment = Alignment.CenterVertically
+//            ) {
+//                Icon(
+//                    painter = painterResource(R.drawable.ic_ranks),
+//                    contentDescription = "ranks",
+//                    tint = Color(0xFFFFA400)
+//                )
+//
+//                Spacer(modifier = Modifier.size(16.dp))
+//
+//                Column(
+//                    verticalArrangement = Arrangement.Center
+//                ) {
+//                    Text(
+//                        text = "Seller Rank",
+//                        fontSize = 15.sp,
+//                        fontWeight = FontWeight.W500,
+//                        lineHeight = 18.sp
+//                    )
+//                    Text(
+//                        text = "Level 2 Seller",
+//                        fontSize = 12.sp,
+//                        lineHeight = 18.sp
+//                    )
+//                }
+//            }
+//
+//            HorizontalDivider(
+//                thickness = 1.dp,
+//                color = Color.LightGray.copy(0.3f)
+//            )
 
 
             SellingToolsButton(

@@ -374,7 +374,7 @@ fun RecentlyViewedItem(
                         .clip(CircleShape),
                     painter = painterResource(id = R.drawable.ic_logo_full),
                     contentDescription = null,
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.Fit
                 )
             },
             error = {
@@ -384,7 +384,7 @@ fun RecentlyViewedItem(
                         .clip(CircleShape),
                     painter = painterResource(id = R.drawable.ic_logo_full),
                     contentDescription = null,
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.Fit
                 )
             }
         )

@@ -116,7 +116,6 @@ fun WishListScreen(
         }
     }
 
-    // Create the product click handler
     val productClickHandler = rememberProductClickHandler(
         productListingViewModel = productListingViewModel,
         onProductClick = onProductClick,

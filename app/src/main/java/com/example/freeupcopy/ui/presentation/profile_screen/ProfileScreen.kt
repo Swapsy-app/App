@@ -1,5 +1,6 @@
 package com.example.freeupcopy.ui.presentation.profile_screen
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -10,52 +11,131 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.freeupcopy.ui.navigation.Screen
+import com.example.freeupcopy.ui.presentation.main_screen.MainUiEvent
+import com.example.freeupcopy.ui.presentation.offer_screen.OffersUiEvent
 import com.example.freeupcopy.ui.presentation.profile_screen.componants.BalanceSection
 import com.example.freeupcopy.ui.presentation.profile_screen.componants.ProfileBanner
 import com.example.freeupcopy.ui.presentation.profile_screen.componants.ProfileTopBar
 import com.example.freeupcopy.ui.presentation.profile_screen.componants.SellerHub
 import com.example.freeupcopy.ui.presentation.profile_screen.componants.YourPostedProducts
 import com.example.freeupcopy.ui.theme.SwapGoTheme
+import kotlinx.coroutines.launch
 
 @Composable
 fun ProfileScreen(
-    profileViewModel: ProfileViewModel = hiltViewModel(),
+    modifier: Modifier = Modifier,
+    userId: String?,
+    token: String?,
     onPostedProductClick: () -> Unit,
     onViewProfileClick: () -> Unit,
-    userId: String?,
-    onNavigate: (Screen) -> Unit
+    onNavigate: (Screen) -> Unit,
+    onShowLoginBottomSheet: () -> Unit,
+    profileViewModel: ProfileViewModel = hiltViewModel(),
 ) {
     val state by profileViewModel.state.collectAsState()
+    val scope = rememberCoroutineScope()
+
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Handle error with Snackbar
+    LaunchedEffect(state.error) {
+        if (state.error.isNotBlank() && !state.isLoading) {
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = state.error,
+                    duration = SnackbarDuration.Short
+                )
+                // Clear error after showing
+                profileViewModel.onEvent(ProfileUiEvent.ClearError)
+            }
+            Log.e("ProfileScreen", "Error: ${state.error}")
+        }
+    }
 
     Scaffold(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize(),
-            //.padding(bottom = innerPadding.calculateBottomPadding()),
         containerColor = MaterialTheme.colorScheme.surface,
         contentWindowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
         topBar = {
             ProfileTopBar(
-                profilePhotoUrl = state.profilePhotoUrl,
-                userName = state.userName,
+                user = state.user,
                 userRating = state.userRating,
                 onSettingsClick = {
                     onNavigate(Screen.SettingsScreen)
                 },
                 onViewProfileClick = {
                     onViewProfileClick()
-                }
+                },
+                isLoggedIn = token != null,
             )
+        },
+        snackbarHost = {
+            SnackbarHost(snackbarHostState) { snackbarData ->
+                Snackbar(
+                    snackbarData = snackbarData,
+                    containerColor = when {
+
+                        // Network error styling
+                        state.error.contains("network", ignoreCase = true) ||
+                                state.error.contains("internet", ignoreCase = true) ||
+                                state.error.contains("connection", ignoreCase = true) -> {
+                            Color(0xFFFF9800).copy(alpha = 0.9f) // Orange for network issues
+                        }
+
+                        // Authentication errors
+                        state.error.contains("unauthorized", ignoreCase = true) ||
+                                state.error.contains("login", ignoreCase = true) ||
+                                state.error.contains("token", ignoreCase = true) -> {
+                            Color(0xFF9C27B0).copy(alpha = 0.9f) // Purple for auth issues
+                        }
+
+                        // General errors
+                        else -> {
+                            MaterialTheme.colorScheme.errorContainer // Red for general errors
+                        }
+                    },
+                    contentColor = when {
+                        state.error.contains("network", ignoreCase = true) ||
+                                state.error.contains("internet", ignoreCase = true) ||
+                                state.error.contains("connection", ignoreCase = true) -> Color.White
+                        state.error.contains("unauthorized", ignoreCase = true) ||
+                                state.error.contains("login", ignoreCase = true) ||
+                                state.error.contains("token", ignoreCase = true) -> Color.White
+                        else -> MaterialTheme.colorScheme.onErrorContainer
+                    },
+                    shape = RoundedCornerShape(12.dp),
+                    actionColor = when {
+                        state.error.contains("network", ignoreCase = true) ||
+                                state.error.contains("internet", ignoreCase = true) ||
+                                state.error.contains("connection", ignoreCase = true) -> Color.White
+                        state.error.contains("unauthorized", ignoreCase = true) ||
+                                state.error.contains("login", ignoreCase = true) ||
+                                state.error.contains("token", ignoreCase = true) -> Color.White
+                        else -> MaterialTheme.colorScheme.primary
+                    }
+                )
+            }
         }
     ) { paddingValues ->
         Column(
@@ -73,7 +153,13 @@ fun ProfileScreen(
                         onClick = {
 
                         },
-                        onWishlistClick = {},
+                        onWishlistClick = {
+                            if(token == null) {
+                                onShowLoginBottomSheet()
+                            } else {
+                                onNavigate(Screen.WishListScreen)
+                            }
+                        },
                         onYourOrdersClick = {},
                         onYourOffersClick = {
                             onNavigate(Screen.OfferScreen(userId = userId))
@@ -117,90 +203,6 @@ fun ProfileScreen(
                         onShippingGuideClick = {}
                     )
                 }
-
-//                stickyHeader {
-//                    ProfileProductTabRow(
-//                        modifier = Modifier.fillMaxWidth(),
-//                        selectedTabIndex = currentIndex,
-//                        onClick = { index ->
-//                            currentIndex = index
-//                        },
-//                        listedProductDetails = ListProductDetails(
-//                            totalCount = "12",
-//                            subCategories = listOf(
-//                                TabItemSubCategory("Active", "8"),
-//                                TabItemSubCategory("Drafts", "0"),
-//                                TabItemSubCategory("Under Review", "1"),
-//                                TabItemSubCategory("Unavailable", "3")
-//                            )
-//                        ),
-//                        soldProductDetails = SoldProductDetails(
-//                            totalCount = "5",
-//                            subCategories = listOf(
-//                                TabItemSubCategory("Order Received", "1"),
-//                                TabItemSubCategory("Shipped", "1"),
-//                                TabItemSubCategory("Issues", "3"),
-//                            )
-//                        ),
-//                        deliveredProductDetails = DeliveredProductDetails(
-//                            totalCount = "3",
-//                            subCategories = listOf(
-//                                TabItemSubCategory("Completed", "3"),
-//                                TabItemSubCategory("Cancelled", "0")
-//                            )
-//                        )
-//                    )
-//                }
-//
-//                when (currentIndex) {
-//
-//                    0 -> {
-//                        items(state.profileProductListings) { item ->
-//                            ProfileProductListingItem(
-//                                modifier = Modifier.padding(horizontal = 8.dp),
-//                                productId = item.productId,
-//                                title = item.title,
-//                                pricingModels = item.pricingModels,
-//                                imageUrl = item.imageUrl,
-//                                onClick = { },
-//                                cashPrice = item.cashPrice,
-//                                coinPrice = item.coinPrice,
-//                                combinedPrice = item.combinedPrice,
-//                                favoriteCount = item.favoriteCount,
-//                                shareCount = item.shareCount,
-//                                offerCount = item.offerCount,
-//                            )
-//                        }
-//                    }
-//
-//                    1 -> {
-//                        items(state.profileProductListings) { item ->
-//                            Text(
-//                                text = item.title,
-//                                modifier = Modifier.padding(8.dp)
-//                            )
-//                        }
-//                    }
-//
-//                    2 -> {
-//                        items(state.profileProductListings) { item ->
-//                            ProfileProductListingItem(
-//                                modifier = Modifier.padding(horizontal = 8.dp),
-//                                productId = item.productId,
-//                                title = item.title,
-//                                pricingModels = item.pricingModels,
-//                                imageUrl = item.imageUrl,
-//                                onClick = { },
-//                                cashPrice = item.cashPrice,
-//                                coinPrice = item.coinPrice,
-//                                combinedPrice = item.combinedPrice,
-//                                favoriteCount = item.favoriteCount,
-//                                shareCount = item.shareCount,
-//                                offerCount = item.offerCount,
-//                            )
-//                        }
-//                    }
-//                }
                 item {
                     Spacer(Modifier.size(16.dp))
                 }
@@ -217,7 +219,9 @@ fun ProfileScreenPreview() {
             onPostedProductClick = {},
             onViewProfileClick = {},
             onNavigate = {},
-            userId = ""
+            userId = "",
+            token = null,
+            onShowLoginBottomSheet = {}
         )
     }
 }

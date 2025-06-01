@@ -7,6 +7,7 @@ import com.example.freeupcopy.data.remote.dto.your_profile.FollowersResponse
 import com.example.freeupcopy.data.remote.dto.your_profile.FollowingResponse
 import com.example.freeupcopy.data.remote.dto.your_profile.ProfileResponse
 import com.example.freeupcopy.data.remote.dto.your_profile.UpdateProfileResponse
+import com.example.freeupcopy.data.remote.dto.your_profile.UserProductsResponse
 import kotlinx.coroutines.flow.Flow
 
 interface ProfileRepository {
@@ -35,4 +36,10 @@ interface ProfileRepository {
         page: Int = 1,
         limit: Int = 20
     ): FollowingResponse
+
+    suspend fun getUserProducts(
+        userId: String,
+        page: Int = 1,
+        status: String? = null,
+    ): UserProductsResponse
 }

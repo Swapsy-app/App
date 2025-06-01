@@ -8,6 +8,7 @@ import com.example.freeupcopy.data.remote.dto.your_profile.FollowersResponse
 import com.example.freeupcopy.data.remote.dto.your_profile.FollowingResponse
 import com.example.freeupcopy.data.remote.dto.your_profile.ProfileResponse
 import com.example.freeupcopy.data.remote.dto.your_profile.UpdateProfileResponse
+import com.example.freeupcopy.data.remote.dto.your_profile.UserProductsResponse
 import com.example.freeupcopy.domain.repository.ProfileRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -192,5 +193,17 @@ class ProfileRepositoryImpl(
 
     override suspend fun getFollowing(userId: String, page: Int, limit: Int): FollowingResponse {
         return api.getFollowing(userId = userId, page = page, limit = limit)
+    }
+
+    override suspend fun getUserProducts(
+        userId: String,
+        page: Int,
+        status: String?
+    ): UserProductsResponse {
+        return api.getUserProducts(
+            userId = userId,
+            page = page,
+            status = status
+        )
     }
 }

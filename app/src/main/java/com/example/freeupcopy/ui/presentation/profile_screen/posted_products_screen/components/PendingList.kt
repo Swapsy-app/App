@@ -34,6 +34,8 @@ fun PendingList(
                 offerCount = "2",
                 productId = "1",
                 viewCount = "17",
+                isConfirmPending = true,
+                isShippingGuide = true,
             )
             HorizontalDivider(thickness = 1.5.dp)
         }
