@@ -17,7 +17,6 @@ import javax.inject.Inject
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val profileRepository: ProfileRepository,
     private val swapGoPref: SwapGoPref
 ) : ViewModel() {
     private val _state = MutableStateFlow(ProfileUiState())
@@ -56,40 +55,6 @@ class ProfileViewModel @Inject constructor(
                         isLoading = false
                     )
                 }
-            }
-        }
-    }
-
-    private fun getUserBasicInfo() {
-        viewModelScope.launch {
-            profileRepository.getUserBasicInfo().collect { resource->
-                when (resource) {
-                    is Resource.Success -> {
-                        _state.update {
-                            it.copy(
-                                user = resource.data?.user,
-                                error = "",
-                                isLoading = false
-                            )
-                        }
-                    }
-                    is Resource.Error -> {
-                        _state.update {
-                            it.copy(
-                                error = resource.message ?: "An unexpected error occurred",
-                                isLoading = false
-                            )
-                        }
-                    }
-                    is Resource.Loading -> {
-                        _state.update {
-                            it.copy(
-                                isLoading = true
-                            )
-                        }
-                    }
-                }
-
             }
         }
     }
