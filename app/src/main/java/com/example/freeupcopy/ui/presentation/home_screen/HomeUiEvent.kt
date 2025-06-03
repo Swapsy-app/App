@@ -14,10 +14,10 @@ sealed class HomeUiEvent {
     data object RefreshAllProducts : HomeUiEvent()
 
     data class IsLoading(val isLoading: Boolean) : HomeUiEvent()
+    data object ClearError : HomeUiEvent()
 
     data class AddToWishlist(val productId: String) : HomeUiEvent()
     data class RemoveFromWishlist(val productId: String) : HomeUiEvent()
-
 
     // Filter events
     data class ToggleFilterBottomSheet(val type: String?) : HomeUiEvent()

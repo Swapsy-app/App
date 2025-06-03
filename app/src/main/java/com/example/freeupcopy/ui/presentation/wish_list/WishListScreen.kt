@@ -46,6 +46,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -56,6 +60,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -88,6 +93,7 @@ import com.example.freeupcopy.ui.presentation.product_listing.componants.FilterO
 import com.example.freeupcopy.ui.presentation.sell_screen.location_screen.location_screen.PleaseWaitLoading
 import com.example.freeupcopy.ui.theme.BottomSheetShape
 import com.example.freeupcopy.ui.theme.ButtonShape
+import kotlinx.coroutines.launch
 import java.net.UnknownHostException
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -103,16 +109,48 @@ fun WishListScreen(
     val state = viewModel.state.collectAsState().value
     val wishlistItems = viewModel.wishlistItems.collectAsLazyPagingItems()
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+
+//    LaunchedEffect(state.error) {
+//        Log.e("WishListScreen", "Error: ${state.error}")
+//        state.error.takeIf { it.isNotBlank() }?.let {
+//            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+//        }
+//    }
+//
+//
+//    LaunchedEffect(state.onSuccessfulDelete){
+//        if (state.onSuccessfulDelete) {
+//            Toast.makeText(context, "Item removed from wishlist", Toast.LENGTH_SHORT).show()
+//        }
+//    }
+
     LaunchedEffect(state.error) {
-        Log.e("WishListScreen", "Error: ${state.error}")
-        state.error.takeIf { it.isNotBlank() }?.let {
-            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+        if (state.error.isNotBlank() && !state.isLoading) {
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = state.error,
+                    duration = SnackbarDuration.Short
+                )
+                // Clear error after showing
+                viewModel.onEvent(WishlistUiEvent.ClearError)
+            }
+            Log.e("WishListScreen", "Error: ${state.error}")
         }
     }
 
-    LaunchedEffect(state.onSuccessfulDelete){
-        if (state.onSuccessfulDelete) {
-            Toast.makeText(context, "Item removed from wishlist", Toast.LENGTH_SHORT).show()
+    LaunchedEffect(state.successMessage) {
+        if (state.successMessage.isNotEmpty()) {
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = state.successMessage,
+                    duration = SnackbarDuration.Short
+                )
+                // Optionally clear the flag after showing
+                viewModel.onEvent(WishlistUiEvent.ClearSuccessMessage)
+            }
         }
     }
 
@@ -142,6 +180,33 @@ fun WishListScreen(
                     }
                 }
             )
+        },
+        snackbarHost = {
+            SnackbarHost(snackbarHostState) { snackbarData ->
+                Snackbar(
+                    snackbarData = snackbarData,
+                    containerColor = when {
+                        state.error.contains("network", ignoreCase = true) ||
+                                state.error.contains("internet", ignoreCase = true) ||
+                                state.error.contains("connection", ignoreCase = true) -> {
+                            Color(0xFFFF9800).copy(alpha = 0.9f) // Orange for network issues
+                        }
+                        state.successMessage.isNotEmpty() -> {
+                            Color(0xFF4CAF50).copy(alpha = 0.95f) // Green for success
+                        }
+                        else -> {
+                            MaterialTheme.colorScheme.errorContainer // Red for general errors
+                        }
+                    },
+                    contentColor = when {
+                        state.successMessage.isNotEmpty() -> Color.White
+                        state.error.contains("network", ignoreCase = true) ||
+                                state.error.contains("internet", ignoreCase = true) ||
+                                state.error.contains("connection", ignoreCase = true) -> Color.White
+                        else -> MaterialTheme.colorScheme.onErrorContainer
+                    }
+                )
+            }
         }
     ) { paddingValues ->
         Column(
@@ -149,7 +214,6 @@ fun WishListScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Sticky header with filters
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -241,17 +305,17 @@ fun WishListScreen(
                                     title = product.title,
                                     size = "null",
                                     productThumbnail = product.image,
-                                    cashPrice = if (product.price.cash != null) product.price.cash.enteredAmount?.toInt()
+                                    cashPrice = if (product.price.cashPrice != null) product.price.cashPrice.toInt()
                                         .toString() else null,
-                                    coinsPrice = if (product.price.coin != null) product.price.coin.enteredAmount?.toInt()
+                                    coinsPrice = if (product.price.coinPrice != null) product.price.coinPrice.toInt()
                                         .toString() else null,
-                                    combinedPrice = if (product.price.mix != null)
+                                    combinedPrice = if (product.price.mixPrice != null)
                                         Pair(
-                                            product.price.mix.enteredCash?.toInt().toString(),
-                                            product.price.mix.enteredCoin?.toInt().toString()
+                                            product.price.mixPrice.enteredCash.toInt().toString(),
+                                            product.price.mixPrice.enteredCoin.toInt().toString()
                                         )
                                     else null,
-                                    mrp = product.price.mrp.toInt().toString(),
+                                    mrp = product.price.mrp?.toInt().toString(),
                                     badge = "null",
                                     isLiked = true,
                                     onLikeClick = {

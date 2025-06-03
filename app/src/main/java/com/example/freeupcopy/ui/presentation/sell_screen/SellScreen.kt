@@ -2,7 +2,6 @@ package com.example.freeupcopy.ui.presentation.sell_screen
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import android.webkit.MimeTypeMap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -119,7 +118,6 @@ fun SellScreen(
     }
     LaunchedEffect(uploadedVideo) {
         if (uploadedVideo.isNotEmpty()) {
-            Log.e("SellScreen: ", uploadedVideo)
             sellViewModel.onEvent(SellUiEvent.AddUploadedVideo(uploadedVideo))
         }
     }
@@ -137,15 +135,17 @@ fun SellScreen(
                     ) {
                         Text(
                             text = "Selling Details",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.SemiBold
+//                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
                         )
+                        Spacer(Modifier.weight(1f))
                         if (state.isLoading) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(24.dp),
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                                color = MaterialTheme.colorScheme.primary
                             )
                         }
+                        Spacer(Modifier.size(16.dp))
                     }
                 },
                 navigationIcon = {

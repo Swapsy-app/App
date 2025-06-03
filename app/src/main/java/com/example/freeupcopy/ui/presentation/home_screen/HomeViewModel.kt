@@ -46,7 +46,6 @@ class HomeViewModel @Inject constructor(
         // Set up user data collection
         viewModelScope.launch {
             swapGoPref.getUser().collect { user ->
-                Log.e("HomeViewModel", "User data: $user")
                 val previousUser = _state.value.user
                 _state.update { it.copy(user = user) }
 
@@ -63,14 +62,12 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             wishlistStateManager.wishlistUpdates.collect { (productId, isWishlisted) ->
                 updateProductWishlistState(productId, isWishlisted)
-                Log.e("HomeViewModel", "Wishlist updated: $productId, $isWishlisted")
             }
         }
     }
 
     // Update this method to also update the wishlist states map
     private fun updateProductWishlistState(productId: String, isWishlisted: Boolean) {
-        // Update static lists (your existing code)
         _state.update { currentState ->
             currentState.copy(
                 bestInMenProducts = currentState.bestInMenProducts.map {
@@ -175,11 +172,12 @@ class HomeViewModel @Inject constructor(
                 _state.update { it.copy(isLoading = event.isLoading) }
             }
 
+            HomeUiEvent.ClearError -> {
+                _state.update { it.copy(error = "") }
+            }
+
             is HomeUiEvent.AddToWishlist -> {
                 viewModelScope.launch {
-                    Log.e("HomeViewModel", "Adding to wishlist: ${event.productId}")
-
-                    // Optimistically update UI
                     updateProductWishlistState(event.productId, true)
 
                     repository.addToWishlist(event.productId).collect { response ->
@@ -210,9 +208,6 @@ class HomeViewModel @Inject constructor(
 
             is HomeUiEvent.RemoveFromWishlist -> {
                 viewModelScope.launch {
-                    Log.e("HomeViewModel", "Removing from wishlist: ${event.productId}")
-
-                    // Optimistically update UI
                     updateProductWishlistState(event.productId, false)
 
                     repository.removeFromWishlist(event.productId).collect { response ->
@@ -454,7 +449,7 @@ class HomeViewModel @Inject constructor(
                     search = "",
                     sort = _state.value.appliedSortOption,
                     filters = filters,
-                    priceType = if (priceType.isNotEmpty()) priceType else null,
+                    priceType = priceType.ifEmpty { null },
                     minPriceCash = null,
                     maxPriceCash = _state.value.selectedCashRange,
                     minPriceCoin = null,
@@ -593,11 +588,4 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
-
-
-    // Helper method to find a product by ID
-    private fun findProductById(productId: String) =
-        _state.value.bestInMenProducts.find { it._id == productId } ?:
-        _state.value.bestInWomenWear.find { it._id == productId } ?:
-        _state.value.ethnicWomenProducts.find { it._id == productId }
 }

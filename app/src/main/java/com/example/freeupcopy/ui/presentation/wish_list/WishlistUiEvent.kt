@@ -24,8 +24,11 @@ sealed class WishlistUiEvent {
 
     data class IsLoading(val isLoading: Boolean) : WishlistUiEvent()
 
-    // New category-related events
+    // Category-related events
     data class ChangeSelectedTertiaryCategory(val category: FilterTertiaryCategory) : WishlistUiEvent()
     data class RemoveSelectedTertiaryCategory(val category: FilterTertiaryCategory) : WishlistUiEvent()
     data class SelectAllCategories(val category: FilterCategoryUiModel) : WishlistUiEvent()
+
+    data object ClearError : WishlistUiEvent()
+    data object ClearSuccessMessage : WishlistUiEvent()
 }

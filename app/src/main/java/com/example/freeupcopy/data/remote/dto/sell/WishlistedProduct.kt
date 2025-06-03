@@ -9,7 +9,7 @@ data class WishlistedProduct(
     val title: String,
     val brand: String?,
     val size: Size?,           // or whatever your size model is
-    val price: Price,          // reuse your existing Price model
+    val price: ProductPrice,          // reuse your existing Price model
     val status: String,
     val seller: User?,       // reuse your existing Seller model
     val createdAt: String

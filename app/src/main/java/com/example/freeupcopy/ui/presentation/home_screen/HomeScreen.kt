@@ -1,6 +1,7 @@
 package com.example.freeupcopy.ui.presentation.home_screen
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -45,12 +46,18 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -90,6 +97,7 @@ import com.example.freeupcopy.ui.presentation.home_screen.componants.HomeCarouse
 import com.example.freeupcopy.ui.presentation.home_screen.componants.HomeCarouselItem
 import com.example.freeupcopy.ui.presentation.home_screen.componants.HomeDashboard
 import com.example.freeupcopy.ui.presentation.home_screen.componants.SearchTopSection
+import com.example.freeupcopy.ui.presentation.main_screen.MainUiEvent
 import com.example.freeupcopy.ui.presentation.product_card.ProductCard
 import com.example.freeupcopy.ui.presentation.product_listing.ProductListingViewModel
 import com.example.freeupcopy.ui.presentation.product_listing.componants.FilterOptionMultiSelectItem
@@ -99,6 +107,7 @@ import com.example.freeupcopy.ui.theme.CashColor1
 import com.example.freeupcopy.ui.theme.CashColor2
 import com.example.freeupcopy.ui.theme.CoinColor1
 import com.example.freeupcopy.ui.theme.CoinColor2
+import kotlinx.coroutines.launch
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -121,14 +130,32 @@ fun HomeScreen(
 ) {
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val lifeCycleOwner = LocalLifecycleOwner.current
-    val scope = rememberCoroutineScope()
 
+    val scope = rememberCoroutineScope()
     val exploreProducts = homeViewModel.exploreProducts.collectAsLazyPagingItems()
 
     // In your HomeScreen composable, you already have:
     val wishlistStates by homeViewModel.wishlistStates.collectAsState()
 
     val state by homeViewModel.state.collectAsState()
+
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Handle error with Snackbar
+    LaunchedEffect(state.error) {
+        if (state.error.isNotBlank() && !state.isLoading) {
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = state.error,
+                    duration = SnackbarDuration.Short
+                )
+                // Clear error after showing
+                homeViewModel.onEvent(HomeUiEvent.ClearError)
+            }
+            Log.e("ProfileScreen", "Error: ${state.error}")
+        }
+    }
+
 
     // Create the product click handler
     val productClickHandler = rememberProductClickHandler(
@@ -154,7 +181,6 @@ fun HomeScreen(
                 Box(
                     modifier = Modifier
                         .background(MaterialTheme.colorScheme.primaryContainer)
-                    //.offset(y = 6.dp)
                 ) {
 
                     FlexibleTopBar(
@@ -217,6 +243,45 @@ fun HomeScreen(
                 HorizontalDivider(
                     thickness = 1.dp,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+                )
+            }
+        },
+        snackbarHost = {
+            SnackbarHost(snackbarHostState) { snackbarData ->
+                Snackbar(
+                    snackbarData = snackbarData,
+                    containerColor = when {
+                        state.error.contains("already", ignoreCase = true) ||
+                                state.error.contains("duplicate", ignoreCase = true) -> {
+                            MaterialTheme.colorScheme.primaryContainer
+                        }
+
+                        state.error.contains("network", ignoreCase = true) ||
+                                state.error.contains("internet", ignoreCase = true) ||
+                                state.error.contains("connection", ignoreCase = true) -> {
+                            Color(0xFFFF9800).copy(alpha = 0.9f) // Orange for network issues
+                        }
+
+                        else -> {
+                            MaterialTheme.colorScheme.errorContainer // Red for general errors
+                        }
+                    },
+                    contentColor = when {
+                        state.error.contains("already", ignoreCase = true) ||
+                                state.error.contains("duplicate", ignoreCase = true) -> {
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        }
+
+                        state.error.contains("network", ignoreCase = true) ||
+                                state.error.contains("internet", ignoreCase = true) ||
+                                state.error.contains("connection", ignoreCase = true) -> {
+                            Color.White
+                        }
+
+                        else -> {
+                            MaterialTheme.colorScheme.onErrorContainer
+                        }
+                    }
                 )
             }
         }

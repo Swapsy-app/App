@@ -328,6 +328,14 @@ class WishListViewModel @Inject constructor(
                     }
                 }
             }
+
+            WishlistUiEvent.ClearError -> {
+                _state.update { it.copy(error = "") }
+            }
+
+            WishlistUiEvent.ClearSuccessMessage -> {
+                _state.update { it.copy(successMessage = "") }
+            }
         }
     }
 
@@ -347,7 +355,8 @@ class WishListViewModel @Inject constructor(
                             it.copy(
                                 isLoading = false,
                                 error = "",
-                                onSuccessfulDelete = true
+//                                onSuccessfulDelete = true,
+                                successMessage = "Item removed from wishlist successfully"
                             )
                         }
                     }
@@ -356,16 +365,15 @@ class WishListViewModel @Inject constructor(
                         _removedItems.update { it - productId }
                         _state.update {
                             it.copy(
-                                error = result.message ?: "An unknown error occurred",
-                                onSuccessfulDelete = false
+                                isLoading = false,
+                                error = result.message ?: "An unknown error occurred"
                             )
                         }
                     }
                     is Resource.Loading -> {
                         _state.update {
                             it.copy(
-                                isLoading = true,
-                                onSuccessfulDelete = false
+                                isLoading = true
                             )
                         }
                     }

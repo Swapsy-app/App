@@ -9,6 +9,7 @@ import com.example.freeupcopy.domain.enums.NewPricingModel
 data class WishListUiState(
     val isLoading: Boolean = false,
     val error: String = "",
+    val successMessage: String = "",
 
     // Filter state
     val activeFilters: Set<Filter> = emptySet(),
@@ -24,8 +25,6 @@ data class WishListUiState(
     // Bottom sheet state
     val isFilterBottomSheetOpen: Boolean = false,
     val filterBottomSheetType: String? = null,
-
-    val onSuccessfulDelete: Boolean = false,
 
     // Temporary values for bottom sheet
     val tempConditionOptions: List<ConditionOption> = emptyList(),

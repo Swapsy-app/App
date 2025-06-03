@@ -1,12 +1,8 @@
 package com.example.freeupcopy.ui.presentation.profile_screen
 
-import android.util.Log
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.freeupcopy.common.Resource
 import com.example.freeupcopy.data.pref.SwapGoPref
-import com.example.freeupcopy.domain.repository.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,18 +12,16 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle,
     private val swapGoPref: SwapGoPref
 ) : ViewModel() {
     private val _state = MutableStateFlow(ProfileUiState())
     val state = _state.asStateFlow()
 
-    val userId: String? = savedStateHandle["userId"]
 
     init {
-            getCurrentUser()
-//            getUserBasicInfo()
+        getCurrentUser()
     }
+
 
     fun onEvent(event: ProfileUiEvent) {
         when (event) {
@@ -44,6 +38,7 @@ class ProfileViewModel @Inject constructor(
             }
         }
     }
+
 
     // Add this method (similar to CommunityViewModel)
     private fun getCurrentUser() {

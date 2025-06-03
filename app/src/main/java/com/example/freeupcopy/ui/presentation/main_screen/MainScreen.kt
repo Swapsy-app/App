@@ -245,6 +245,9 @@ fun MainScreen(
                                     onNavigate(screen)
                                 }
                             },
+                            onGetStartedClick = {
+                                onNavigate(Screen.ConnectScreen)
+                            },
                             onShowLoginBottomSheet = onShowLoginBottomSheet
                         )
                     }
