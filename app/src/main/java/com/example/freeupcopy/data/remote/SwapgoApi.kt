@@ -38,6 +38,7 @@ import com.example.freeupcopy.data.remote.dto.sell.ProductCardsResponse
 import com.example.freeupcopy.data.remote.dto.sell.ProductDetailsResponse
 import com.example.freeupcopy.data.remote.dto.sell.ProductRequest
 import com.example.freeupcopy.data.remote.dto.sell.ProductResponse
+import com.example.freeupcopy.data.remote.dto.sell.ShapesResponse
 import com.example.freeupcopy.data.remote.dto.sell.UploadImagesResponse
 import com.example.freeupcopy.data.remote.dto.sell.UploadVideoResponse
 import com.example.freeupcopy.data.remote.dto.sell.WishlistCountResponse
@@ -178,6 +179,11 @@ interface SwapgoApi {
     suspend fun addProduct(
         @Body product: ProductRequest
     ): ProductResponse
+
+    @GET("/api/productsell/shapes/{category}")
+    suspend fun getShapes(
+        @Path("category") category: String
+    ): ShapesResponse
 
     @PUT("/api/productsell/edit-product/{id}") // Not implemented
     suspend fun editProduct(

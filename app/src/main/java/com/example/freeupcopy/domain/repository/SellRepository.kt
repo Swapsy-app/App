@@ -8,6 +8,7 @@ import com.example.freeupcopy.data.remote.dto.sell.ProductCardsResponse
 import com.example.freeupcopy.data.remote.dto.sell.ProductDetailsResponse
 import com.example.freeupcopy.data.remote.dto.sell.ProductRequest
 import com.example.freeupcopy.data.remote.dto.sell.ProductResponse
+import com.example.freeupcopy.data.remote.dto.sell.ShapesResponse
 import com.example.freeupcopy.data.remote.dto.sell.UploadImagesResponse
 import com.example.freeupcopy.data.remote.dto.sell.UploadVideoResponse
 import com.example.freeupcopy.data.remote.dto.sell.WishlistCountResponse
@@ -93,4 +94,6 @@ interface SellRepository {
 
     // 4️⃣ Get the wishlist count for a specific product
     suspend fun getWishlistCount(productId: String): Flow<Resource<WishlistCountResponse>>
+
+    suspend fun getShapes(category: String): Flow<Resource<ShapesResponse>>
 }

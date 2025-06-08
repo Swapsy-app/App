@@ -11,9 +11,17 @@ import java.time.ZoneOffset
 fun getTimeAgo(isoDateTime: String): String {
     val createdTime = OffsetDateTime.parse(isoDateTime)
     val now = OffsetDateTime.now(ZoneOffset.UTC)
-    val duration = Duration.between(createdTime, now)
+
+    // Convert both to UTC for accurate comparison
+    val createdTimeUtc = createdTime.withOffsetSameInstant(ZoneOffset.UTC)
+    val duration = Duration.between(createdTimeUtc, now)
 
     val seconds = duration.seconds
+
+    // Handle negative values (future dates)
+    if (seconds < 0) {
+        return "just now"
+    }
 
     return when {
         seconds < 60 -> "${seconds}s ago"

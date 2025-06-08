@@ -10,6 +10,7 @@ import com.example.freeupcopy.data.remote.dto.sell.Coin
 import com.example.freeupcopy.data.remote.dto.sell.Mix
 import com.example.freeupcopy.data.remote.dto.sell.Price
 import com.example.freeupcopy.data.remote.dto.sell.ProductRequest
+import com.example.freeupcopy.data.remote.dto.sell.Size
 import com.example.freeupcopy.domain.enums.PricingModel
 import com.example.freeupcopy.domain.model.CategoryUiModel
 import com.example.freeupcopy.domain.model.SubCategory
@@ -85,7 +86,26 @@ class SellViewModel @Inject constructor(
                     it.copy(
                         primaryCategory = primary?.name,   // Expected "Women"
                         subCategory = secondary?.name,       // Expected e.g. "Ethnic"
-                        tertiaryCategory = event.category    // e.g. "Sarees"
+                        tertiaryCategory = event.category,    // e.g. "Sarees"
+                        size = null,
+                        brand = null,
+                        color = null,
+                        fabric = null,
+                        occasion = null,
+                        shape = null,
+                        modelNumber = null,
+                        includes = null,
+                        storageCapacity = null,
+                        ram = null,
+                        batteryCapacity = null,
+                        mobileNetwork = null,
+                        screenSize = null,
+                        simType = null,
+                        warranty = null,
+                        length = null,
+                        expirationDate = null,
+
+
                     )
                 }
             }
@@ -94,8 +114,30 @@ class SellViewModel @Inject constructor(
                 _state.update { it.copy(brand = event.brand) }
             }
 
+            is SellUiEvent.ColorChange -> {
+                _state.update { it.copy(color = event.color) }
+            }
+            is SellUiEvent.FabricChange -> {
+                _state.update { it.copy(fabric = event.fabric) }
+            }
+
+            is SellUiEvent.OccasionChange -> {
+                _state.update { it.copy(occasion = event.occasion) }
+            }
+
             is SellUiEvent.SizeChange -> {
                 _state.update { it.copy(size = event.size) }
+            }
+
+            is SellUiEvent.SizeStringChange -> {
+                _state.update { currentState ->
+                    val updatedSize = Size(
+                        attributes = null,        // Always reset
+                        freeSize = false,        // Always reset
+                        sizeString = event.sizeString
+                    )
+                    currentState.copy(size = updatedSize)
+                }
             }
 
             is SellUiEvent.ChangeGst -> {
@@ -194,7 +236,7 @@ class SellViewModel @Inject constructor(
                         fabric = currentState.fabric,
                         quantity = 1,
                         shippingMethod = "Free",
-                        size = null, // Handle size if needed
+                        size = currentState.size, // Handle size if needed
                         price = currentState.price?.let { p ->
                             Price(
                                 mrp = p.mrp.toDoubleOrNull() ?: 0.0,
@@ -244,6 +286,42 @@ class SellViewModel @Inject constructor(
                     }
                 }
 
+            }
+
+            is SellUiEvent.ShapeChange -> {
+                _state.update { it.copy(shape = event.shape) }
+            }
+
+            is SellUiEvent.LoadShapes -> {
+                getShapesForCategory(event.category)
+            }
+        }
+    }
+
+    private fun getShapesForCategory(category: String) {
+        viewModelScope.launch {
+            sellRepository.getShapes(category).collect { resource ->
+                when (resource) {
+                    is Resource.Loading -> {
+                        _state.update { it.copy(isLoading = true, error = "") }
+                    }
+                    is Resource.Success -> {
+                        _state.update {
+                            it.copy(
+                                isLoading = false,
+                                shapes = resource.data?.shapes ?: emptyList()
+                            )
+                        }
+                    }
+                    is Resource.Error -> {
+                        _state.update {
+                            it.copy(
+                                isLoading = false,
+                                error = resource.message ?: "Error fetching shapes"
+                            )
+                        }
+                    }
+                }
             }
         }
     }

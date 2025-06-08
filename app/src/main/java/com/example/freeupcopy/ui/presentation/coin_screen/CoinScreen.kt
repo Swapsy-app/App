@@ -247,10 +247,7 @@ fun CoinShop(
                     "Lacoste L.12.12",
                     "Ralph Lauren Shirt"
                 )[index],
-                size = listOf(
-                    "40 inches", "L", "M", "XL", "L",
-                    "32 inches", "S", "M", "XL", "L"
-                )[index],
+                size = null,
                 productThumbnail = "painterResource(id = R.drawable.bomber_jacket)", // Assuming R.drawable.bomber_jacket is a placeholder
                 cashPrice = listOf(
                     null, "499", "399", null, "799",

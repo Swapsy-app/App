@@ -24,7 +24,7 @@ enum class SpecialOption(
     SIM_TYPE("Select SIM Type", "SIM Type", { it.simType }),
     WARRANTY("Enter Warranty Details", "Warranty", { it.warranty }),
 
-    SIZE("Enter Size", "Size", { it.size }),
+    SIZE("Enter Size", "Size", { "it.size" }),
     SHAPE("Enter Shape", "Shape", { it.shape }),
     LENGTH("Enter Length", "Length", { it.length }),
     EXPIRATION_DATE("Set Expiration Date", "Expiration Date", { it.expirationDate });

@@ -1,7 +1,9 @@
 package com.example.freeupcopy.ui.navigation
 
 import com.example.freeupcopy.data.remote.dto.product.User
+import com.example.freeupcopy.data.remote.dto.sell.Size
 import com.example.freeupcopy.domain.enums.Settings
+import com.example.freeupcopy.domain.enums.SizeType
 import com.example.freeupcopy.domain.model.Price
 import kotlinx.serialization.Serializable
 
@@ -50,6 +52,14 @@ sealed class Screen {
     @Serializable
     data class BrandScreen(val selectedBrand: String?) : Screen()
     @Serializable
+    data class ColorScreen(val selectedColor: String?) : Screen()
+    @Serializable
+    data class FabricScreen(val selectedFabric: String?) : Screen()
+    @Serializable
+    data class OccasionScreen(val selectedOccasion: String?) : Screen()
+    @Serializable
+    data class ShapesScreen(val selectedShape: String?, val tertiaryCategory: String?): Screen()
+    @Serializable
     data class ManufacturingScreen(val selectedCountry: String?) : Screen()
     @Serializable
     data class ConditionScreen(val selectedCondition: String?) : Screen()
@@ -61,6 +71,8 @@ sealed class Screen {
     data class GstScreen(val gst: String?): Screen()
     @Serializable
     data class PriceScreen(val price: Price?) : Screen()
+    @Serializable
+    data class SizeScreen(val size: Size?, val sizeType: SizeType?) : Screen()
 
     //Authentication Screens
     @Serializable

@@ -226,7 +226,7 @@ fun EthnicWomenWear(
                             ProductCard(
                                 brand = product.brand,
                                 title = product.title,
-                                size = "null",
+                                size = product.size,
                                 productThumbnail = if (product.images.size == 1) product.images[0] else null,
                                 cashPrice = if (product.price.cashPrice != null) product.price.cashPrice.toInt()
                                     .toString() else null,

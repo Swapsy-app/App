@@ -1,5 +1,9 @@
 package com.example.freeupcopy.data.remote.dto.sell
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Serializable
+
 data class ProductRequest(
     val category: Category,
     val images: List<String>,
@@ -29,12 +33,15 @@ data class Category(
     val tertiaryCategory: String?
 )
 
+
+@Serializable
 data class Size(
     val attributes: List<SizeAttribute>?,
     val freeSize: Boolean = false,
     val sizeString: String?
 )
 
+@Serializable
 data class SizeAttribute(
     val name: String,
     val value: String
@@ -63,3 +70,12 @@ data class Mix(
     val sellerReceivesCash: Double?,
     val sellerReceivesCoin: Double?
 )
+
+fun Size.toSizeString(): String {
+    return when {
+        attributes?.isNotEmpty() == true ->
+            attributes.joinToString(" | ") { "${it.name} ${it.value.substringBefore("/").trim()}" }
+        sizeString?.isNotEmpty() == true -> sizeString
+        else -> ""
+    }
+}

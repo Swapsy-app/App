@@ -9,6 +9,7 @@ import com.example.freeupcopy.data.remote.dto.sell.ProductCardsResponse
 import com.example.freeupcopy.data.remote.dto.sell.ProductDetailsResponse
 import com.example.freeupcopy.data.remote.dto.sell.ProductRequest
 import com.example.freeupcopy.data.remote.dto.sell.ProductResponse
+import com.example.freeupcopy.data.remote.dto.sell.ShapesResponse
 import com.example.freeupcopy.data.remote.dto.sell.UploadImagesResponse
 import com.example.freeupcopy.data.remote.dto.sell.UploadVideoResponse
 import com.example.freeupcopy.data.remote.dto.sell.WishlistCountResponse
@@ -356,6 +357,22 @@ class SellRepositoryImpl(
             emit(Resource.Error(message = errorMessage))
         } catch(e: Exception) {
             emit(Resource.Error(message = e.message?: "An unexpected error occurred"))
+        }
+    }.flowOn(Dispatchers.IO)
+
+    override suspend fun getShapes(category: String): Flow<Resource<ShapesResponse>> = flow {
+        emit(Resource.Loading())
+        try {
+            val response = api.getShapes(category)
+            emit(Resource.Success(response))
+        } catch (e: HttpException) {
+            val errorBody = e.response()?.errorBody()?.string()
+            val json = errorBody?.let { JSONObject(it) }
+            val errorMessage =
+                json?.getString("message") ?: e.message ?: "An error occurred during fetching shapes"
+            emit(Resource.Error(message = errorMessage))
+        } catch (e: Exception) {
+            emit(Resource.Error(message = e.message ?: "An unexpected error occurred"))
         }
     }.flowOn(Dispatchers.IO)
 }

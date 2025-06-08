@@ -57,13 +57,16 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
 import androidx.navigation.toRoute
 import com.example.freeupcopy.data.pref.SwapGoPref
+import com.example.freeupcopy.data.remote.dto.sell.Size
 import com.example.freeupcopy.domain.enums.Settings
+import com.example.freeupcopy.domain.enums.SizeType
 import com.example.freeupcopy.domain.enums.SpecialOption
 import com.example.freeupcopy.domain.model.Price
 import com.example.freeupcopy.ui.navigation.AuthState
 import com.example.freeupcopy.ui.navigation.AuthStateManager
 import com.example.freeupcopy.ui.navigation.CustomNavType
 import com.example.freeupcopy.ui.navigation.Screen
+import com.example.freeupcopy.ui.navigation.navTypeOf
 import com.example.freeupcopy.ui.presentation.authentication_screen.connect_screen.ConnectScreen
 import com.example.freeupcopy.ui.presentation.authentication_screen.forgot_password_screen.ForgotPasswordScreen
 import com.example.freeupcopy.ui.presentation.authentication_screen.login_screen.LoginScreen
@@ -85,16 +88,22 @@ import com.example.freeupcopy.ui.presentation.profile_screen.seller_profile_scre
 import com.example.freeupcopy.ui.presentation.reply_screen.ReplyScreen
 import com.example.freeupcopy.ui.presentation.search_screen.SearchScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.SellScreen
+import com.example.freeupcopy.ui.presentation.sell_screen.SellUiEvent
 import com.example.freeupcopy.ui.presentation.sell_screen.SellViewModel
 import com.example.freeupcopy.ui.presentation.sell_screen.advance_setting_screen.AdvanceSettingScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.brand_screen.BrandScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.category_screen.CategoryScreen
+import com.example.freeupcopy.ui.presentation.sell_screen.colors_screen.ColorScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.condition_screen.ConditionScreen
+import com.example.freeupcopy.ui.presentation.sell_screen.fabrics_screen.FabricScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.gallery_screen.CustomGalleryScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.location_screen.add_location_screen.AddLocationScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.location_screen.location_screen.LocationScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.manufacturing_screen.ManufacturingScreen
+import com.example.freeupcopy.ui.presentation.sell_screen.occasion_screen.OccasionScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.price_screen.PriceScreen
+import com.example.freeupcopy.ui.presentation.sell_screen.shape_screen.ShapeScreen
+import com.example.freeupcopy.ui.presentation.sell_screen.size_screen.SizeScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.weight_screen.WeightScreen
 import com.example.freeupcopy.ui.presentation.setting_screen.SettingsScreen
 import com.example.freeupcopy.ui.presentation.setting_screen.SecondarySettingsScreen
@@ -273,22 +282,38 @@ class MainActivity : ComponentActivity() {
                                     onClose = {
                                         navController.popBackStack()
                                     },
-                                    onSpecificationClick = { option ->
+                                    onSpecificationClick = { option, data1, data2 ->
                                         when (option) {
                                             SpecialOption.FABRIC -> {
-
+                                                navController.navigate(
+                                                    Screen.FabricScreen(
+                                                        selectedFabric = data1 as String?
+                                                    )
+                                                )
                                             }
 
                                             SpecialOption.COLOUR -> {
-
+                                                navController.navigate(
+                                                    Screen.ColorScreen(
+                                                        selectedColor = data1 as String?
+                                                    )
+                                                )
                                             }
 
                                             SpecialOption.OCCASION -> {
-
+                                                navController.navigate(
+                                                    Screen.OccasionScreen(
+                                                        selectedOccasion = data1 as String?
+                                                    )
+                                                )
                                             }
 
                                             SpecialOption.BRAND -> {
-
+                                                navController.navigate(
+                                                    Screen.BrandScreen(
+                                                        selectedBrand = data1 as String?
+                                                    )
+                                                )
                                             }
 
                                             SpecialOption.MODEL_NUMBER -> {
@@ -328,11 +353,17 @@ class MainActivity : ComponentActivity() {
                                             }
 
                                             SpecialOption.SIZE -> {
-
+                                                navController.navigate(Screen.SizeScreen(
+                                                    size = data2 as Size?,
+                                                    sizeType = data1 as SizeType?
+                                                ))
                                             }
 
                                             SpecialOption.SHAPE -> {
-
+                                                navController.navigate(Screen.ShapesScreen(
+                                                    selectedShape = data2 as String?,
+                                                    tertiaryCategory = data1 as String?
+                                                ))
                                             }
 
                                             SpecialOption.LENGTH -> {
@@ -425,17 +456,87 @@ class MainActivity : ComponentActivity() {
 
                             composable<Screen.BrandScreen> {
                                 val args = it.toRoute<Screen.BrandScreen>()
+                                val sellViewModel =
+                                    it.sharedViewModel<SellViewModel>(navController = navController)
                                 BrandScreen(
                                     navigatedBrand = args.selectedBrand ?: "",
-                                    onBrandClick = { s ->
-                                        navController.previousBackStackEntry
-                                            ?.savedStateHandle
-                                            ?.set("selected_brand", s)
+                                    onBrandClick = { brand ->
+                                        sellViewModel.onEvent(SellUiEvent.BrandChange(brand))
                                         navController.popBackStack()
                                     },
                                     onClose = {
                                         navController.popBackStack()
                                     }
+                                )
+                            }
+
+                            composable<Screen.ColorScreen> {
+                                val sellViewModel =
+                                    it.sharedViewModel<SellViewModel>(navController = navController)
+                                val args = it.toRoute<Screen.ColorScreen>()
+
+                                ColorScreen(
+                                    navigatedColor = args.selectedColor ?: "",
+                                    onColorClick = { color ->
+                                        sellViewModel.onEvent(SellUiEvent.ColorChange(color))
+                                        navController.popBackStack()
+                                    },
+                                    onClose = {
+                                        navController.popBackStack()
+                                    }
+                                )
+                            }
+
+                            composable<Screen.FabricScreen> {
+                                val args = it.toRoute<Screen.FabricScreen>()
+                                val sellViewModel =
+                                    it.sharedViewModel<SellViewModel>(navController = navController)
+
+                                FabricScreen(
+                                    navigatedFabric = args.selectedFabric ?: "",
+                                    onFabricClick = { fabric ->
+                                        sellViewModel.onEvent(SellUiEvent.FabricChange(fabric))
+                                        navController.popBackStack()
+                                    },
+                                    onClose = {
+                                        navController.popBackStack()
+                                    }
+                                )
+                            }
+
+                            composable<Screen.OccasionScreen> {
+                                val sellViewModel =
+                                    it.sharedViewModel<SellViewModel>(navController = navController)
+                                val args = it.toRoute<Screen.OccasionScreen>()
+
+                                OccasionScreen(
+                                    navigatedOccasion = args.selectedOccasion ?: "",
+                                    onOccasionSelected = { occasion ->
+                                        sellViewModel.onEvent(SellUiEvent.OccasionChange(occasion))
+                                        navController.popBackStack()
+                                    },
+                                    onBackClick = {
+                                        navController.popBackStack()
+                                    }
+                                )
+                            }
+
+                            composable<Screen.ShapesScreen> {
+                                val sellViewModel =
+                                    it.sharedViewModel<SellViewModel>(navController = navController)
+                                val args = it.toRoute<Screen.ShapesScreen>()
+
+                                ShapeScreen(
+                                    navigatedShape = args.selectedShape ?: "",
+                                    onShapeClick = { shape ->
+                                        sellViewModel.onEvent(SellUiEvent.ShapeChange(shape))
+                                        navController.popBackStack()
+                                    },
+                                    onClose = {
+                                        navController.popBackStack()
+                                    },
+                                    viewModel = sellViewModel,
+                                    tertiaryCategory = args.tertiaryCategory ?: ""
                                 )
                             }
 
@@ -465,6 +566,26 @@ class MainActivity : ComponentActivity() {
                                         navController.popBackStack()
                                     },
                                     onClose = {
+                                        navController.popBackStack()
+                                    }
+                                )
+                            }
+
+                            composable<Screen.SizeScreen>(
+                                typeMap = mapOf(
+                                    typeOf<Size?>() to navTypeOf<Size?>(isNullableAllowed = true)
+                                )
+                            ) {
+                                val args = it.toRoute<Screen.SizeScreen>()
+                                val sellViewModel = it.sharedViewModel<SellViewModel>(navController = navController)
+
+                                SizeScreen(
+                                    sizeType = args.sizeType ?: SizeType.BUST_WAIST_HIP,
+                                    sellViewModel = sellViewModel,
+                                    onSave = {
+                                        navController.popBackStack()
+                                    },
+                                    onBackClick = {
                                         navController.popBackStack()
                                     }
                                 )

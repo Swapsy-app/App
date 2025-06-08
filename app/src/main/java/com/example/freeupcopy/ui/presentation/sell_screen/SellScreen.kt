@@ -80,7 +80,9 @@ import coil.decode.VideoFrameDecoder
 import coil.request.ImageRequest
 import coil.request.videoFrameMillis
 import com.example.freeupcopy.R
+import com.example.freeupcopy.data.remote.dto.sell.Size
 import com.example.freeupcopy.domain.enums.SpecialOption
+import com.example.freeupcopy.domain.model.CategoryUiModel
 import com.example.freeupcopy.domain.model.Price
 import com.example.freeupcopy.domain.model.PriceUiModel
 import com.example.freeupcopy.domain.model.toUiModel
@@ -101,7 +103,7 @@ fun SellScreen(
     onLocationClick: (String?) -> Unit,
     onAdvanceSettingClick: (String) -> Unit,
     onClose: () -> Unit,
-    onSpecificationClick: (SpecialOption) -> Unit,
+    onSpecificationClick: (SpecialOption, Any?, Any?) -> Unit,
     onAddImageVideoClick: (Int) -> Unit,
     sellViewModel: SellViewModel,
     uploadedImages: List<String>,
@@ -135,7 +137,6 @@ fun SellScreen(
                     ) {
                         Text(
                             text = "Selling Details",
-//                            fontSize = 20.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(Modifier.weight(1f))
@@ -252,7 +253,7 @@ fun SellScreen(
                     },
                     onAddImageVideoClick = { numberOfUploadedImages ->
                         onAddImageVideoClick(numberOfUploadedImages)
-                                           },
+                    },
                     onRemoveImageUrl = { imageUrl ->
                         sellViewModel.onEvent(SellUiEvent.RemoveImage(imageUrl))
                     },
@@ -301,14 +302,14 @@ fun SellScreen(
                         }
                     },
                     state = state,
-                    onSpecificationClick = { option ->
+                    onSpecificationClick = { option, data1, data2 ->
                         val currentState = lifeCycleOwner.lifecycle.currentState
                         if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                            onSpecificationClick(option)
+                            onSpecificationClick(option, data1, data2)
                         }
                     },
-                    onOptionalSizeChange = { size ->
-                        sellViewModel.onEvent(SellUiEvent.SizeChange(size))
+                    onOptionalSizeChange = { sizeString ->
+                        sellViewModel.onEvent(SellUiEvent.SizeStringChange(sizeString))
                     },
                     onOptionalBrandChange = { brand ->
                         sellViewModel.onEvent(SellUiEvent.BrandChange(brand))
@@ -589,7 +590,7 @@ fun PreviewVideoBox(
             model = ImageRequest.Builder(context)
                 .data(videoUrl)
                 .videoFrameMillis(10)
-                .decoderFactory{ result, options, _ ->
+                .decoderFactory { result, options, _ ->
                     VideoFrameDecoder(
                         result.source,
                         options
@@ -679,7 +680,7 @@ fun SpecificationSection(
     onConditionClick: () -> Unit,
     onWeightClick: () -> Unit,
     state: SellUiState,
-    onSpecificationClick: (SpecialOption) -> Unit,
+    onSpecificationClick: (SpecialOption, Any?, Any?) -> Unit,
     onOptionalSizeChange: (String) -> Unit,
     onOptionalBrandChange: (String) -> Unit,
 ) {
@@ -781,8 +782,39 @@ fun SpecificationSection(
                 CommonSpecification(
                     initialLabel = option.initialLabel,
                     valueLabel = option.valueLabel,
-                    value = option.valueSelector(state) ?: "",
-                    onClick = { onSpecificationClick(option) }
+                    value = when (option) {
+                        SpecialOption.SIZE -> state.sizeDisplayValue
+                        else -> option.valueSelector(state) ?: ""
+                    },
+                    onClick = {
+                        onSpecificationClick(
+                            option,
+                            when (option) {
+                                SpecialOption.SIZE -> {
+                                    // Find the tertiary category and get its sizeType
+                                    val tertiaryCategory = CategoryUiModel.predefinedCategories
+                                        .find { it.name == state.primaryCategory }
+                                        ?.subcategories
+                                        ?.find { it.name == state.subCategory }
+                                        ?.tertiaryCategories
+                                        ?.find { it.name == state.tertiaryCategory }
+
+                                    tertiaryCategory?.sizeType
+                                }
+                                SpecialOption.BRAND -> state.brand
+                                SpecialOption.COLOUR -> state.color
+                                SpecialOption.FABRIC -> state.fabric
+                                SpecialOption.OCCASION -> state.occasion
+                                SpecialOption.SHAPE -> state.tertiaryCategory
+                                else -> null
+                            },
+                            when (option) {
+                                SpecialOption.SIZE -> state.size
+                                SpecialOption.SHAPE -> state.shape
+                                else -> null //update for remaining options
+                            }
+                        )
+                    }
                 )
                 if (i != state.specialOptions.lastIndex) {
                     SpecificationDivider()
@@ -800,9 +832,9 @@ fun SpecificationSection(
                     Text(text = "Size (Optional)", modifier = Modifier.padding(bottom = 4.dp))
 
                     OutlinedTextField(
-                        value = state.size ?: "",
+                        value = state.size?.sizeString ?: "", // Use size.sizeString instead
                         onValueChange = {
-                            onOptionalSizeChange(it)
+                            onOptionalSizeChange(it) // This should call OptionalSizeChange event
                         },
                         modifier = Modifier
                             .fillMaxWidth(),
@@ -857,7 +889,8 @@ fun CommonSpecification(
         Spacer(modifier = Modifier.weight(1f))
         Text(
             text = value,
-            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
+            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f),
+            fontSize = 15.sp
         )
         Icon(
             imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
@@ -1161,12 +1194,5 @@ private fun SpecificationDivider() {
         modifier = Modifier.padding(horizontal = 10.dp),
         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f)
     )
-}
-
-// Helper function: Extracts the file extension from a Uri.
-fun getFileExtension(context: Context, uri: Uri): String? {
-    val contentResolver = context.contentResolver
-    val mime = contentResolver.getType(uri)
-    return MimeTypeMap.getSingleton().getExtensionFromMimeType(mime)
 }
 
