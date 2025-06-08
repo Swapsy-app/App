@@ -303,7 +303,7 @@ fun WishListScreen(
                                 ProductCard(
                                     brand = product.brand,
                                     title = product.title,
-                                    size = "null",
+                                    size = product.size,
                                     productThumbnail = product.image,
                                     cashPrice = if (product.price.cashPrice != null) product.price.cashPrice.toInt()
                                         .toString() else null,

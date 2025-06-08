@@ -1,5 +1,6 @@
 package com.example.freeupcopy.domain.model
 
+import com.example.freeupcopy.domain.enums.SizeType
 import com.example.freeupcopy.domain.enums.SpecialOption
 
 private const val DEFAULT = "Primary"
@@ -20,15 +21,15 @@ data class CategoryUiModel(
                         ),
                         tertiaryCategories = listOf(
                             TertiaryCategory("Sarees"),
-                            TertiaryCategory("Blouses", specialOption = listOf(SpecialOption.SIZE, SpecialOption.SHAPE)),
-                            TertiaryCategory("Kurtas", specialOption = listOf(SpecialOption.SIZE, SpecialOption.SHAPE)),
-                            TertiaryCategory("Kurta Sets & Suits", specialOption = listOf(SpecialOption.SIZE, SpecialOption.SHAPE)),
+                            TertiaryCategory("Blouses", specialOption = listOf(SpecialOption.SIZE, SpecialOption.SHAPE), sizeType = SizeType.BUST),
+                            TertiaryCategory("Kurtas", specialOption = listOf(SpecialOption.SIZE, SpecialOption.SHAPE), sizeType = SizeType.BUST_WAIST_HIP),
+                            TertiaryCategory("Kurta Sets & Suits", specialOption = listOf(SpecialOption.SIZE, SpecialOption.SHAPE), sizeType = SizeType.BUST_WAIST_HIP),
                             TertiaryCategory("Dupattas"),
-                            TertiaryCategory("Lehenga Choli", specialOption = listOf(SpecialOption.SIZE)),
-                            TertiaryCategory("Ethnic Skirts", specialOption = listOf(SpecialOption.SIZE)),
-                            TertiaryCategory("Bridal Lehenga", specialOption = listOf(SpecialOption.SIZE)),
-                            TertiaryCategory("Ethnic Gowns", specialOption = listOf(SpecialOption.SIZE)),
-                            TertiaryCategory("Palazzos & Salwars", specialOption = listOf(SpecialOption.SIZE)),
+                            TertiaryCategory("Lehenga Choli", specialOption = listOf(SpecialOption.SIZE), sizeType = SizeType.BUST_WAIST_HIP),
+                            TertiaryCategory("Ethnic Skirts", specialOption = listOf(SpecialOption.SIZE), sizeType = SizeType.WAIST_HIP),
+                            TertiaryCategory("Bridal Lehenga", specialOption = listOf(SpecialOption.SIZE), sizeType = SizeType.BUST_WAIST_HIP),
+                            TertiaryCategory("Ethnic Gowns", specialOption = listOf(SpecialOption.SIZE), sizeType = SizeType.WAIST_HIP),
+                            TertiaryCategory("Palazzos & Salwars", specialOption = listOf(SpecialOption.SIZE), sizeType = SizeType.WAIST_HIP),
                             TertiaryCategory("Dress Material")
                         )
                     ),
@@ -38,16 +39,16 @@ data class CategoryUiModel(
                             SpecialOption.BRAND, SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.COLOUR, SpecialOption.OCCASION
                         ),
                         tertiaryCategories = listOf(
-                            TertiaryCategory("Dresses", specialOption = listOf(SpecialOption.SHAPE, SpecialOption.LENGTH)),
-                            TertiaryCategory("Tops & Tunics", specialOption = listOf(SpecialOption.SHAPE)),
-                            TertiaryCategory("T-Shirts", specialOption = listOf(SpecialOption.SHAPE)),
-                            TertiaryCategory("Jumpsuits & Co-ords", specialOption = listOf(SpecialOption.SHAPE)),
-                            TertiaryCategory("Jeans & Trousers", specialOption = listOf(SpecialOption.SHAPE)),
-                            TertiaryCategory("Sweaters & Sweatshirts"),
-                            TertiaryCategory("Shorts & Skirts"),
-                            TertiaryCategory("Jackets & Overcoats"),
-                            TertiaryCategory("Blazers"),
-                            TertiaryCategory("Active Wear"),
+                            TertiaryCategory("Dresses", specialOption = listOf(SpecialOption.SHAPE, SpecialOption.LENGTH), sizeType = SizeType.BUST_WAIST_HIP),
+                            TertiaryCategory("Tops & Tunics", specialOption = listOf(SpecialOption.SHAPE), sizeType = SizeType.BUST),
+                            TertiaryCategory("T-Shirts", specialOption = listOf(SpecialOption.SHAPE), sizeType = SizeType.BUST),
+                            TertiaryCategory("Jumpsuits & Co-ords", specialOption = listOf(SpecialOption.SHAPE), sizeType = SizeType.BUST_WAIST_HIP),
+                            TertiaryCategory("Jeans & Trousers", specialOption = listOf(SpecialOption.SHAPE), sizeType = SizeType.WAIST_HIP),
+                            TertiaryCategory("Sweaters & Sweatshirts", sizeType = SizeType.BUST),
+                            TertiaryCategory("Shorts & Skirts", sizeType = SizeType.BUST_WAIST_HIP),
+                            TertiaryCategory("Jackets & Overcoats", sizeType = SizeType.BUST),
+                            TertiaryCategory("Blazers", sizeType = SizeType.BUST),
+                            TertiaryCategory("Active Wear", sizeType = SizeType.BUST_WAIST_HIP),
                         )
                     ),
                     SubCategory(
@@ -111,11 +112,11 @@ data class CategoryUiModel(
                             SpecialOption.BRAND, SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.COLOUR
                         ),
                         tertiaryCategories = listOf(
-                            TertiaryCategory("Bra"),
-                            TertiaryCategory("Briefs"),
-                            TertiaryCategory("Camisoles & Slips"),
-                            TertiaryCategory("Nightsuits & Pyjamas"),
-                            TertiaryCategory("Maternity")
+                            TertiaryCategory("Bra", sizeType = SizeType.BRA),
+                            TertiaryCategory("Briefs", sizeType = SizeType.WAIST_HIP),
+                            TertiaryCategory("Camisoles & Slips", sizeType = SizeType.BUST),
+                            TertiaryCategory("Nightsuits & Pyjamas", sizeType = SizeType.BUST_WAIST_HIP),
+                            TertiaryCategory("Maternity", sizeType = SizeType.BUST_WAIST_HIP)
                         )
                     )
                 ),
@@ -129,18 +130,18 @@ data class CategoryUiModel(
                             SpecialOption.BRAND
                         ),
                         tertiaryCategories = listOf(
-                            TertiaryCategory("T-Shirts & Shirts", specialOption = listOf(SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.OCCASION, SpecialOption.COLOUR)),
-                            TertiaryCategory("Sweats & Hoodies", specialOption = listOf(SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.OCCASION, SpecialOption.COLOUR)),
-                            TertiaryCategory("Sweaters", specialOption = listOf(SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.OCCASION, SpecialOption.COLOUR)),
-                            TertiaryCategory("Jeans & Pants", specialOption = listOf(SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.OCCASION, SpecialOption.COLOUR)),
-                            TertiaryCategory("Shorts", specialOption = listOf(SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.OCCASION, SpecialOption.COLOUR)),
-                            TertiaryCategory("Coats & Jackets", specialOption = listOf(SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.OCCASION, SpecialOption.COLOUR)),
-                            TertiaryCategory("Suits & Blazers", specialOption = listOf(SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.OCCASION, SpecialOption.COLOUR)),
-                            TertiaryCategory("EthnicWear", specialOption = listOf(SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.OCCASION, SpecialOption.COLOUR)),
-                            TertiaryCategory("Footwear", specialOption = listOf(SpecialOption.SIZE, SpecialOption.COLOUR)),
+                            TertiaryCategory("T-Shirts & Shirts", specialOption = listOf(SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.OCCASION, SpecialOption.COLOUR), sizeType = SizeType.CHEST),
+                            TertiaryCategory("Sweats & Hoodies", specialOption = listOf(SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.OCCASION, SpecialOption.COLOUR), sizeType = SizeType.CHEST),
+                            TertiaryCategory("Sweaters", specialOption = listOf(SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.OCCASION, SpecialOption.COLOUR), sizeType = SizeType.CHEST),
+                            TertiaryCategory("Jeans & Pants", specialOption = listOf(SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.OCCASION, SpecialOption.COLOUR), sizeType = SizeType.WAIST_HIP),
+                            TertiaryCategory("Shorts", specialOption = listOf(SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.OCCASION, SpecialOption.COLOUR), sizeType = SizeType.CHEST_WAIST_HIP),
+                            TertiaryCategory("Coats & Jackets", specialOption = listOf(SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.OCCASION, SpecialOption.COLOUR), sizeType = SizeType.CHEST),
+                            TertiaryCategory("Suits & Blazers", specialOption = listOf(SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.OCCASION, SpecialOption.COLOUR), sizeType = SizeType.CHEST),
+                            TertiaryCategory("EthnicWear", specialOption = listOf(SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.OCCASION, SpecialOption.COLOUR), sizeType = SizeType.CHEST_WAIST),
+                            TertiaryCategory("Footwear", specialOption = listOf(SpecialOption.SIZE, SpecialOption.COLOUR), sizeType = SizeType.FOOTWEAR),
                             TertiaryCategory("Bags & Backpacks", specialOption = listOf(SpecialOption.COLOUR)),
                             TertiaryCategory("Accessories"),
-                            TertiaryCategory("Athletic Wear", specialOption = listOf(SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.COLOUR)),
+                            TertiaryCategory("Athletic Wear", specialOption = listOf(SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.COLOUR), sizeType = SizeType.CHEST_WAIST_HIP),
                         )
                     )
                 )
@@ -150,10 +151,10 @@ data class CategoryUiModel(
                     SubCategory(
                         name = DEFAULT,
                         tertiaryCategories = listOf(
-                            TertiaryCategory("Boys Clothing", specialOption = listOf(SpecialOption.BRAND, SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.COLOUR)),
-                            TertiaryCategory("Girls Clothing", specialOption = listOf(SpecialOption.BRAND, SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.COLOUR)),
-                            TertiaryCategory("Boys Footwear", specialOption = listOf(SpecialOption.BRAND, SpecialOption.SIZE)),
-                            TertiaryCategory("Girls Footwear", specialOption = listOf(SpecialOption.BRAND, SpecialOption.SIZE)),
+                            TertiaryCategory("Boys Clothing", specialOption = listOf(SpecialOption.BRAND, SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.COLOUR), sizeType = SizeType.AGE),
+                            TertiaryCategory("Girls Clothing", specialOption = listOf(SpecialOption.BRAND, SpecialOption.SIZE, SpecialOption.FABRIC, SpecialOption.COLOUR), sizeType = SizeType.AGE),
+                            TertiaryCategory("Boys Footwear", specialOption = listOf(SpecialOption.BRAND, SpecialOption.SIZE), sizeType = SizeType.AGE),
+                            TertiaryCategory("Girls Footwear", specialOption = listOf(SpecialOption.BRAND, SpecialOption.SIZE), sizeType = SizeType.AGE),
                             TertiaryCategory("Bath & Skin Care", specialOption = listOf(SpecialOption.BRAND, SpecialOption.EXPIRATION_DATE)),
                             TertiaryCategory("Accessories"),
                             TertiaryCategory("Toys & Games")
@@ -376,5 +377,6 @@ data class SubCategory(
 data class TertiaryCategory(
     val name: String,
     val imageUrl: Int? = null,
-    val specialOption: List<SpecialOption> = emptyList()
+    val specialOption: List<SpecialOption> = emptyList(),
+    val sizeType: SizeType? = null
 )

@@ -145,11 +145,19 @@ fun ProductListing(
                             },
                             onFocusChange = {},
                             onValueChange = {
-                                productListingViewModel.onEvent(ProductListingUiEvent.ChangeSearchQuery(it))
+                                productListingViewModel.onEvent(
+                                    ProductListingUiEvent.ChangeSearchQuery(
+                                        it
+                                    )
+                                )
                             },
                             onSearch = { },
                             onCancel = {
-                                productListingViewModel.onEvent(ProductListingUiEvent.ChangeSearchQuery(""))
+                                productListingViewModel.onEvent(
+                                    ProductListingUiEvent.ChangeSearchQuery(
+                                        ""
+                                    )
+                                )
                             },
                             modifier = Modifier
                                 .fillMaxWidth(),
@@ -357,8 +365,7 @@ fun ProductListing(
                                 ProductCard(
                                     brand = product.brand,
                                     title = product.title,
-                                    size = "null",
-//                            size = product.size,
+                                    size = product.size,
                                     productThumbnail = if (product.images.size == 1) product.images[0] else null,
                                     cashPrice = if (product.price.cashPrice != null) product.price.cashPrice.toInt()
                                         .toString() else null,
@@ -528,7 +535,7 @@ fun ProductListing(
 
                 LoadState.Loading -> {
                     Box(Modifier.fillMaxSize()) {
-                       PleaseWaitLoading(Modifier.align(Alignment.Center))
+                        PleaseWaitLoading(Modifier.align(Alignment.Center))
                     }
                 }
 
@@ -647,7 +654,11 @@ fun ProductListing(
                             },
                             availableFilters = state.availableFilters,
                             onApplyClick = {
-                                productListingViewModel.onEvent(ProductListingUiEvent.ToggleBottomSheet("filter"))
+                                productListingViewModel.onEvent(
+                                    ProductListingUiEvent.ToggleBottomSheet(
+                                        "filter"
+                                    )
+                                )
                             }
                         )
                     }
@@ -656,7 +667,11 @@ fun ProductListing(
                         SortBottomSheet(
                             tempSortOption = state.tempSortOption ?: "default",
                             onSortOptionSelected = { selectedOption ->
-                                productListingViewModel.onEvent(ProductListingUiEvent.ChangeSortOption(selectedOption))
+                                productListingViewModel.onEvent(
+                                    ProductListingUiEvent.ChangeSortOption(
+                                        selectedOption
+                                    )
+                                )
                             },
                             onApply = {
                                 productListingViewModel.onEvent(ProductListingUiEvent.ApplySortOption)

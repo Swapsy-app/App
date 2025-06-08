@@ -53,6 +53,8 @@ import coil.compose.SubcomposeAsyncImage
 import com.example.freeupcopy.R
 import com.example.freeupcopy.common.Constants.BASE_URL_AVATAR
 import com.example.freeupcopy.data.remote.dto.product.User
+import com.example.freeupcopy.data.remote.dto.sell.Size
+import com.example.freeupcopy.data.remote.dto.sell.toSizeString
 import com.example.freeupcopy.ui.theme.CardShape
 import com.example.freeupcopy.ui.theme.CashColor1
 import com.example.freeupcopy.ui.theme.CashColor2
@@ -66,7 +68,7 @@ fun ProductCard(
     brand: String?,
     title: String,
     productThumbnail: String?,
-    size: String?,
+    size: Size?,
     cashPrice: String?,
     coinsPrice: String?,
     combinedPrice: Pair<String, String>?,
@@ -178,7 +180,7 @@ fun ProductCard(
 
                 if (size != null) {
                     Text(
-                        text = "Size: $size", // Replace with product details
+                        text = "Size: ${size.toSizeString()}", // Replace with product details
                         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(0.4f),
                         fontSize = 12.sp,
                         lineHeight = 18.sp

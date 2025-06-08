@@ -15,7 +15,7 @@ data class ProductCard(
     val images: List<String>,
     val brand: String?,
     val title: String,
-    val size: Any?,
+    val size: Size?,
     val price: ProductPrice,
     val seller: User,
     val isWishlisted: Boolean,
