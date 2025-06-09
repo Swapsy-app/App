@@ -19,6 +19,7 @@ import com.example.freeupcopy.data.remote.dto.sell.Coin
 import com.example.freeupcopy.di.AppModule
 import com.example.freeupcopy.domain.enums.Currency
 import com.example.freeupcopy.domain.enums.getCurrencyFromString
+import com.example.freeupcopy.domain.repository.CartRepository
 import com.example.freeupcopy.domain.repository.ProductRepository
 import com.example.freeupcopy.domain.repository.SellRepository
 import com.example.freeupcopy.domain.use_case.GetProductCardsUseCase
@@ -44,6 +45,7 @@ class ProductViewModel @Inject constructor(
     private val sellRepository: SellRepository,
     savedStateHandle: SavedStateHandle,
     private val productRepository: ProductRepository,
+    private val cartRepository: CartRepository,
     private val getProductCardsUseCase: GetProductCardsUseCase,
     private val swapGoPref: SwapGoPref,
     private val wishlistStateManager: AppModule.WishlistStateManager
@@ -169,6 +171,11 @@ class ProductViewModel @Inject constructor(
 
     fun onEvent(event: ProductUiEvent) {
         when (event) {
+
+            is ProductUiEvent.AddToCart -> {
+                addToCart()
+            }
+
             is ProductUiEvent.ClearSuccessMessage -> {
                 _state.update {
                     it.copy(successMessage = "")
@@ -1436,6 +1443,42 @@ class ProductViewModel @Inject constructor(
                         user = user,
                         isLoading = false
                     )
+                }
+            }
+        }
+    }
+
+    private fun addToCart() {
+        viewModelScope.launch {
+            if (productId?.isEmpty() == true) {
+                _state.update {
+                    it.copy(error = "Product not found")
+                }
+                return@launch
+            }
+            productId?.let {
+                cartRepository.addToCart(productId).collect { resource ->
+                    when (resource) {
+                        is Resource.Loading -> {
+                            _state.update { it.copy(isLoading = true, error = "") }
+                        }
+                        is Resource.Success -> {
+                            _state.update {
+                                it.copy(
+                                    isLoading = false,
+                                    successMessage = resource.data?.message ?: "Added to cart successfully"
+                                )
+                            }
+                        }
+                        is Resource.Error -> {
+                            _state.update {
+                                it.copy(
+                                    isLoading = false,
+                                    error = resource.message ?: "Failed to add to cart"
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }

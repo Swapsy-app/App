@@ -151,7 +151,12 @@ fun MainScreen(
                                 }
                             },
                             onInboxClick = {},
-                            onCartClick = {},
+                            onCartClick = {
+                                val currentState = lifecycleOwner.lifecycle.currentState
+                                if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                                    onNavigate(Screen.CartScreen)
+                                }
+                            },
                             onCoinClick = {
                                 val currentState = lifecycleOwner.lifecycle.currentState
                                 if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {

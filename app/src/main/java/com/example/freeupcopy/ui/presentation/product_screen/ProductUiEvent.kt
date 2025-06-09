@@ -15,6 +15,7 @@ sealed class ProductUiEvent {
     data class PostComment(val taggedUser: List<String>?): ProductUiEvent()
     data class DeleteComment(val commentId: String): ProductUiEvent()
     data class LoadMoreReplies(val commentId: String): ProductUiEvent()
+    data object AddToCart : ProductUiEvent()
     data class ToggleConfirmDeleteDialog(val commentId: String, val commentSenderId: String): ProductUiEvent()
     data class ToggleConfirmDeleteReply(val replyId: String, val replySenderId: String): ProductUiEvent()
     data class DeleteReply(val replyId: String): ProductUiEvent()

@@ -1,4 +1,6 @@
 package com.example.freeupcopy.data.remote.dto.cart
 
-class RemoveFromCartResponse {
-}
+data class RemoveFromCartResponse(
+    val message: String,
+    val cart: CartDocument? = null
+)

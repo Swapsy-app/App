@@ -14,6 +14,11 @@ import com.example.freeupcopy.data.remote.dto.auth.RefreshTokenRequest
 import com.example.freeupcopy.data.remote.dto.auth.RefreshTokenResponse
 import com.example.freeupcopy.data.remote.dto.auth.SignUpOtpVerifyResponse
 import com.example.freeupcopy.data.remote.dto.auth.SignUpRequest
+import com.example.freeupcopy.data.remote.dto.cart.AddToCartRequest
+import com.example.freeupcopy.data.remote.dto.cart.CartActionResponse
+import com.example.freeupcopy.data.remote.dto.cart.CartResponse
+import com.example.freeupcopy.data.remote.dto.cart.CartSummaryResponse
+import com.example.freeupcopy.data.remote.dto.cart.RemoveFromCartRequest
 import com.example.freeupcopy.data.remote.dto.product.AcceptedOfferResponse
 import com.example.freeupcopy.data.remote.dto.product.AddCommentRequest
 import com.example.freeupcopy.data.remote.dto.product.AddReplyRequest
@@ -422,5 +427,21 @@ interface SwapgoApi {
         @Query("page") page: Int = 1,
         @Query("limit") limit: Int = 20
     ): FollowingResponse
+
+    @POST("/api/cart/add-cart")
+    suspend fun addToCart(
+        @Body request: AddToCartRequest
+    ): CartActionResponse
+
+    @GET("/api/cart/get-cart")
+    suspend fun getCart(): CartResponse
+
+    @GET("/api/cart/get-buyer-cart-summary")
+    suspend fun getCartSummary(): CartSummaryResponse
+
+    @DELETE("/api/cart/remove-cart")
+    suspend fun removeFromCart(
+        @Body request: RemoveFromCartRequest
+    ): CartActionResponse
 
 }

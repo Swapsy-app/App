@@ -18,12 +18,14 @@ import com.example.freeupcopy.data.remote.SwapgoApi
 import com.example.freeupcopy.data.remote.dto.auth.RefreshTokenRequest
 import com.example.freeupcopy.data.remote.dto.auth.RefreshTokenResponse
 import com.example.freeupcopy.data.repository.AuthRepositoryImpl
+import com.example.freeupcopy.data.repository.CartRepositoryImpl
 import com.example.freeupcopy.data.repository.LocationRepositoryImpl
 import com.example.freeupcopy.data.repository.ProductRepositoryImpl
 import com.example.freeupcopy.data.repository.SellRepositoryImpl
 import com.example.freeupcopy.data.repository.ProfileRepositoryImpl
 import com.example.freeupcopy.db.SwapsyDatabase
 import com.example.freeupcopy.domain.repository.AuthRepository
+import com.example.freeupcopy.domain.repository.CartRepository
 import com.example.freeupcopy.domain.repository.LocationRepository
 import com.example.freeupcopy.domain.repository.ProductRepository
 import com.example.freeupcopy.domain.repository.SellRepository
@@ -120,6 +122,12 @@ object AppModule {
     @Singleton
     fun provideProductRepository(api: SwapgoApi): ProductRepository {
         return ProductRepositoryImpl(api)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCartRepository(api: SwapgoApi): CartRepository {
+        return CartRepositoryImpl(api)
     }
 
     @Provides

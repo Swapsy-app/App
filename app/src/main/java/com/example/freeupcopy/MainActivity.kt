@@ -666,7 +666,10 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable<Screen.CartScreen> {
-                            CartScreen()
+                            CartScreen(
+                                onNavigateBack = {},
+                                onNavigateToCheckout = {}
+                            )
                         }
 
                         composable<Screen.CashScreen> {

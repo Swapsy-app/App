@@ -1,4 +1,5 @@
 package com.example.freeupcopy.data.remote.dto.cart
 
-class AddToCartRequest {
-}
+data class AddToCartRequest(
+    val productId: String
+)

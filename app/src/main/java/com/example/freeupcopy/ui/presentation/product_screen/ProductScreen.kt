@@ -188,7 +188,13 @@ fun ProductScreen(
                 title = {},
                 actions = {
                     IconButton(
-                        onClick = {}
+                        onClick = {
+                            if (token == null) {
+                                onShowLoginBottomSheet()
+                            } else {
+                                productViewModel.onEvent(ProductUiEvent.AddToCart)
+                            }
+                        }
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.ShoppingCart,
@@ -334,7 +340,13 @@ fun ProductScreen(
                 )
 
                 ProductFAB(
-                    onClick = {},
+                    onClick = {
+                        if (token == null) {
+                            onShowLoginBottomSheet()
+                        } else {
+                            productViewModel.onEvent(ProductUiEvent.AddToCart)
+                        }
+                    },
                     icon = {
                         Icon(
                             imageVector = Icons.Outlined.ShoppingCart,
