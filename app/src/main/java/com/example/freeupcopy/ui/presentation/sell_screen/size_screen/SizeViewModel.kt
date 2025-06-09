@@ -5,8 +5,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.navigation.toRoute
 import com.example.freeupcopy.data.remote.dto.sell.Size
+import com.example.freeupcopy.ui.navigation.CustomNavType
 import com.example.freeupcopy.ui.navigation.Screen
-import com.example.freeupcopy.ui.navigation.navTypeOf
 import com.example.freeupcopy.utils.ValidationResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,7 +25,7 @@ class SizeViewModel @Inject constructor(
     // Use toRoute with typeMap to properly deserialize the Size object
     private val sizeScreen: Screen.SizeScreen = savedStateHandle.toRoute(
         typeMap = mapOf(
-            typeOf<Size?>() to navTypeOf<Size?>(isNullableAllowed = true)
+            typeOf<Size?>() to CustomNavType.SizeType
         )
     )
 

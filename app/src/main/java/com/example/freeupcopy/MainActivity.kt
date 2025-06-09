@@ -16,7 +16,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,7 +23,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -66,7 +64,6 @@ import com.example.freeupcopy.ui.navigation.AuthState
 import com.example.freeupcopy.ui.navigation.AuthStateManager
 import com.example.freeupcopy.ui.navigation.CustomNavType
 import com.example.freeupcopy.ui.navigation.Screen
-import com.example.freeupcopy.ui.navigation.navTypeOf
 import com.example.freeupcopy.ui.presentation.authentication_screen.connect_screen.ConnectScreen
 import com.example.freeupcopy.ui.presentation.authentication_screen.forgot_password_screen.ForgotPasswordScreen
 import com.example.freeupcopy.ui.presentation.authentication_screen.login_screen.LoginScreen
@@ -105,8 +102,8 @@ import com.example.freeupcopy.ui.presentation.sell_screen.price_screen.PriceScre
 import com.example.freeupcopy.ui.presentation.sell_screen.shape_screen.ShapeScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.size_screen.SizeScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.weight_screen.WeightScreen
-import com.example.freeupcopy.ui.presentation.setting_screen.SettingsScreen
 import com.example.freeupcopy.ui.presentation.setting_screen.SecondarySettingsScreen
+import com.example.freeupcopy.ui.presentation.setting_screen.SettingsScreen
 import com.example.freeupcopy.ui.presentation.wish_list.WishListScreen
 import com.example.freeupcopy.ui.theme.BottomSheetShape
 import com.example.freeupcopy.ui.theme.ButtonShape
@@ -573,7 +570,7 @@ class MainActivity : ComponentActivity() {
 
                             composable<Screen.SizeScreen>(
                                 typeMap = mapOf(
-                                    typeOf<Size?>() to navTypeOf<Size?>(isNullableAllowed = true)
+                                    typeOf<Size?>() to CustomNavType.SizeType
                                 )
                             ) {
                                 val args = it.toRoute<Screen.SizeScreen>()

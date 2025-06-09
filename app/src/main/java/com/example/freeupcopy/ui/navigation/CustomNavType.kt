@@ -28,20 +28,24 @@ object CustomNavType {
             bundle.putString(key, Json.encodeToString(value))
         }
     }
-}
 
+    val SizeType = object : NavType<com.example.freeupcopy.data.remote.dto.sell.Size?>(
+        isNullableAllowed = true
+    ) {
+        override fun get(bundle: Bundle, key: String): com.example.freeupcopy.data.remote.dto.sell.Size? {
+            return Json.decodeFromString(bundle.getString(key) ?: return null)
+        }
 
-inline fun <reified T> navTypeOf(
-    isNullableAllowed: Boolean = false,
-    json: Json = Json,
-) = object : NavType<T>(isNullableAllowed = isNullableAllowed) {
-    override fun get(bundle: Bundle, key: String): T? =
-        bundle.getString(key)?.let(json::decodeFromString)
+        override fun parseValue(value: String): com.example.freeupcopy.data.remote.dto.sell.Size? {
+            return Json.decodeFromString(Uri.decode(value))
+        }
 
-    override fun parseValue(value: String): T = json.decodeFromString(Uri.decode(value))
+        override fun serializeAsValue(value: com.example.freeupcopy.data.remote.dto.sell.Size?): String {
+            return Uri.encode(Json.encodeToString(value))
+        }
 
-    override fun serializeAsValue(value: T): String = Uri.encode(json.encodeToString(value))
-
-    override fun put(bundle: Bundle, key: String, value: T) =
-        bundle.putString(key, json.encodeToString(value))
+        override fun put(bundle: Bundle, key: String, value: com.example.freeupcopy.data.remote.dto.sell.Size?) {
+            bundle.putString(key, Json.encodeToString(value))
+        }
+    }
 }
