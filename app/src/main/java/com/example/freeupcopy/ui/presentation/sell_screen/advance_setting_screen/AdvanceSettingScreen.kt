@@ -252,15 +252,3 @@ fun AdvanceSettingScreen(
         }
     }
 }
-
-//@Preview(showBackground = true)
-//@Composable
-//fun GstScreenPreview() {
-//    SwapGoTheme {
-//        AdvanceSettingScreen (
-//            //onClick = {  },
-//            onClose = {  },
-//            gst = "",
-//        )
-//    }
-//}

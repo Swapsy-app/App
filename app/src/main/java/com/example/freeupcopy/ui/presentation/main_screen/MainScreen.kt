@@ -143,6 +143,7 @@ fun MainScreen(
                 when (page) {
                     0 -> {
                         HomeScreen(
+                            token = token,
                             lazyColumnState = lazyState,
                             onSearchBarClick = {
                                 val currentState = lifecycleOwner.lifecycle.currentState
@@ -150,7 +151,12 @@ fun MainScreen(
                                     onNavigate(Screen.SearchScreen)
                                 }
                             },
-                            onInboxClick = {},
+                            onInboxClick = {
+                                val currentState = lifecycleOwner.lifecycle.currentState
+                                if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                                    onNavigate(Screen.InboxScreen)
+                                }
+                            },
                             onCartClick = {
                                 val currentState = lifecycleOwner.lifecycle.currentState
                                 if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {

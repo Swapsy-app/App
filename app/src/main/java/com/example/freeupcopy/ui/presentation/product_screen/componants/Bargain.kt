@@ -244,8 +244,6 @@ fun BargainOfferRow(
                             fontWeight = FontWeight.SemiBold
                         )
                     }
-
-
                 }
 
             }

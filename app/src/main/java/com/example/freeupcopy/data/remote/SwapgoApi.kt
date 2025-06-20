@@ -1,15 +1,12 @@
 package com.example.freeupcopy.data.remote
 
-import com.example.freeupcopy.data.remote.dto.OnlyMessageResponse
 import com.example.freeupcopy.data.remote.dto.auth.AuthResponse
-import com.example.freeupcopy.data.remote.dto.your_profile.AvatarsResponse
 import com.example.freeupcopy.data.remote.dto.auth.ForgotPasswordRequest
 import com.example.freeupcopy.data.remote.dto.auth.LoginRequest
 import com.example.freeupcopy.data.remote.dto.auth.LoginResponse
 import com.example.freeupcopy.data.remote.dto.auth.LoginStatusResponse
 import com.example.freeupcopy.data.remote.dto.auth.OtpRequest
 import com.example.freeupcopy.data.remote.dto.auth.OtpResendRequest
-import com.example.freeupcopy.data.remote.dto.your_profile.ProfileResponse
 import com.example.freeupcopy.data.remote.dto.auth.RefreshTokenRequest
 import com.example.freeupcopy.data.remote.dto.auth.RefreshTokenResponse
 import com.example.freeupcopy.data.remote.dto.auth.SignUpOtpVerifyResponse
@@ -18,7 +15,7 @@ import com.example.freeupcopy.data.remote.dto.cart.AddToCartRequest
 import com.example.freeupcopy.data.remote.dto.cart.CartActionResponse
 import com.example.freeupcopy.data.remote.dto.cart.CartResponse
 import com.example.freeupcopy.data.remote.dto.cart.CartSummaryResponse
-import com.example.freeupcopy.data.remote.dto.cart.RemoveFromCartRequest
+import com.example.freeupcopy.data.remote.dto.cart.UpdateSellerCartRequest
 import com.example.freeupcopy.data.remote.dto.product.AcceptedOfferResponse
 import com.example.freeupcopy.data.remote.dto.product.AddCommentRequest
 import com.example.freeupcopy.data.remote.dto.product.AddReplyRequest
@@ -35,7 +32,6 @@ import com.example.freeupcopy.data.remote.dto.product.ReplyResponse
 import com.example.freeupcopy.data.remote.dto.product.SellerBargainsResponse
 import com.example.freeupcopy.data.remote.dto.product.UserSearchResult
 import com.example.freeupcopy.data.remote.dto.sell.AutocompleteResponse
-import com.example.freeupcopy.data.remote.dto.sell.UserBasicInfoResponse
 import com.example.freeupcopy.data.remote.dto.sell.FetchWishlistResponse
 import com.example.freeupcopy.data.remote.dto.sell.GstRequest
 import com.example.freeupcopy.data.remote.dto.sell.GstResponse
@@ -46,13 +42,16 @@ import com.example.freeupcopy.data.remote.dto.sell.ProductResponse
 import com.example.freeupcopy.data.remote.dto.sell.ShapesResponse
 import com.example.freeupcopy.data.remote.dto.sell.UploadImagesResponse
 import com.example.freeupcopy.data.remote.dto.sell.UploadVideoResponse
+import com.example.freeupcopy.data.remote.dto.sell.UserBasicInfoResponse
 import com.example.freeupcopy.data.remote.dto.sell.WishlistCountResponse
 import com.example.freeupcopy.data.remote.dto.sell.WishlistRequest
 import com.example.freeupcopy.data.remote.dto.sell.address.AddAddressRequest
 import com.example.freeupcopy.data.remote.dto.sell.address.AddressesResponse
 import com.example.freeupcopy.data.remote.dto.sell.address.UserAddressResponse
+import com.example.freeupcopy.data.remote.dto.your_profile.AvatarsResponse
 import com.example.freeupcopy.data.remote.dto.your_profile.FollowersResponse
 import com.example.freeupcopy.data.remote.dto.your_profile.FollowingResponse
+import com.example.freeupcopy.data.remote.dto.your_profile.ProfileResponse
 import com.example.freeupcopy.data.remote.dto.your_profile.UpdateProfileResponse
 import com.example.freeupcopy.data.remote.dto.your_profile.UserProductsResponse
 import okhttp3.MultipartBody
@@ -441,7 +440,13 @@ interface SwapgoApi {
 
     @DELETE("/api/cart/remove-cart")
     suspend fun removeFromCart(
-        @Body request: RemoveFromCartRequest
+        @Query("sellerId") sellerId: String? = null,
+        @Query("productId") productId: String? = null
+    ): CartActionResponse
+
+    @PUT("/api/cart/update-product-payment-mode")
+    suspend fun updateProductPaymentMode(
+        @Body request: UpdateSellerCartRequest
     ): CartActionResponse
 
 }

@@ -11,6 +11,7 @@ import com.example.freeupcopy.domain.enums.SellerBadge
 import com.example.freeupcopy.domain.enums.SellerRatingOption
 
 data class ProductListingUiState(
+    val hasUserAddress: Boolean = false,
 
     val user: User? = null,
 
@@ -39,8 +40,12 @@ data class ProductListingUiState(
     val pricingModelOptions: List<NewPricingModel> = emptyList(),
     val priceType: String = "",
 
-    val selectedCashRange: Float? = null,
-    val selectedCoinRange: Float? = null,
+//    val selectedCashRange: Float? = null,
+//    val selectedCoinRange: Float? = null,
+
+    val selectedCashRange: Pair<Float, Float>? = null, // Changed from single Float
+    val selectedCoinRange: Pair<Float, Float>? = null, // Changed from single Float
+
     val isCombinedPriceSelected: Boolean = false,
     val selectedTertiaryCategory: List<FilterTertiaryCategory> = emptyList(),
 

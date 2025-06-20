@@ -26,6 +26,9 @@ data class HomeUiState(
     val user: User? = null,
     val error: String = "",
 
+    val successMessage: String = "",
+    val totalCombos: Int = 0,
+
     // New fields for Explore Products
     // Add a set to track which filters have active selections
     val activeFilters: Set<Filter> = emptySet(),

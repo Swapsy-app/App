@@ -14,6 +14,11 @@ data class ProductUiState(
     val user: User? = null,
     val successMessage: String = "",
 
+
+    val showPaymentModeDialog: Boolean = false,
+    val selectedPaymentMode: String = "",
+
+
     val productDetail: ProductDetail? = null,
     val originalPriceDetail: Price? = null,
 

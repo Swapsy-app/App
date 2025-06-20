@@ -24,7 +24,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -68,7 +67,6 @@ import com.example.freeupcopy.ui.presentation.profile_screen.componants.ProfileB
 import com.example.freeupcopy.ui.presentation.profile_screen.componants.ProfileTopBar
 import com.example.freeupcopy.ui.presentation.profile_screen.componants.SellerHub
 import com.example.freeupcopy.ui.presentation.profile_screen.componants.YourPostedProducts
-import com.example.freeupcopy.ui.theme.ButtonShape
 import com.example.freeupcopy.ui.theme.SwapGoTheme
 import kotlinx.coroutines.launch
 
@@ -249,8 +247,15 @@ fun ProfileScreen(
                         onPackingMaterialClick = {},
                         onBundleOffersClick = {},
                         onRanksClick = {},
-                        onOnlineModeClick = {},
-                        onShippingGuideClick = {}
+                        onOnlineModeClick = {
+                            onNavigate(Screen.OnlineModeScreen)
+                        },
+                        onShippingGuideClick = {
+                            onNavigate(Screen.ShippingLabelsScreen)
+                        },
+                        onCODClick = {
+                            onNavigate(Screen.CODScreen)
+                        }
                     )
                 }
                 item {

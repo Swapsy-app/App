@@ -1,45 +1,133 @@
-// ui/presentation/cart/CartScreen.kt
 @file:OptIn(ExperimentalMaterial3Api::class)
 
 package com.example.freeupcopy.ui.presentation.cart_screen
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBarDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.example.freeupcopy.R
 import com.example.freeupcopy.common.Constants
 import com.example.freeupcopy.data.remote.dto.cart.CartProduct
 import com.example.freeupcopy.data.remote.dto.cart.SellerCart
+import com.example.freeupcopy.domain.enums.Currency
+import com.example.freeupcopy.ui.presentation.profile_screen.posted_products_screen.components.ConfirmDialog
+import com.example.freeupcopy.ui.presentation.sell_screen.location_screen.location_screen.PleaseWaitLoading
+import com.example.freeupcopy.ui.theme.ButtonShape
 import com.example.freeupcopy.ui.theme.CardShape
-import com.example.freeupcopy.ui.theme.SwapGoTheme
+import kotlinx.coroutines.launch
 
 @Composable
 fun CartScreen(
     onNavigateBack: () -> Unit,
     onNavigateToCheckout: () -> Unit,
+    onNavigateToSellerCartDetail: (String, String) -> Unit,
     viewModel: CartViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val lifeCycleOwner = LocalLifecycleOwner.current
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    // Handle error with Snackbar
+    LaunchedEffect(state.error) {
+        if (state.error.isNotBlank() && !state.isLoading) {
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = state.error,
+                    duration = SnackbarDuration.Short
+                )
+                // Clear error after showing
+                viewModel.onEvent(CartUiEvent.ClearError)
+            }
+        }
+    }
+
+    // Handle success message with Snackbar
+    LaunchedEffect(state.message) {
+        if (state.message.isNotBlank() && !state.isLoading) {
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = state.message,
+                    duration = SnackbarDuration.Short
+                )
+                // Clear message after showing
+                viewModel.onEvent(CartUiEvent.ClearMessage)
+            }
+        }
+    }
+
+    // Refresh cart on initial load
+    LaunchedEffect(Unit) {
+        viewModel.onEvent(CartUiEvent.RefreshCart)
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
@@ -47,14 +135,21 @@ fun CartScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Cart (${state.totalProducts})",
+                        text = "Cart (${state.totalCombos})",
                         fontWeight = FontWeight.Bold
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    IconButton(
+                        onClick = {
+                            val currentState = lifeCycleOwner.lifecycle.currentState
+                            if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                                onNavigateBack()
+                            }
+                        }
+                    ) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
                             contentDescription = "Back"
                         )
                     }
@@ -63,76 +158,107 @@ fun CartScreen(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 )
             )
+        },
+        snackbarHost = {
+            SnackbarHost(snackbarHostState) { snackbarData ->
+                Snackbar(
+                    snackbarData = snackbarData,
+                    containerColor = when {
+                        // Success message
+                        state.message.isNotBlank() -> {
+                            Color(0xFF4CAF50).copy(alpha = 0.9f) // Green for success
+                        }
+                        // Error message types
+                        state.error.contains("already", ignoreCase = true) ||
+                                state.error.contains("duplicate", ignoreCase = true) -> {
+                            MaterialTheme.colorScheme.primaryContainer
+                        }
+
+                        state.error.contains("network", ignoreCase = true) ||
+                                state.error.contains("internet", ignoreCase = true) ||
+                                state.error.contains("connection", ignoreCase = true) -> {
+                            Color(0xFFFF9800).copy(alpha = 0.9f) // Orange for network issues
+                        }
+
+                        state.error.contains("empty", ignoreCase = true) -> {
+                            MaterialTheme.colorScheme.primaryContainer
+                        }
+
+                        else -> {
+                            MaterialTheme.colorScheme.errorContainer // Red for general errors
+                        }
+                    },
+                    contentColor = when {
+                        // Success message content color
+                        state.message.isNotBlank() -> {
+                            Color.White
+                        }
+                        // Error message content colors
+                        state.error.contains("already", ignoreCase = true) ||
+                                state.error.contains("duplicate", ignoreCase = true) -> {
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        }
+
+                        state.error.contains("network", ignoreCase = true) ||
+                                state.error.contains("internet", ignoreCase = true) ||
+                                state.error.contains("connection", ignoreCase = true) -> {
+                            Color.White
+                        }
+
+                        state.error.contains("empty", ignoreCase = true) -> {
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        }
+
+                        else -> {
+                            MaterialTheme.colorScheme.onErrorContainer
+                        }
+                    }
+                )
+            }
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            if (state.isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
-            } else if (state.cartItems.isEmpty()) {
-                EmptyCartContent(
-                    onContinueShopping = onNavigateBack
-                )
-            } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(),
-                    contentPadding = PaddingValues(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    items(state.cartItems) { sellerCart ->
-                        SellerCartCard(
-                            sellerCart = sellerCart,
-                            onRemoveProduct = { productId ->
-                                viewModel.onEvent(CartUiEvent.RemoveProduct(productId))
-                            },
-                            onRemoveSeller = { sellerId ->
-                                viewModel.onEvent(CartUiEvent.RemoveSeller(sellerId))
-                            }
-                        )
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+            ) {
+                if (state.cartItems.isEmpty() && !state.isLoading) {
+                    EmptyCartContent(
+                        onContinueShopping = onNavigateBack
+                    )
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(state.cartItems) { sellerCart ->
+                            SellerCartCard(
+                                sellerCart = sellerCart,
+                                onRemoveSeller = { sellerId ->
+                                    viewModel.onEvent(CartUiEvent.RemoveSeller(sellerId))
+                                },
+                                onEditSellerCart = { sellerId, sellerName ->
+                                    onNavigateToSellerCartDetail(sellerId, sellerName)
+                                }
+                            )
+                        }
                     }
                 }
-
-                // Checkout Section
-                CheckoutSection(
-                    totalCombos = state.totalCombos,
-                    onCheckout = onNavigateToCheckout
-                )
             }
-
-            // Show error message
-            if (state.error.isNotEmpty()) {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer
-                    )
-                ) {
-                    Text(
-                        text = state.error,
-                        modifier = Modifier.padding(16.dp),
-                        color = MaterialTheme.colorScheme.onErrorContainer
-                    )
-                }
-            }
-
-            // Show success message
-            if (state.message.isNotEmpty()) {
-                LaunchedEffect(state.message) {
-                    // You can show a snackbar here
-                }
-            }
+        }
+    }
+    if (state.isLoading) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(0.3f)),
+            contentAlignment = Alignment.Center
+        ) {
+            PleaseWaitLoading()
         }
     }
 }
@@ -187,228 +313,112 @@ fun EmptyCartContent(
 @Composable
 fun SellerCartCard(
     sellerCart: SellerCart,
-    onRemoveProduct: (String) -> Unit,
-    onRemoveSeller: (String) -> Unit
+    onRemoveSeller: (String) -> Unit,
+    onEditSellerCart: (String, String) -> Unit
 ) {
+    var showConfirmDelete by remember { mutableStateOf(false) }
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(IntrinsicSize.Min),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        ),
-        shape = CardShape.medium
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+        shape = CardShape.medium,
+        onClick = {
+            onEditSellerCart(
+                sellerCart.seller._id,
+                sellerCart.seller.username
+            )
+        }
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            // Seller Header
+            // First row: Seller info and actions
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     AsyncImage(
                         model = Constants.BASE_URL_AVATAR + sellerCart.seller.avatar,
                         contentDescription = null,
                         modifier = Modifier
-                            .size(40.dp)
-                            .clip(RoundedCornerShape(20.dp)),
+                            .size(36.dp)
+                            .clip(CircleShape),
                         contentScale = ContentScale.Crop
                     )
-
-                    Spacer(modifier = Modifier.width(12.dp))
-
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = sellerCart.seller.username,
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
 
-                IconButton(
-                    onClick = { onRemoveSeller(sellerCart.seller.username) }
+                TextButton(
+                    onClick = {
+                        showConfirmDelete = true
+                    }
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Remove all from seller"
+                    Text(
+                        text = "Delete All",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.error
                     )
                 }
             }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Products
-            sellerCart.products.forEach { product ->
-                CartProductItem(
-                    product = product,
-                    onRemove = { onRemoveProduct(product.title) } // You might need to pass product ID
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-
-            Divider()
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Total Price
-            TotalPriceSection(sellerCart = sellerCart)
-        }
-    }
-}
-
-@Composable
-fun CartProductItem(
-    product: CartProduct,
-    onRemove: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        AsyncImage(
-            model = product.image,
-            contentDescription = null,
-            modifier = Modifier
-                .size(60.dp)
-                .clip(RoundedCornerShape(8.dp)),
-            contentScale = ContentScale.Crop
-        )
-
-        Spacer(modifier = Modifier.width(12.dp))
-
-        Column(
-            modifier = Modifier.weight(1f)
-        ) {
-            Text(
-                text = product.title,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
+            HorizontalDivider(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp, top = 4.dp),
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f),
+                thickness = 1.dp
             )
-
-            Text(
-                text = formatPrice(product.price),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary
-            )
-        }
-
-        IconButton(onClick = onRemove) {
-            Icon(
-                imageVector = Icons.Default.Delete,
-                contentDescription = "Remove item",
-                modifier = Modifier.size(20.dp)
-            )
-        }
-    }
-}
-
-@Composable
-fun TotalPriceSection(sellerCart: SellerCart) {
-    Column {
-        Text(
-            text = "Total:",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
-        )
-
-        val totalPrice = sellerCart.totalPrice
-        if (totalPrice.totalCash > 0) {
-            Text("Cash: ₹${totalPrice.totalCash}")
-        }
-        if (totalPrice.totalCoin > 0) {
-            Text("Coins: ${totalPrice.totalCoin}")
-        }
-        if (totalPrice.totalMix.cash > 0 || totalPrice.totalMix.coin > 0) {
-            Text("Mix: ₹${totalPrice.totalMix.cash} + ${totalPrice.totalMix.coin} coins")
-        }
-    }
-}
-
-@Composable
-fun CheckoutSection(
-    totalCombos: Int,
-    onCheckout: () -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Text(
-                text = "Ready to checkout $totalCombos combo${if (totalCombos > 1) "s" else ""}?",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Button(
-                onClick = onCheckout,
-                modifier = Modifier.fillMaxWidth()
+            // Second row: Product images
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
             ) {
-                Text("Proceed to Checkout")
+                sellerCart.products.take(5).forEach { product ->
+                    CartProductImage(
+                        imageUrl = product.image,
+                        contentDescription = product.title
+                    )
+                    if( product != sellerCart.products.last()) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+                }
             }
         }
     }
-}
 
-private fun formatPrice(price: com.example.freeupcopy.data.remote.dto.cart.ProductPrice): String {
-    return when {
-        price.cash != null -> "₹${price.cash}"
-        price.coin != null -> "${price.coin} coins"
-        price.mixCash != null && price.mixCoin != null -> "₹${price.mixCash} + ${price.mixCoin} coins"
-        else -> "Price not available"
-    }
-}
-
-@Preview
-@Composable
-fun CartScreenPreview() {
-    SwapGoTheme {
-        SellerCartCard(
-            sellerCart = SellerCart(
-                seller = com.example.freeupcopy.data.remote.dto.cart.Seller(
-                    username = "Test Seller",
-                    avatar = "https://example.com/avatar.jpg"
-                ),
-                products = listOf(
-                    CartProduct(
-                        title = "Test Product 1",
-                        image = "https://example.com/product1.jpg",
-                        price = com.example.freeupcopy.data.remote.dto.cart.ProductPrice(
-                            cash = 500.0,
-                            coin = null,
-                            mixCash = null,
-                            mixCoin = null
-                        )
-                    ),
-                    CartProduct(
-                        title = "Test Product 2",
-                        image = "https://example.com/product2.jpg",
-                        price = com.example.freeupcopy.data.remote.dto.cart.ProductPrice(
-                            cash = null,
-                            coin = 1000.0,
-                            mixCash = null,
-                            mixCoin = null
-                        )
-                    )
-                ),
-                totalPrice = com.example.freeupcopy.data.remote.dto.cart.TotalPrice(
-                    totalCash = 500.0,
-                    totalCoin = 1000.0,
-                    totalMix = com.example.freeupcopy.data.remote.dto.cart.MixPrice(0.0, 0.0)
-                )
-            ),
-            onRemoveProduct = {},
-            onRemoveSeller = {}
+    if (showConfirmDelete) {
+        ConfirmDialog(
+            dialogText = "Are you sure you want to delete all products from ${sellerCart.seller.username}'s cart? This action cannot be undone.",
+            onConfirm = {
+                onRemoveSeller(sellerCart.seller._id)
+                showConfirmDelete = false
+            },
+            onCancel = { showConfirmDelete = false },
+            confirmButtonText = "Delete All",
+            cancelButtonText = "Cancel",
         )
     }
+}
+
+@Composable
+fun CartProductImage(
+    imageUrl: String,
+    contentDescription: String
+) {
+    AsyncImage(
+        model = imageUrl,
+        contentDescription = contentDescription,
+        modifier = Modifier
+            .size(56.dp)
+            .clip(CardShape.small),
+        contentScale = ContentScale.Crop
+    )
 }

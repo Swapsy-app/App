@@ -1,6 +1,5 @@
 package com.example.freeupcopy.ui.navigation
 
-import com.example.freeupcopy.data.remote.dto.product.User
 import com.example.freeupcopy.data.remote.dto.sell.Size
 import com.example.freeupcopy.domain.enums.Settings
 import com.example.freeupcopy.domain.enums.SizeType
@@ -37,6 +36,17 @@ sealed class Screen {
 
     @Serializable
     data object CartScreen : Screen()
+    @Serializable
+    data class DetailCartScreen(
+        val sellerId: String?,
+        val sellerName: String?,
+        ) : Screen()
+
+    @Serializable
+    data class AddSellerProductsScreen(
+        val sellerId: String,
+        val sellerName: String
+    ) : Screen()
 
     @Serializable
     data object CashScreen : Screen()
@@ -124,4 +134,16 @@ sealed class Screen {
 
     @Serializable
     data class OfferScreen(val userId: String?): Screen()
+
+    @Serializable
+    data object CODScreen: Screen()
+
+    @Serializable
+    data object OnlineModeScreen: Screen()
+
+    @Serializable
+    data object GenerateLabelsScreen: Screen()
+
+    @Serializable
+    data object ShippingLabelsScreen: Screen()
 }

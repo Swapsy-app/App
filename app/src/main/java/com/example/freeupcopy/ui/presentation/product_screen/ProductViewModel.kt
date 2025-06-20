@@ -171,10 +171,37 @@ class ProductViewModel @Inject constructor(
 
     fun onEvent(event: ProductUiEvent) {
         when (event) {
-
             is ProductUiEvent.AddToCart -> {
-                addToCart()
+                // Check if product has multiple payment options
+                val availableModes = getAvailablePaymentModes()
+                if (availableModes.size > 1) {
+                    _state.update { it.copy(showPaymentModeDialog = true) }
+                } else {
+                    // Only one payment mode available, add directly
+                    addToCartWithMode(availableModes.firstOrNull() ?: "cash")
+                }
             }
+
+            is ProductUiEvent.ShowPaymentModeDialog -> {
+                _state.update { it.copy(showPaymentModeDialog = true) }
+            }
+
+            is ProductUiEvent.DismissPaymentModeDialog -> {
+                _state.update { it.copy(showPaymentModeDialog = false) }
+            }
+
+            is ProductUiEvent.SelectPaymentMode -> {
+                _state.update { it.copy(selectedPaymentMode = event.mode) }
+            }
+
+            is ProductUiEvent.ConfirmAddToCart -> {
+                addToCartWithMode(event.selectedMode)
+                _state.update { it.copy(showPaymentModeDialog = false) }
+            }
+//
+//            is ProductUiEvent.AddToCart -> {
+//                addToCart()
+//            }
 
             is ProductUiEvent.ClearSuccessMessage -> {
                 _state.update {
@@ -1457,7 +1484,7 @@ class ProductViewModel @Inject constructor(
                 return@launch
             }
             productId?.let {
-                cartRepository.addToCart(productId).collect { resource ->
+                cartRepository.addToCart(productId, "").collect { resource ->
                     when (resource) {
                         is Resource.Loading -> {
                             _state.update { it.copy(isLoading = true, error = "") }
@@ -1521,6 +1548,47 @@ class ProductViewModel @Inject constructor(
 
         return ValidationResult(true) // All validations passed
 
+    }
+
+    private fun getAvailablePaymentModes(): List<String> {
+        val modes = mutableListOf<String>()
+        val price = _state.value.productDetail?.price
+
+        if (price?.cash?.enteredAmount != null) modes.add("cash")
+        if (price?.coin?.enteredAmount != null) modes.add("coin")
+        if (price?.mix?.enteredCash != null && price.mix.enteredCoin != null) modes.add("mix")
+
+        return modes
+    }
+
+    private fun addToCartWithMode(selectedMode: String) {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true) }
+
+            cartRepository.addToCart(_state.value.productId, selectedMode).collect { resource ->
+                when (resource) {
+                    is Resource.Loading -> {
+                        _state.update { it.copy(isLoading = true) }
+                    }
+                    is Resource.Success -> {
+                        _state.update {
+                            it.copy(
+                                isLoading = false,
+                                successMessage = resource.data?.message ?: "Added to cart successfully"
+                            )
+                        }
+                    }
+                    is Resource.Error -> {
+                        _state.update {
+                            it.copy(
+                                isLoading = false,
+                                error = resource.message ?: "Failed to add to cart"
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

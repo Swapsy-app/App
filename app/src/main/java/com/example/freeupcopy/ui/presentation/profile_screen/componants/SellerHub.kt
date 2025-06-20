@@ -35,6 +35,7 @@ fun SellerHub(
     isCodOn: Boolean,
     isBundleOffersOn: Boolean,
     isOnlineModeOn: Boolean,
+    onCODClick: () -> Unit,
     onPackingMaterialClick: () -> Unit,
     onShippingGuideClick: () -> Unit,
     onBundleOffersClick: () -> Unit,
@@ -125,7 +126,7 @@ fun SellerHub(
                 painter = painterResource(id = R.drawable.ic_cash),
                 label = "Cash on Delivery",
 //                isTurnedOn = isBundleOffersOn,
-                onClick = onBundleOffersClick,
+                onClick = onCODClick,
                 tint = Color(0xFF9FCB00),
                 description = "Enable COD",
                 status = {
@@ -310,7 +311,8 @@ fun SellingToolsPreview() {
             onBundleOffersClick = {},
             onRanksClick = {},
             onOnlineModeClick = {},
-            onShippingGuideClick = {}
+            onShippingGuideClick = {},
+            onCODClick = {}
         )
     }
 }

@@ -7,7 +7,7 @@ import com.example.freeupcopy.data.remote.dto.cart.CartSummaryResponse
 import kotlinx.coroutines.flow.Flow
 
 interface CartRepository {
-    suspend fun addToCart(productId: String): Flow<Resource<CartActionResponse>>
+    suspend fun addToCart(productId: String, selectedPriceMode: String): Flow<Resource<CartActionResponse>>
 
     suspend fun getCart(): Flow<Resource<CartResponse>>
 
@@ -16,5 +16,11 @@ interface CartRepository {
     suspend fun removeFromCart(
         sellerId: String? = null,
         productId: String? = null
+    ): Flow<Resource<CartActionResponse>>
+
+    suspend fun updateProductPaymentMode(
+        sellerId: String,
+        productId: String,
+        selectedPriceMode: String
     ): Flow<Resource<CartActionResponse>>
 }

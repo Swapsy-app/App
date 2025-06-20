@@ -566,27 +566,46 @@ fun PleaseWaitLoading(
     modifier: Modifier = Modifier
 ) {
     Box(
-        modifier = modifier
-//            .height(90.dp)
-            .shadow(8.dp, CardShape.medium)
-            .clip(CardShape.medium)
-            .background(MaterialTheme.colorScheme.primaryContainer)
-            .padding(vertical = 20.dp, horizontal = 24.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .clickable(
+                interactionSource = null,
+                indication = null,
+                onClick = {}
+            ),
         contentAlignment = Alignment.Center
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
+        Box(
+            modifier = modifier
+//            .height(90.dp)
+                .shadow(8.dp, CardShape.medium)
+                .clip(CardShape.medium)
+                .background(MaterialTheme.colorScheme.primaryContainer)
+                .padding(vertical = 20.dp, horizontal = 24.dp),
+            contentAlignment = Alignment.Center
         ) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(24.dp),
-                color = MaterialTheme.colorScheme.primary
-            )
-            Text(
-                text = "Please wait...",
-                color = MaterialTheme.colorScheme.onBackground,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 13.5.sp
-            )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = "Please wait...",
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 13.5.sp
+                )
+            }
         }
+    }
+}
+
+@Preview
+@Composable
+fun PleaseWaitLoadingPreview() {
+    SwapGoTheme {
+        PleaseWaitLoading()
     }
 }

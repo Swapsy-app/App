@@ -207,19 +207,22 @@ fun ProductCard(
                     }
                 } else if (availablePurchaseOptions[1]) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            modifier = Modifier.size(16.dp),
-                            painter = painterResource(id = R.drawable.coin),
-                            contentDescription = "coin",
-                            tint = Color.Unspecified
-                        )
-                        Spacer(modifier = Modifier.size(2.dp))
                         Text(
                             text = "$coinsPrice", // Replace with discounted price
                             color = CashColor2,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.W500
                         )
+
+                        Spacer(modifier = Modifier.size(2.dp))
+
+                        Icon(
+                            modifier = Modifier.size(16.dp),
+                            painter = painterResource(id = R.drawable.coin),
+                            contentDescription = "coin",
+                            tint = Color.Unspecified
+                        )
+
                         Spacer(modifier = Modifier.width(8.dp))
                         Row {
                             Text(
@@ -246,19 +249,21 @@ fun ProductCard(
                             fontWeight = FontWeight.W500
                         )
 
-                        Icon(
-                            modifier = Modifier.size(16.dp),
-                            painter = painterResource(id = R.drawable.coin),
-                            contentDescription = "coin",
-                            tint = Color.Unspecified
-                        )
-                        Spacer(modifier = Modifier.size(2.dp))
                         Text(
                             text = "${combinedPrice?.second}", // Replace with discounted price
                             color = CashColor2,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.W500
                         )
+                        Spacer(modifier = Modifier.size(2.dp))
+                        Icon(
+                            modifier = Modifier.size(16.dp),
+                            painter = painterResource(id = R.drawable.coin),
+                            contentDescription = "coin",
+                            tint = Color.Unspecified
+                        )
+
+
                     }
                 }
 

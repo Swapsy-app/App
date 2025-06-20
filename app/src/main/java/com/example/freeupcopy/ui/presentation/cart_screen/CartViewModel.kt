@@ -29,12 +29,16 @@ class CartViewModel @Inject constructor(
 
     fun onEvent(event: CartUiEvent) {
         when (event) {
-            is CartUiEvent.AddToCart -> addToCart(event.productId)
-            is CartUiEvent.RemoveProduct -> removeFromCart(productId = event.productId)
             is CartUiEvent.RemoveSeller -> removeFromCart(sellerId = event.sellerId)
             is CartUiEvent.RefreshCart -> {
                 getCart()
                 getCartSummary()
+            }
+            CartUiEvent.ClearError -> {
+                _state.update { it.copy(error = "") }
+            }
+            CartUiEvent.ClearMessage -> {
+                _state.update { it.copy(message = "") }
             }
         }
     }
@@ -69,7 +73,6 @@ class CartViewModel @Inject constructor(
 
     private fun getCartSummary() {
         viewModelScope.launch {
-
             cartRepository.getCartSummary().collect { resource ->
                 when (resource) {
                     is Resource.Success -> {
@@ -91,60 +94,50 @@ class CartViewModel @Inject constructor(
         }
     }
 
-    private fun addToCart(productId: String) {
-        viewModelScope.launch {
-
-            cartRepository.addToCart(productId).collect { resource ->
-                when (resource) {
-                    is Resource.Loading -> {
-                        _state.update { it.copy(isLoading = true, error = "") }
-                    }
-                    is Resource.Success -> {
-                        _state.update {
-                            it.copy(
-                                isLoading = false,
-                                message = resource.data?.message ?: "Added to cart"
-                            )
-                        }
-                        getCart() // Refresh cart
-                        getCartSummary() // Refresh summary
-                    }
-                    is Resource.Error -> {
-                        _state.update {
-                            it.copy(
-                                isLoading = false,
-                                error = resource.message ?: "Error adding to cart"
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     private fun removeFromCart(sellerId: String? = null, productId: String? = null) {
         viewModelScope.launch {
-
             cartRepository.removeFromCart(sellerId, productId).collect { resource ->
                 when (resource) {
                     is Resource.Loading -> {
                         _state.update { it.copy(isLoading = true, error = "") }
                     }
                     is Resource.Success -> {
-                        _state.update {
-                            it.copy(
+                        // Update local state only - don't call getCart() and getCartSummary()
+                        _state.update { currentState ->
+                            val updatedCartItems = if (sellerId != null) {
+                                // Remove entire seller cart
+                                currentState.cartItems.filter { it.seller._id != sellerId }
+                            } else if (productId != null) {
+                                // Remove specific product from all seller carts
+                                currentState.cartItems.map { sellerCart ->
+                                    sellerCart.copy(
+                                        products = sellerCart.products.filter { it._id != productId }
+                                    )
+                                }.filter { it.products.isNotEmpty() } // Remove empty seller carts
+                            } else {
+                                currentState.cartItems
+                            }
+
+                            // Calculate new totals
+                            val newTotalProducts = updatedCartItems.sumOf { it.products.size }
+                            val newTotalCombos = updatedCartItems.size
+
+                            currentState.copy(
                                 isLoading = false,
-                                message = resource.data?.message ?: "Removed from cart"
+                                message = resource.data?.message ?: "Removed from cart",
+                                cartItems = updatedCartItems,
+                                totalProducts = newTotalProducts,
+                                totalCombos = newTotalCombos,
+                                error = ""
                             )
                         }
-                        getCart() // Refresh cart
-                        getCartSummary() // Refresh summary
                     }
                     is Resource.Error -> {
                         _state.update {
                             it.copy(
                                 isLoading = false,
-                                error = resource.message ?: "Error removing from cart"
+                                error = resource.message ?: "Error removing from cart",
+                                message = ""
                             )
                         }
                     }

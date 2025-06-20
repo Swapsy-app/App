@@ -11,15 +11,20 @@ data class SellerCart(
 )
 
 data class Seller(
+    val _id: String,
     val username: String,
     val avatar: String
 )
 
 data class CartProduct(
+    val _id: String,
     val title: String,
     val image: String,
-    val price: ProductPrice
+    val price: ProductPrice,
+    val selectedPaymentMode: String, // Add this field
+    val productPrice: Double? = null // Add this field for the actual price
 )
+
 
 data class ProductPrice(
     val cash: Double? = null,

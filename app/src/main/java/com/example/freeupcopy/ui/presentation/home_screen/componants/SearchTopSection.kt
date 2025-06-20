@@ -62,7 +62,8 @@ fun SearchTopSection(
     modifier: Modifier = Modifier,
     onSearchBarClick: () -> Unit,
     onInboxClick: () -> Unit,
-    onCartClick: () -> Unit
+    onCartClick: () -> Unit,
+    totalCombos: Int,
 ) {
     Column(
         modifier = modifier
@@ -73,7 +74,8 @@ fun SearchTopSection(
                 .fillMaxWidth(),
             onSearchBarClick = { onSearchBarClick() },
             onInboxClick = { onInboxClick() },
-            onCartClick = { onCartClick() }
+            onCartClick = { onCartClick() },
+            totalCombos = totalCombos
         )
     }
 }
@@ -83,7 +85,8 @@ fun SearchRow(
     modifier: Modifier = Modifier,
     onSearchBarClick: () -> Unit,
     onInboxClick: () -> Unit,
-    onCartClick: () -> Unit
+    onCartClick: () -> Unit,
+    totalCombos: Int
 ) {
     Row(
         modifier = modifier
@@ -106,7 +109,7 @@ fun SearchRow(
             onClick = { onCartClick() },
             icon = painterResource(id = R.drawable.ic_shopping_cart),
             contentDescription = "cart",
-            badgeNumber = 12
+            badgeNumber = totalCombos
         )
     }
 
@@ -316,7 +319,8 @@ private fun PreviewHomeSearchBar() {
          SearchTopSection(
             onSearchBarClick = {},
             onInboxClick = {},
-            onCartClick = {}
+            onCartClick = {},
+             totalCombos = 0
         )
     }
 }

@@ -5,6 +5,10 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
+import com.example.freeupcopy.common.Constants.MAX_CASH_RANGE
+import com.example.freeupcopy.common.Constants.MAX_COINS_RANGE
+import com.example.freeupcopy.common.Constants.MIN_CASH_RANGE
+import com.example.freeupcopy.common.Constants.MIN_COINS_RANGE
 import com.example.freeupcopy.common.Resource
 import com.example.freeupcopy.data.local.RecentSearch
 import com.example.freeupcopy.data.local.RecentlyViewed
@@ -64,12 +68,36 @@ class ProductListingViewModel @Inject constructor(
         viewModelScope.launch {
             swapGoPref.getUser().collect { user ->
                 _state.update { it.copy(user = user) }
+
+                // Check if user has addresses when user data is available
+                if (user != null) {
+                    checkUserAddresses()
+                }
             }
         }
 
         viewModelScope.launch {
             wishlistStateManager.wishlistUpdates.collect { (productId, isWishlisted) ->
                 updateProductWishlistState(productId, isWishlisted)
+            }
+        }
+    }
+
+    // New method to check if user has addresses
+    private fun checkUserAddresses() {
+        viewModelScope.launch {
+            try {
+                val addressesResponse = repository.getAddresses(page = 1)
+                val hasAddresses = addressesResponse.addresses.isNotEmpty()
+
+                _state.update {
+                    it.copy(hasUserAddress = hasAddresses)
+                }
+            } catch (e: Exception) {
+                // If there's an error fetching addresses, assume no addresses
+                _state.update {
+                    it.copy(hasUserAddress = false)
+                }
             }
         }
     }
@@ -158,8 +186,14 @@ class ProductListingViewModel @Inject constructor(
         _state.update {
             it.copy(
                 pricingModelOptions = pricingModels,
-                selectedCashRange = maxPriceCash?.toFloat(),
-                selectedCoinRange = maxPriceCoin?.toFloat(),
+                selectedCashRange = if (maxPriceCash != null)
+                    Pair(MIN_CASH_RANGE, maxPriceCash.toFloat())
+                else
+                    Pair(MIN_CASH_RANGE, MAX_CASH_RANGE),
+                selectedCoinRange = if (maxPriceCoin != null)
+                    Pair(MIN_COINS_RANGE, maxPriceCoin.toFloat())
+                else
+                    Pair(MIN_COINS_RANGE, MAX_COINS_RANGE),
 //                primaryCategory = primaryCategory,
 //                secondaryCategory = secondaryCategory,
 //                tertiaryCategory = tertiaryCategory,
@@ -184,11 +218,11 @@ class ProductListingViewModel @Inject constructor(
                 availabilityOptions = state.availabilityOptions,
                 conditionOptions = state.conditionOptions,
                 selectedTertiaryCategory = state.selectedTertiaryCategory,
-                selectedFilter = state.selectedFilter,
+//                selectedFilter = state.selectedFilter,
                 appliedSortOption = state.appliedSortOption ?: "",
                 pricingModelOptions = state.pricingModelOptions,
-                selectedCashRange = Pair(null, state.selectedCashRange),
-                selectedCoinRange = Pair(null, state.selectedCoinRange),
+                selectedCashRange = state.selectedCashRange,
+                selectedCoinRange = state.selectedCoinRange,
 //                primaryCategory = state.primaryCategory,
 //                secondaryCategory = state.secondaryCategory,
 //                tertiaryCategory = state.tertiaryCategory
@@ -242,9 +276,9 @@ class ProductListingViewModel @Inject constructor(
                     sort = queryState.appliedSortOption,
                     priceType = queryState.pricingModelOptions.joinToString(",") { it.apiValue },
                     minPriceCash = queryState.selectedCashRange?.first,
-                    maxPriceCash = queryState.selectedCashRange?.second,
+                    maxPriceCash = if(queryState.selectedCashRange?.second == MAX_CASH_RANGE) null else queryState.selectedCashRange?.second,
                     minPriceCoin = queryState.selectedCoinRange?.first,
-                    maxPriceCoin = queryState.selectedCoinRange?.second,
+                    maxPriceCoin = if(queryState.selectedCoinRange?.second == MAX_COINS_RANGE) null else queryState.selectedCoinRange?.second
                 )
             )
         }
@@ -427,24 +461,92 @@ class ProductListingViewModel @Inject constructor(
             is ProductListingUiEvent.ChangeSelectedPricingModel -> {
                 _state.update { currentState ->
                     val currentOptions = currentState.pricingModelOptions.toMutableList()
+                    val isBeingSelected = !currentOptions.contains(event.pricingModel)
+
                     if (currentOptions.contains(event.pricingModel)) {
+                        // Removing the pricing model - reset its corresponding range
                         currentOptions.remove(event.pricingModel)
+
+                        when (event.pricingModel) {
+                            NewPricingModel.CASH -> {
+                                currentState.copy(
+                                    pricingModelOptions = currentOptions,
+                                    selectedCashRange = null // Reset cash range
+                                )
+                            }
+                            NewPricingModel.COINS -> {
+                                currentState.copy(
+                                    pricingModelOptions = currentOptions,
+                                    selectedCoinRange = null // Reset coin range
+                                )
+                            }
+                            NewPricingModel.CASH_AND_COINS -> {
+                                currentState.copy(
+                                    pricingModelOptions = currentOptions,
+                                )
+                            }
+                        }
                     } else {
+                        // Adding the pricing model - set default range values
                         currentOptions.add(event.pricingModel)
+
+                        when (event.pricingModel) {
+                            NewPricingModel.CASH -> {
+                                currentState.copy(
+                                    pricingModelOptions = currentOptions,
+                                    selectedCashRange = Pair(MIN_CASH_RANGE, MAX_CASH_RANGE) // Set default range
+                                )
+                            }
+                            NewPricingModel.COINS -> {
+                                currentState.copy(
+                                    pricingModelOptions = currentOptions,
+                                    selectedCoinRange = Pair(MIN_COINS_RANGE, MAX_COINS_RANGE) // Set default range
+                                )
+                            }
+                            NewPricingModel.CASH_AND_COINS -> {
+                                currentState.copy(
+                                    pricingModelOptions = currentOptions
+                                )
+                            }
+                        }
                     }
-                    currentState.copy(pricingModelOptions = currentOptions)
                 }
             }
 
+
+//            is ProductListingUiEvent.ChangeSelectedPricingModel -> {
+//                _state.update { currentState ->
+//                    val currentOptions = currentState.pricingModelOptions.toMutableList()
+//                    if (currentOptions.contains(event.pricingModel)) {
+//                        currentOptions.remove(event.pricingModel)
+//                    } else {
+//                        currentOptions.add(event.pricingModel)
+//                    }
+//                    currentState.copy(pricingModelOptions = currentOptions)
+//                }
+//            }
+
+//            is ProductListingUiEvent.ChangeCashRange -> {
+//                _state.update {
+//                    it.copy(selectedCashRange = event.cash)
+//                }
+//            }
+//
+//            is ProductListingUiEvent.ChangeCoinRange -> {
+//                _state.update {
+//                    it.copy(selectedCoinRange = event.coins)
+//                }
+//            }
+
             is ProductListingUiEvent.ChangeCashRange -> {
                 _state.update {
-                    it.copy(selectedCashRange = event.cash)
+                    it.copy(selectedCashRange = event.cashRange)
                 }
             }
 
             is ProductListingUiEvent.ChangeCoinRange -> {
                 _state.update {
-                    it.copy(selectedCoinRange = event.coins)
+                    it.copy(selectedCoinRange = event.coinRange)
                 }
             }
 
@@ -674,7 +776,7 @@ data class ProductQueryState(
     val availabilityOptions: List<AvailabilityOption>,
     val conditionOptions: List<ConditionOption>,
     val selectedTertiaryCategory: List<FilterTertiaryCategory>,
-    val selectedFilter: Filter?,
+//    val selectedFilter: Filter?,
     val appliedSortOption: String,
     val pricingModelOptions: List<NewPricingModel>,
     val selectedCashRange: Pair<Float?, Float?>?,

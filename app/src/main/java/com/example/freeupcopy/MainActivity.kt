@@ -1,5 +1,6 @@
 package com.example.freeupcopy
 
+import InboxScreen
 import android.annotation.SuppressLint
 import android.graphics.Color
 import android.os.Build
@@ -69,19 +70,24 @@ import com.example.freeupcopy.ui.presentation.authentication_screen.forgot_passw
 import com.example.freeupcopy.ui.presentation.authentication_screen.login_screen.LoginScreen
 import com.example.freeupcopy.ui.presentation.authentication_screen.otp_screen.OtpVerificationScreen
 import com.example.freeupcopy.ui.presentation.authentication_screen.signup_screen.SignUpScreen
+import com.example.freeupcopy.ui.presentation.cart_screen.AddSellerProductsScreen
 import com.example.freeupcopy.ui.presentation.cart_screen.CartScreen
+import com.example.freeupcopy.ui.presentation.cart_screen.SellerCartDetailScreen
+import com.example.freeupcopy.ui.presentation.profile_screen.cod_screen.CODScreen
 import com.example.freeupcopy.ui.presentation.cash_screen.CashScreen
 import com.example.freeupcopy.ui.presentation.coin_screen.CoinScreen
 import com.example.freeupcopy.ui.presentation.home_screen.CategorySelectScreen
-import com.example.freeupcopy.ui.presentation.inbox_screen.InboxScreen
 import com.example.freeupcopy.ui.presentation.main_screen.MainScreen
 import com.example.freeupcopy.ui.presentation.offer_screen.OffersScreen
 import com.example.freeupcopy.ui.presentation.product_listing.ProductListing
 import com.example.freeupcopy.ui.presentation.product_screen.ProductScreen
 import com.example.freeupcopy.ui.presentation.profile_screen.edit_profile_screen.EditProfileScreen
 import com.example.freeupcopy.ui.presentation.profile_screen.follow_screens.FollowersScreen
+import com.example.freeupcopy.ui.presentation.profile_screen.holiday_mode_screen.OnlineModeScreen
 import com.example.freeupcopy.ui.presentation.profile_screen.posted_products_screen.PostedProductsScreen
 import com.example.freeupcopy.ui.presentation.profile_screen.seller_profile_screen.SellerProfileScreen
+import com.example.freeupcopy.ui.presentation.profile_screen.shipping_guide_screen.GenerateLabelScreen
+import com.example.freeupcopy.ui.presentation.profile_screen.shipping_guide_screen.ShippingLabelsScreen
 import com.example.freeupcopy.ui.presentation.reply_screen.ReplyScreen
 import com.example.freeupcopy.ui.presentation.search_screen.SearchScreen
 import com.example.freeupcopy.ui.presentation.sell_screen.SellScreen
@@ -662,10 +668,84 @@ class MainActivity : ComponentActivity() {
                             InboxScreen()
                         }
 
+                        composable<Screen.OnlineModeScreen> {
+                            OnlineModeScreen(
+                                onBackClick = {
+                                    navController.popBackStack()
+                                }
+                            )
+                        }
+
+                        composable<Screen.ShippingLabelsScreen> {
+                            ShippingLabelsScreen(
+                                onBackClick = {
+                                    navController.popBackStack()
+                                }
+                            )
+                        }
+
+                        composable<Screen.GenerateLabelsScreen> {
+                            GenerateLabelScreen(
+                                onBackClick = {
+                                    navController.popBackStack()
+                                }
+                            )
+                        }
+
                         composable<Screen.CartScreen> {
                             CartScreen(
-                                onNavigateBack = {},
-                                onNavigateToCheckout = {}
+                                onNavigateBack = {
+                                    navController.popBackStack()
+                                },
+                                onNavigateToCheckout = {},
+                                onNavigateToSellerCartDetail = { sellerId, sellerName ->
+                                    navController.navigate(
+                                        Screen.DetailCartScreen(
+                                            sellerId = sellerId,
+                                            sellerName = sellerName
+                                        )
+                                    )
+                                }
+                            )
+                        }
+
+                        composable<Screen.DetailCartScreen>{
+                            val args = it.toRoute<Screen.DetailCartScreen>()
+                            SellerCartDetailScreen(
+                                sellerName = args.sellerName ?: "",
+                                sellerId = args.sellerId ?: "",
+                                onClose = {
+                                    navController.popBackStack()
+                                },
+                                onNavigateToAddProducts = { sellerId, sellerName ->
+                                    navController.navigate(
+                                        Screen.AddSellerProductsScreen(
+                                            sellerId = sellerId,
+                                            sellerName = sellerName
+                                        )
+                                    )
+                                },
+                                onNavigateToCheckout = {
+
+                                },
+                                onProductClick = { productId ->
+                                    navController.navigate(Screen.ProductScreen(productId))
+                                }
+                            )
+                        }
+
+                        composable<Screen.AddSellerProductsScreen> { backStackEntry ->
+                            val args = backStackEntry.toRoute<Screen.AddSellerProductsScreen>()
+
+                            AddSellerProductsScreen(
+                                sellerId = args.sellerId,
+                                sellerName = args.sellerName,
+                                onNavigateBack = {
+                                    navController.popBackStack()
+                                },
+                                onProductClick = { productId ->
+                                    navController.navigate(Screen.ProductScreen(productId))
+                                }
                             )
                         }
 
@@ -1007,6 +1087,9 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onProductClick = { productId ->
                                     navController.navigate(Screen.ProductScreen(productId = productId))
+                                },
+                                onAddAddressClick = {
+                                    navController.navigate(Screen.AddLocationScreen)
                                 }
                             )
                         }
@@ -1085,6 +1168,13 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onProductClick = { productId->
                                     navController.navigate(Screen.ProductScreen(productId))
+                                }
+                            )
+                        }
+                        composable<Screen.CODScreen> {
+                            CODScreen(
+                                onBackClick = {
+                                    navController.popBackStack()
                                 }
                             )
                         }

@@ -32,6 +32,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderColors
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -94,10 +96,10 @@ fun FiltersBottomSheet(
     onPricingModelClick: (NewPricingModel) -> Unit,
     pricingModelOptions: List<NewPricingModel>,
 
-    selectedCashRange: Float,
-    selectedCoinRange: Float,
-    onCashRangeChange: (Float) -> Unit,
-    onCoinsRangeChange: (Float) -> Unit,
+    selectedCashRange: Pair<Float, Float>,
+    selectedCoinRange: Pair<Float, Float>,
+    onCashRangeChange: (Pair<Float, Float>) -> Unit,
+    onCoinsRangeChange: (Pair<Float, Float>) -> Unit,
 
     selectedTertiaryCategories: List<FilterTertiaryCategory>,
     onTertiaryCategoryClick: (FilterTertiaryCategory) -> Unit,
@@ -362,8 +364,7 @@ fun FiltersBottomSheet(
                             NewPricingModel.entries.forEach { pricingModel ->
                                 val isChecked = pricingModelOptions.contains(pricingModel)
                                 Row(
-                                    modifier = modifier
-                                        .fillMaxWidth(),
+                                    modifier = modifier.fillMaxWidth(),
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
@@ -374,97 +375,149 @@ fun FiltersBottomSheet(
                                             onPricingModelClick(pricingModel)
                                         }
                                     )
-                                    Text(
-                                        text = pricingModel.displayValue
-                                    )
-                                    if (isChecked) {
-                                        if (pricingModel == NewPricingModel.CASH) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .clip(CircleShape)
-                                                    .border(1.dp, CashColor2, CircleShape)
-                                                    .background(CashColor1.copy(alpha = 0.3f))
-                                                    .padding(horizontal = 16.dp, vertical = 4.dp)
-                                            ) {
-                                                Text(
-                                                    text = if (selectedCashRange == MAX_CASH_RANGE)
-                                                        "All products" else
-                                                        "<₹${selectedCashRange.toInt()}",
-                                                    fontSize = 15.sp,
-                                                    color = MaterialTheme.colorScheme.primary,
-                                                    fontWeight = FontWeight.SemiBold
-                                                )
-                                            }
+                                    Text(text = pricingModel.displayValue)
 
-                                        } else if (pricingModel == NewPricingModel.COINS) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .clip(CircleShape)
-                                                    .border(1.dp, CoinColor2, CircleShape)
-                                                    .background(CoinColor1.copy(alpha = 0.3f))
-                                                    .padding(horizontal = 10.dp, vertical = 4.dp)
-                                            ) {
-                                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                                    Icon(
-                                                        modifier = Modifier
-                                                            .padding(end = 2.dp)
-                                                            .size(20.dp),
-                                                        painter = painterResource(id = R.drawable.coin),
-                                                        contentDescription = null,
-                                                        tint = Color.Unspecified
-                                                    )
-                                                    Text(
-                                                        text = if (selectedCoinRange == MAX_COINS_RANGE)
-                                                            "All"
-                                                        else "<${selectedCoinRange.toInt()}",
-                                                        fontSize = 15.sp,
-                                                        color = MaterialTheme.colorScheme.primary,
-                                                        fontWeight = FontWeight.SemiBold
-                                                    )
-                                                }
-                                            }
-                                        }
-                                    }
+//                                    if (isChecked) {
+//                                        when (pricingModel) {
+//                                            NewPricingModel.CASH -> {
+//                                                Box(
+//                                                    modifier = Modifier
+//                                                        .clip(CircleShape)
+//                                                        .border(1.dp, CashColor2, CircleShape)
+//                                                        .background(CashColor1.copy(alpha = 0.3f))
+//                                                        .padding(horizontal = 16.dp, vertical = 4.dp)
+//                                                ) {
+//                                                    Text(
+//                                                        text = "₹${selectedCashRange.first.toInt()} - ₹${selectedCashRange.second.toInt()}",
+//                                                        fontSize = 13.sp,
+//                                                        color = MaterialTheme.colorScheme.primary,
+//                                                        fontWeight = FontWeight.SemiBold
+//                                                    )
+//                                                }
+//                                            }
+//                                            NewPricingModel.COINS -> {
+//                                                Box(
+//                                                    modifier = Modifier
+//                                                        .clip(CircleShape)
+//                                                        .border(1.dp, CoinColor2, CircleShape)
+//                                                        .background(CoinColor1.copy(alpha = 0.3f))
+//                                                        .padding(horizontal = 10.dp, vertical = 4.dp)
+//                                                ) {
+//                                                    Row(verticalAlignment = Alignment.CenterVertically) {
+//                                                        Icon(
+//                                                            modifier = Modifier
+//                                                                .padding(end = 2.dp)
+//                                                                .size(16.dp),
+//                                                            painter = painterResource(id = R.drawable.coin),
+//                                                            contentDescription = null,
+//                                                            tint = Color.Unspecified
+//                                                        )
+//                                                        Text(
+//                                                            text = "${selectedCoinRange.first.toInt()} - ${selectedCoinRange.second.toInt()}",
+//                                                            fontSize = 13.sp,
+//                                                            color = MaterialTheme.colorScheme.primary,
+//                                                            fontWeight = FontWeight.SemiBold
+//                                                        )
+//                                                    }
+//                                                }
+//                                            }
+//                                            else -> {}
+//                                        }
+//                                    }
                                 }
-                                if (isChecked) {
-                                    if (pricingModel != NewPricingModel.CASH_AND_COINS) {
+
+                                if (isChecked && pricingModel != NewPricingModel.CASH_AND_COINS) {
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(start = 36.dp, top = 8.dp)
+                                    ) {
+                                        // Range labels
                                         Row(
                                             modifier = Modifier.fillMaxWidth(),
-                                            verticalAlignment = Alignment.CenterVertically
+                                            horizontalArrangement = Arrangement.SpaceBetween
                                         ) {
-                                            Slider(
-                                                modifier = Modifier.weight(0.75f),
-                                                value = if (pricingModel == NewPricingModel.CASH) selectedCashRange else selectedCoinRange,
-                                                onValueChange = {
-                                                    if (pricingModel == NewPricingModel.CASH) {
-                                                        onCashRangeChange(it)
-                                                    } else {
-                                                        onCoinsRangeChange(it)
-                                                    }
-                                                },
-                                                valueRange = if (pricingModel == NewPricingModel.CASH)
-                                                    MIN_CASH_RANGE..MAX_CASH_RANGE
+                                            Text(
+                                                text = if (pricingModel == NewPricingModel.CASH)
+                                                    "₹${if (pricingModel == NewPricingModel.CASH) selectedCashRange.first.toInt() else selectedCoinRange.first.toInt()}"
                                                 else
-                                                    MIN_COINS_RANGE..MAX_COINS_RANGE,
+                                                    "${if (pricingModel == NewPricingModel.CASH) selectedCashRange.first.toInt() else selectedCoinRange.first.toInt()}",
+                                                fontSize = 12.sp,
+                                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                            )
+                                            Text(
+                                                text = if (pricingModel == NewPricingModel.CASH)
+                                                    "₹${if (pricingModel == NewPricingModel.CASH) selectedCashRange.second.toInt() else selectedCoinRange.second.toInt()}"
+                                                else
+                                                    "${if (pricingModel == NewPricingModel.CASH) selectedCashRange.second.toInt() else selectedCoinRange.second.toInt()}",
+                                                fontSize = 12.sp,
+                                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                                             )
                                         }
 
-                                    } else {
-                                        Text(
-                                            modifier = Modifier.padding(start = 36.dp),
-                                            text = "This option doesn't come with range",
-                                            fontSize = 14.sp,
-                                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(
-                                                alpha = 0.5f
-                                            ),
-                                            lineHeight = 18.sp
+                                        Spacer(modifier = Modifier.height(4.dp))
+
+                                        // Double-sided range slider
+                                        RangeSlider(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            values = if (pricingModel == NewPricingModel.CASH)
+                                                selectedCashRange.first..selectedCashRange.second
+                                            else
+                                                selectedCoinRange.first..selectedCoinRange.second,
+                                            onValueChange = { range ->
+                                                if (pricingModel == NewPricingModel.CASH) {
+                                                    onCashRangeChange(Pair(range.start, range.endInclusive))
+                                                } else {
+                                                    onCoinsRangeChange(Pair(range.start, range.endInclusive))
+                                                }
+                                            },
+                                            valueRange = if (pricingModel == NewPricingModel.CASH)
+                                                MIN_CASH_RANGE..MAX_CASH_RANGE
+                                            else
+                                                MIN_COINS_RANGE..MAX_COINS_RANGE,
+                                            colors = SliderDefaults.colors(
+                                                thumbColor = if (pricingModel == NewPricingModel.CASH)
+                                                    CashColor2 else CoinColor2,
+                                                activeTrackColor = if (pricingModel == NewPricingModel.CASH)
+                                                    CashColor1 else CoinColor1
+                                            )
                                         )
+
+                                        // Min/Max input fields (optional enhancement)
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(top = 8.dp),
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Text(
+                                                text = "Min: ${if (pricingModel == NewPricingModel.CASH) "₹" else ""}${if (pricingModel == NewPricingModel.CASH) selectedCashRange.first.toInt() else selectedCoinRange.first.toInt()}",
+                                                fontSize = 14.sp,
+                                                fontWeight = FontWeight.Medium,
+                                                color = MaterialTheme.colorScheme.primary
+                                            )
+                                            Text(
+                                                text = "Max: ${if (pricingModel == NewPricingModel.CASH) "₹" else ""}${if (pricingModel == NewPricingModel.CASH) selectedCashRange.second.toInt() else selectedCoinRange.second.toInt()}",
+                                                fontSize = 14.sp,
+                                                fontWeight = FontWeight.Medium,
+                                                color = MaterialTheme.colorScheme.primary
+                                            )
+                                        }
                                     }
+                                } else if (isChecked && pricingModel == NewPricingModel.CASH_AND_COINS) {
+                                    Text(
+                                        modifier = Modifier.padding(start = 36.dp),
+                                        text = "This option doesn't come with range",
+                                        fontSize = 14.sp,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f),
+                                        lineHeight = 18.sp
+                                    )
                                 }
-                                Spacer(Modifier.size(8.dp))
+                                Spacer(Modifier.size(12.dp))
                             }
                         }
                     }
+
 
                     Filter.CATEGORY -> {
                         Column(
@@ -698,6 +751,26 @@ fun AppliedFilterIndicator(
     )
 }
 
+@Composable
+fun RangeSlider(
+    modifier: Modifier = Modifier,
+    values: ClosedFloatingPointRange<Float>,
+    onValueChange: (ClosedFloatingPointRange<Float>) -> Unit,
+    valueRange: ClosedFloatingPointRange<Float> = 0f..1f,
+    steps: Int = 0,
+    colors: SliderColors = SliderDefaults.colors()
+) {
+    androidx.compose.material3.RangeSlider(
+        modifier = modifier,
+        value = values,
+        onValueChange = onValueChange,
+        valueRange = valueRange,
+        steps = steps,
+        colors = colors
+    )
+}
+
+
 @Preview(showBackground = true)
 @Composable
 private fun FiltersBottomSheetPreview() {
@@ -720,9 +793,9 @@ private fun FiltersBottomSheetPreview() {
                 NewPricingModel.COINS,
                 NewPricingModel.CASH_AND_COINS
             ),
-            selectedCashRange = 5000f,
+            selectedCashRange = Pair(0f, 10000f),
             onCashRangeChange = {},
-            selectedCoinRange = 5000f,
+            selectedCoinRange = Pair(0f, 10000f),
             onCoinsRangeChange = {},
             selectedTertiaryCategories = emptyList(),
             onTertiaryCategoryClick = {},

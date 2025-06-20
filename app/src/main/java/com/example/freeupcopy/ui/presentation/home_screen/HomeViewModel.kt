@@ -8,6 +8,7 @@ import com.example.freeupcopy.common.Resource
 import com.example.freeupcopy.data.pref.SwapGoPref
 import com.example.freeupcopy.di.AppModule
 import com.example.freeupcopy.domain.enums.Filter
+import com.example.freeupcopy.domain.repository.CartRepository
 import com.example.freeupcopy.domain.repository.SellRepository
 import com.example.freeupcopy.domain.use_case.GetProductCardsUseCase
 import com.example.freeupcopy.domain.use_case.ProductCardsQueryParameters
@@ -29,6 +30,7 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val repository: SellRepository,
     private val getProductCardsUseCase: GetProductCardsUseCase,
+    private val cartRepository: CartRepository,
     private val swapGoPref: SwapGoPref,
     private val wishlistStateManager: AppModule.WishlistStateManager
 ) : ViewModel() {
@@ -42,12 +44,18 @@ class HomeViewModel @Inject constructor(
     init {
         // Fetch initial data without waiting for user ID
         fetchInitialProducts()
+//        getCartSummary()
 
         // Set up user data collection
         viewModelScope.launch {
             swapGoPref.getUser().collect { user ->
                 val previousUser = _state.value.user
                 _state.update { it.copy(user = user) }
+
+                if(user != null) {
+                    Log.e("HomeViewModel", "User ID: ${user._id}")
+                    getCartSummary()
+                }
 
                 // Only refresh products if user ID changed
                 if (previousUser?._id != user?._id) {
@@ -106,7 +114,7 @@ class HomeViewModel @Inject constructor(
                 availabilityOptions = state.availabilityOptions, // Use applied values
                 conditionOptions = state.conditionOptions,       // Use applied values
                 selectedTertiaryCategory = emptyList(),
-                selectedFilter = null,
+//                selectedFilter = null,
                 appliedSortOption = state.appliedSortOption ?: "",
                 pricingModelOptions = state.pricingModelOptions, // Use applied values
                 selectedCashRange = Pair(null, state.selectedCashRange),
@@ -415,7 +423,34 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    fun getCartSummary() {
+        viewModelScope.launch {
 
+            cartRepository.getCartSummary().collect { resource ->
+                when (resource) {
+                    is Resource.Success -> {
+                        _state.update {
+                            it.copy(
+                                totalCombos = resource.data?.totalCombos ?: 0
+                            )
+                        }
+                    }
+                    is Resource.Error -> {
+                        _state.update {
+                            it.copy(
+                                error = resource.message ?: "Error loading cart summary"
+                            )
+                        }
+                    }
+                    is Resource.Loading -> {
+                        _state.update {
+                            it.copy(error = "")
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     // Existing fetch functions...
 

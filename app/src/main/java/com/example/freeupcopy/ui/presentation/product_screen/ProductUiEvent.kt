@@ -50,4 +50,10 @@ sealed class ProductUiEvent {
 
     data class AddToWishlist(val productId: String) : ProductUiEvent()
     data class RemoveFromWishlist(val productId: String) : ProductUiEvent()
+
+
+    object ShowPaymentModeDialog : ProductUiEvent()
+    object DismissPaymentModeDialog : ProductUiEvent()
+    data class SelectPaymentMode(val mode: String) : ProductUiEvent()
+    data class ConfirmAddToCart(val selectedMode: String) : ProductUiEvent()
 }

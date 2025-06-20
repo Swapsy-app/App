@@ -7,6 +7,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +20,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
@@ -32,6 +34,7 @@ import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
@@ -41,6 +44,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarDuration
@@ -56,6 +60,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -75,7 +80,9 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.freeupcopy.data.remote.dto.product.Reply
+import com.example.freeupcopy.data.remote.dto.sell.Price
 import com.example.freeupcopy.data.remote.dto.sell.ProductCard
+import com.example.freeupcopy.data.remote.dto.sell.ProductDetail
 import com.example.freeupcopy.ui.navigation.Screen
 import com.example.freeupcopy.ui.presentation.common.rememberProductClickHandler
 import com.example.freeupcopy.ui.presentation.product_card.ProductCard
@@ -655,6 +662,18 @@ fun ProductScreen(
         )
     }
 
+    if (state.showPaymentModeDialog) {
+        PaymentModeSelectionDialog(
+            productDetail = state.productDetail,
+            onDismiss = {
+                productViewModel.onEvent(ProductUiEvent.DismissPaymentModeDialog)
+            },
+            onConfirm = { selectedMode ->
+                productViewModel.onEvent(ProductUiEvent.ConfirmAddToCart(selectedMode))
+            }
+        )
+    }
+
     if (state.isConfirmDeleteReply) {
         ConfirmDialogBox(
             dialogText = "Are you sure you want to delete this reply?",
@@ -866,5 +885,118 @@ fun SimilarProducts(
                 }
             }
         }
+    }
+}
+
+
+@Composable
+fun PaymentModeSelectionDialog(
+    productDetail: ProductDetail?,
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit
+) {
+    val availableModes = remember(productDetail) {
+        mutableListOf<String>().apply {
+            productDetail?.price?.let { price ->
+                if (price.cash?.enteredAmount != null) add("cash")
+                if (price.coin?.enteredAmount != null) add("coin")
+                if (price.mix?.enteredCash != null && price.mix.enteredCoin != null) add("mix")
+            }
+        }
+    }
+
+    var selectedMode by remember { mutableStateOf(availableModes.first()) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                "Select Payment Method",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Column {
+                Text(
+                    "Choose how you want to pay for this item:",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                availableModes.forEach { mode ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { selectedMode = mode }
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = mode == selectedMode,
+                            onClick = { selectedMode = mode }
+                        )
+
+                        Spacer(modifier = Modifier.width(12.dp))
+
+                        Column {
+                            Text(
+                                text = if(mode=="mix") "Cash + Coins" else
+                                    mode.replaceFirstChar {
+                                    if (it.isLowerCase()) it.titlecase() else it.toString()
+                                },
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Medium
+                            )
+
+                            // Show price for each mode
+                            Text(
+                                text = formatPriceForMode(productDetail?.price, mode),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onConfirm(selectedMode) },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                )
+            ) {
+                Text("Add to Cart")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        },
+        containerColor = MaterialTheme.colorScheme.surface,
+        properties = DialogProperties(
+            dismissOnBackPress = true,
+            dismissOnClickOutside = true
+        )
+    )
+}
+
+// Helper function to format price for each mode
+private fun formatPriceForMode(price: Price?, mode: String): String {
+    return when (mode) {
+        "cash" -> price?.cash?.enteredAmount?.let { "₹${it.toInt()}" } ?: "N/A"
+        "coin" -> price?.coin?.enteredAmount?.let { "${it.toInt()} coins" } ?: "N/A"
+        "mix" -> {
+            val cash = price?.mix?.enteredCash?.toInt()
+            val coin = price?.mix?.enteredCoin?.toInt()
+            if (cash != null && coin != null) {
+                "₹${cash} + ${coin} coins"
+            } else "N/A"
+        }
+        else -> "N/A"
     }
 }

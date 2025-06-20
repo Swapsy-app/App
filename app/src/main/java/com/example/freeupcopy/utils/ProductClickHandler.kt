@@ -58,6 +58,36 @@ class ProductClickHandler(
         }
     }
 
+    fun handleProductValueClick(productId: String, productImageUrl: String, title: String) {
+        val currentState = lifecycleOwner.lifecycle.currentState
+        if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+            scope.launch {
+                // Set loading state to true
+                onLoadingStateChange?.invoke(true)
+                productListingViewModel.onEvent(ProductListingUiEvent.IsLoading(true))
+
+                // Prepare product data for navigation
+                productListingViewModel.onEvent(
+                    ProductListingUiEvent.ProductClicked(
+                        productId = productId,
+                        productImageUrl = productImageUrl,
+                        title = title
+                    )
+                )
+
+                // Small delay to ensure events are processed
+                delay(100)
+
+                // Navigate to product screen
+                onProductClick(productId)
+
+                // Reset loading state
+                productListingViewModel.onEvent(ProductListingUiEvent.IsLoading(false))
+                onLoadingStateChange?.invoke(false)
+            }
+        }
+    }
+
     /**
      * Handles the product ID click event (when only ID is available)
      *

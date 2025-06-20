@@ -25,8 +25,12 @@ sealed class ProductListingUiEvent {
 
     data class ChangeSelectedPricingModel(val pricingModel: NewPricingModel): ProductListingUiEvent()
 
-    data class ChangeCashRange(val cash: Float): ProductListingUiEvent()
-    data class ChangeCoinRange(val coins: Float): ProductListingUiEvent()
+//    data class ChangeCashRange(val cash: Float): ProductListingUiEvent()
+//    data class ChangeCoinRange(val coins: Float): ProductListingUiEvent()
+
+    data class ChangeCashRange(val cashRange: Pair<Float, Float>) : ProductListingUiEvent()
+    data class ChangeCoinRange(val coinRange: Pair<Float, Float>) : ProductListingUiEvent()
+
     data class ChangeSelectedTertiaryCategory(val tertiaryCategory: FilterTertiaryCategory): ProductListingUiEvent()
     data class RemoveSpecialOptions(val tertiaryCategory: FilterTertiaryCategory) : ProductListingUiEvent()
     data class ToggleSelectAll(val selectedFilter: FilterCategoryUiModel) : ProductListingUiEvent()

@@ -67,6 +67,8 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.freeupcopy.R
 import com.example.freeupcopy.common.Constants.MAX_CASH_RANGE
 import com.example.freeupcopy.common.Constants.MAX_COINS_RANGE
+import com.example.freeupcopy.common.Constants.MIN_CASH_RANGE
+import com.example.freeupcopy.common.Constants.MIN_COINS_RANGE
 import com.example.freeupcopy.ui.presentation.common.rememberProductClickHandler
 import com.example.freeupcopy.ui.presentation.home_screen.componants.SearchBar
 import com.example.freeupcopy.ui.presentation.product_card.ProductCard
@@ -87,7 +89,8 @@ fun ProductListing(
     query: String,
     onBack: () -> Unit,
     onProductClick: (String) -> Unit,
-    productListingViewModel: ProductListingViewModel = hiltViewModel()
+    productListingViewModel: ProductListingViewModel = hiltViewModel(),
+    onAddAddressClick: () -> Unit
 ) {
 
     val state by productListingViewModel.state.collectAsState()
@@ -154,9 +157,7 @@ fun ProductListing(
                             onSearch = { },
                             onCancel = {
                                 productListingViewModel.onEvent(
-                                    ProductListingUiEvent.ChangeSearchQuery(
-                                        ""
-                                    )
+                                    ProductListingUiEvent.ChangeSearchQuery("")
                                 )
                             },
                             modifier = Modifier
@@ -614,63 +615,41 @@ fun ProductListing(
                                 )
                             },
                             pricingModelOptions = state.pricingModelOptions,
-                            selectedCashRange = state.selectedCashRange ?: MAX_CASH_RANGE,
-                            onCashRangeChange = {
-                                productListingViewModel.onEvent(
-                                    ProductListingUiEvent.ChangeCashRange(
-                                        it
-                                    )
-                                )
+                            selectedCashRange = state.selectedCashRange ?: Pair(MIN_CASH_RANGE, MAX_CASH_RANGE),
+                            onCashRangeChange = { range ->
+                                productListingViewModel.onEvent(ProductListingUiEvent.ChangeCashRange(range))
                             },
-                            selectedCoinRange = state.selectedCoinRange ?: MAX_COINS_RANGE,
-                            onCoinsRangeChange = {
-                                productListingViewModel.onEvent(
-                                    ProductListingUiEvent.ChangeCoinRange(
-                                        it
-                                    )
-                                )
+                            selectedCoinRange = state.selectedCoinRange ?: Pair(MIN_COINS_RANGE, MAX_COINS_RANGE),
+                            onCoinsRangeChange = { range ->
+                                productListingViewModel.onEvent(ProductListingUiEvent.ChangeCoinRange(range))
                             },
                             onTertiaryCategoryClick = {
-                                productListingViewModel.onEvent(
-                                    ProductListingUiEvent.ChangeSelectedTertiaryCategory(
-                                        it
-                                    )
-                                )
+                                productListingViewModel.onEvent(ProductListingUiEvent.ChangeSelectedTertiaryCategory(it))
                             },
                             selectedTertiaryCategories = state.selectedTertiaryCategory,
                             onRemoveSpecialOption = {
-                                productListingViewModel.onEvent(
-                                    ProductListingUiEvent.RemoveSpecialOptions(
-                                        it
-                                    )
-                                )
+                                productListingViewModel.onEvent(ProductListingUiEvent.RemoveSpecialOptions(it))
                             },
                             onSelectAll = {
-                                productListingViewModel.onEvent(
-                                    ProductListingUiEvent.ToggleSelectAll(
-                                        it
-                                    )
-                                )
+                                productListingViewModel.onEvent(ProductListingUiEvent.ToggleSelectAll(it))
                             },
                             availableFilters = state.availableFilters,
                             onApplyClick = {
-                                productListingViewModel.onEvent(
-                                    ProductListingUiEvent.ToggleBottomSheet(
-                                        "filter"
-                                    )
-                                )
+                                productListingViewModel.onEvent(ProductListingUiEvent.ToggleBottomSheet("filter"))
                             }
                         )
                     }
 
+                    // In ProductListing composable, update the SortBottomSheet call:
                     state.isSortBottomSheet -> {
+                        // Derive selectedPriceTypes from pricingModelOptions
+                        val selectedPriceTypes = state.pricingModelOptions.map { it.apiValue }
                         SortBottomSheet(
+                            selectedPriceTypes = selectedPriceTypes,
                             tempSortOption = state.tempSortOption ?: "default",
                             onSortOptionSelected = { selectedOption ->
                                 productListingViewModel.onEvent(
-                                    ProductListingUiEvent.ChangeSortOption(
-                                        selectedOption
-                                    )
+                                    ProductListingUiEvent.ChangeSortOption(selectedOption)
                                 )
                             },
                             onApply = {
@@ -678,6 +657,13 @@ fun ProductListing(
                             },
                             onDismiss = {
                                 productListingViewModel.onEvent(ProductListingUiEvent.BottomSheetDismiss)
+                            },
+                            hasUserAddress = state.hasUserAddress, // Use the correct property
+                            onAddAddressClick = {
+                                // Close bottom sheet and navigate to add location
+                                productListingViewModel.onEvent(ProductListingUiEvent.BottomSheetDismiss)
+//                                navController.navigate(Screen.AddLocationScreen)
+                                onAddAddressClick()
                             }
                         )
                     }
@@ -706,7 +692,8 @@ fun PreviewProductListing() {
         ProductListing(
             query = "",
             onBack = { },
-            onProductClick = {}
+            onProductClick = {},
+            onAddAddressClick = {  },
         )
     }
 }

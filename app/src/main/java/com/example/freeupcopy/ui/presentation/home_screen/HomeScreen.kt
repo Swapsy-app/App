@@ -113,6 +113,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(
+    token: String?,
     lazyColumnState: LazyListState,
     onSearchBarClick: () -> Unit,
     onInboxClick: () -> Unit,
@@ -140,6 +141,12 @@ fun HomeScreen(
     val state by homeViewModel.state.collectAsState()
 
     val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(Unit) {
+        if(token != null) {
+            homeViewModel.getCartSummary()
+        }
+    }
 
     // Handle error with Snackbar
     LaunchedEffect(state.error) {
@@ -219,6 +226,7 @@ fun HomeScreen(
                                 .padding(
                                     horizontal = 12.dp, vertical = 8.dp
                                 ),
+                            totalCombos = state.totalCombos,
                             onSearchBarClick = {
                                 val currentState = lifeCycleOwner.lifecycle.currentState
                                 if (currentState.isAtLeast(Lifecycle.State.RESUMED)) {
