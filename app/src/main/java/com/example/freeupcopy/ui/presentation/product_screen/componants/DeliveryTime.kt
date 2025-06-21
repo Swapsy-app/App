@@ -39,6 +39,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.freeupcopy.R
+import com.example.freeupcopy.domain.model.StateAndCity
 import com.example.freeupcopy.ui.theme.CardShape
 import com.example.freeupcopy.ui.theme.SwapGoTheme
 import com.example.freeupcopy.ui.theme.TextFieldShape
@@ -46,11 +47,12 @@ import com.example.freeupcopy.utils.clearFocusOnKeyboardDismiss
 
 @Composable
 fun DeliveryTime(
-    userLocation: String,
+    userLocation: StateAndCity?,
     dateOfPickup: String,
-    dateOfDelivery: String,
+    dateOfDelivery: String?,
     pinCode: String,
     onPinCodeChange: (String) -> Unit,
+    onPincodeCheck: () -> Unit
 ) {
     val focusRequester = FocusRequester()
     val focusManager = LocalFocusManager.current
@@ -125,7 +127,7 @@ fun DeliveryTime(
             ElevatedButton(
                 modifier = Modifier.fillMaxHeight(),
                 onClick = {
-
+                    onPincodeCheck()
                 },
                 shape = TextFieldShape,
                 colors = ButtonDefaults.elevatedButtonColors(
@@ -140,22 +142,27 @@ fun DeliveryTime(
             }
 
         }
-        Text(
-            modifier = Modifier.padding(top = 2.dp, start = 4.dp),
-            text = userLocation,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f),
-        )
+        userLocation?.let{
+            Text(
+                modifier = Modifier.padding(top = 2.dp, start = 4.dp),
+                text = "${userLocation.state}, ${userLocation.city}",
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f),
+            )
+        }
 
         Spacer(modifier = Modifier.size(8.dp))
 
-        ExpectedDeliveryRow()
+        ExpectedDeliveryRow(
+            dateOfDelivery = dateOfDelivery
+        )
     }
 }
 
 @Composable
 fun ExpectedDeliveryRow(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    dateOfDelivery: String?,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -178,7 +185,7 @@ fun ExpectedDeliveryRow(
                  fontSize = 14.sp
             )
             Text(
-                text = "24 September 2024",
+                text = dateOfDelivery ?: "Unknown",
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 18.sp,
                 //color = CashColor2
@@ -195,9 +202,10 @@ fun PreviewDeliveryTime() {
         DeliveryTime(
             pinCode = "",
             onPinCodeChange = {},
-            userLocation = "Mumbai, Maharashtra",
+            userLocation = null,
             dateOfPickup = "24 Sep",
-            dateOfDelivery = "26 Sep"
+            dateOfDelivery = "26 Sep",
+            onPincodeCheck = {}
         )
         //ExpectedDeliveryRow()
     }

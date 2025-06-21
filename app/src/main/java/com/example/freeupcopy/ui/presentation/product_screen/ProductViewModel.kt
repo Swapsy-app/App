@@ -20,10 +20,12 @@ import com.example.freeupcopy.di.AppModule
 import com.example.freeupcopy.domain.enums.Currency
 import com.example.freeupcopy.domain.enums.getCurrencyFromString
 import com.example.freeupcopy.domain.repository.CartRepository
+import com.example.freeupcopy.domain.repository.LocationRepository
 import com.example.freeupcopy.domain.repository.ProductRepository
 import com.example.freeupcopy.domain.repository.SellRepository
 import com.example.freeupcopy.domain.use_case.GetProductCardsUseCase
 import com.example.freeupcopy.domain.use_case.ProductCardsQueryParameters
+import com.example.freeupcopy.ui.presentation.sell_screen.location_screen.add_location_screen.AddLocationUiEvent
 import com.example.freeupcopy.utils.ValidationResult
 import com.example.freeupcopy.utils.calculateFifteenPercent
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -46,6 +48,7 @@ class ProductViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val productRepository: ProductRepository,
     private val cartRepository: CartRepository,
+    private val locationRepository: LocationRepository,
     private val getProductCardsUseCase: GetProductCardsUseCase,
     private val swapGoPref: SwapGoPref,
     private val wishlistStateManager: AppModule.WishlistStateManager
@@ -141,6 +144,8 @@ class ProductViewModel @Inject constructor(
                     launch { getWishlistCount(it) }
                     launch { loadMoreComments() }
                     launch { getCurrentUser() }
+//                    launch { checkPincodeServiceability(null) }
+                    launch { getEstimatedDeliveryDate(productId, pincode = null) }
                     launch { getBargainOffersForProduct() }
                 } catch (e: Exception) {
                     _state.update { state ->
@@ -261,6 +266,37 @@ class ProductViewModel @Inject constructor(
             is ProductUiEvent.ChangePincode -> {
                 _state.update {
                     it.copy(pincode = event.pincode)
+                }
+            }
+
+            is ProductUiEvent.CheckPincode -> {
+                viewModelScope.launch {
+                    locationRepository.fetchStateAndCityFromPincode(event.context, event.pincode).collect { result ->
+                        when (result) {
+                            is Resource.Loading -> {
+                                _state.update { it.copy(isLoading = true, error = "") }
+                            }
+                            is Resource.Success -> {
+                                getEstimatedDeliveryDate(productId = productId?:"", pincode = event.pincode)
+                                _state.update {
+                                    it.copy(
+                                        pincodeLocation = result.data,
+                                        isLoading = false,
+                                        error = ""
+                                    )
+                                }
+                            }
+                            is Resource.Error -> {
+                                _state.update {
+                                    Log.e("ProductViewModel", "Error checking pincode: ${result.message}")
+                                    it.copy(
+                                        isLoading = false,
+                                        error = "Invalid pincode or unable to fetch details."
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
@@ -527,6 +563,13 @@ class ProductViewModel @Inject constructor(
                 _state.update {
                     it.copy(isImageOpen = !it.isImageOpen)
                 }
+            }
+
+            is ProductUiEvent.GetEstimatedDelivery -> {
+                val productId = event.productId
+                val pincode = event.pincode
+
+                getEstimatedDeliveryDate(productId, pincode)
             }
 
             is ProductUiEvent.BargainOptionsClicked -> {
@@ -1583,6 +1626,68 @@ class ProductViewModel @Inject constructor(
                             it.copy(
                                 isLoading = false,
                                 error = resource.message ?: "Failed to add to cart"
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun checkPincodeServiceability(pincode: String?) {
+        viewModelScope.launch {
+            productRepository.checkPincodeServiceability(pincode).collect { resource ->
+                when (resource) {
+                    is Resource.Loading -> {
+                        _state.update { it.copy(isLoading = true, error = "") }
+                    }
+
+                    is Resource.Success -> {
+                        _state.update {
+                            it.copy(
+//                                serviceabilityResult = resource.data,
+                                isLoading = false
+                            )
+                        }
+                    }
+
+                    is Resource.Error -> {
+                        Log.e("ProductViewModel", "Serviceability error: ${resource.message}")
+                        _state.update {
+                            it.copy(
+                                error = resource.message ?: "An unexpected error occurred",
+                                isLoading = false
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun getEstimatedDeliveryDate(productId: String, pincode: String?) {
+        viewModelScope.launch {
+            productRepository.getDeliveryEstimation(productId, pincode).collect { resource ->
+                when (resource) {
+                    is Resource.Loading -> {
+                        _state.update { it.copy(isLoading = true, error = "") }
+                    }
+
+                    is Resource.Success -> {
+                        _state.update {
+                            it.copy(
+                                deliveryEstimation = resource.data,
+                                isLoading = false
+                            )
+                        }
+                    }
+
+                    is Resource.Error -> {
+                        Log.e("ProductViewModel", "Delivery estimation error: ${resource.message}")
+                        _state.update {
+                            it.copy(
+                                error = "Could not fetch delivery estimation",
+                                isLoading = false
                             )
                         }
                     }

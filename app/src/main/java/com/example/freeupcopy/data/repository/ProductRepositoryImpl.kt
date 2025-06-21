@@ -12,10 +12,12 @@ import com.example.freeupcopy.data.remote.dto.product.BargainResponse
 import com.example.freeupcopy.data.remote.dto.product.BuyerBargainsResponse
 import com.example.freeupcopy.data.remote.dto.product.CommentResponse
 import com.example.freeupcopy.data.remote.dto.product.CommentsResponse
+import com.example.freeupcopy.data.remote.dto.product.DeliveryEstimationResponse
 import com.example.freeupcopy.data.remote.dto.product.ProductBargainListResponse
 import com.example.freeupcopy.data.remote.dto.product.RepliesResponse
 import com.example.freeupcopy.data.remote.dto.product.ReplyResponse
 import com.example.freeupcopy.data.remote.dto.product.SellerBargainsResponse
+import com.example.freeupcopy.data.remote.dto.product.ServiceabilityResult
 import com.example.freeupcopy.data.remote.dto.product.UserSearchResult
 import com.example.freeupcopy.domain.repository.ProductRepository
 import kotlinx.coroutines.Dispatchers
@@ -28,6 +30,56 @@ import retrofit2.HttpException
 class ProductRepositoryImpl(
     private val api: SwapgoApi
 ): ProductRepository {
+    override fun checkPincodeServiceability(
+        pincode: String?,
+//        authorization: String?
+    ): Flow<Resource<ServiceabilityResult>> = flow {
+        emit(Resource.Loading())
+        try {
+            val response = api.checkPincodeServiceability(
+                pincode = pincode,
+//                authorization = authorization
+            )
+            emit(Resource.Success(response))
+        } catch (e: HttpException) {
+            val errorBody = e.response()?.errorBody()?.string()
+            val json = errorBody?.let { JSONObject(it) }
+
+            val errorMessage =
+                json?.getString("message") ?: e.message ?: "An error occurred during serviceability check"
+
+            emit(Resource.Error(message = errorMessage))
+        } catch (e: Exception) {
+            emit(Resource.Error(message = e.message ?: "An unexpected error occurred"))
+        }
+    }.flowOn(Dispatchers.IO)
+
+    override fun getDeliveryEstimation(
+        productId: String,
+        pincode: String?,
+//        authorization: String?
+    ): Flow<Resource<DeliveryEstimationResponse>> = flow {
+        emit(Resource.Loading())
+        try {
+            val response = api.estimateDelivery(
+                productId = productId,
+                pincode = pincode,
+//                authorization = authorization
+            )
+            emit(Resource.Success(response))
+        } catch (e: HttpException) {
+            val errorBody = e.response()?.errorBody()?.string()
+            val json = errorBody?.let { JSONObject(it) }
+
+            val errorMessage =
+                json?.getString("message") ?: e.message ?: "An error occurred during delivery estimation"
+
+            emit(Resource.Error(message = errorMessage))
+        } catch (e: Exception) {
+            emit(Resource.Error(message = e.message ?: "An unexpected error occurred"))
+        }
+    }.flowOn(Dispatchers.IO)
+
     override fun makeOffer(
         productId: String,
         request: BargainOfferRequest

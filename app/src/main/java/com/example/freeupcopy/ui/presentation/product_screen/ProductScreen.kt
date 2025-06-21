@@ -418,10 +418,17 @@ fun ProductScreen(
                         onPinCodeChange = {
                             productViewModel.onEvent(ProductUiEvent.ChangePincode(it))
                         },
-                        userLocation = "Mumbai, Maharashtra",
+                        userLocation = state.pincodeLocation,
                         dateOfPickup = "24 Sep",
-                        dateOfDelivery = "27 Sep"
-
+                        dateOfDelivery = state.deliveryEstimation?.estimatedDeliveryDate,
+                        onPincodeCheck = {
+                            productViewModel.onEvent(
+                                ProductUiEvent.CheckPincode(
+                                    context = context,
+                                    pincode = state.pincode
+                                )
+                            )
+                        }
                     )
                 }
                 item {

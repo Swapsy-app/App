@@ -1,6 +1,7 @@
 package com.example.freeupcopy.ui.presentation.product_screen
 
 import com.example.freeupcopy.data.remote.dto.product.Comment
+import com.example.freeupcopy.data.remote.dto.product.DeliveryEstimationResponse
 import com.example.freeupcopy.data.remote.dto.product.ProductBargain
 import com.example.freeupcopy.data.remote.dto.product.Reply
 import com.example.freeupcopy.data.remote.dto.product.User
@@ -8,6 +9,7 @@ import com.example.freeupcopy.data.remote.dto.product.UserSearchResult
 import com.example.freeupcopy.data.remote.dto.sell.Price
 import com.example.freeupcopy.data.remote.dto.sell.ProductDetail
 import com.example.freeupcopy.domain.enums.Currency
+import com.example.freeupcopy.domain.model.StateAndCity
 
 data class ProductUiState(
     val productId: String = "",
@@ -80,53 +82,8 @@ data class ProductUiState(
     val currentEditingBargainId: String? = null,
     val bargainCount: Int = 0,
 
-//    val bargainOfferLists: List<BargainOffer> = listOf(
-//        BargainOffer(
-//            id = "BO12345",
-//            username = "Johoe",
-//            userId = "U001",
-//            message = "Looking for a 20% discount on bulk orders.",
-//            timeStamp = "2 hrs ago",
-//            amount = "2000",
-//            currency = Currency.CASH
-//        ),
-//        BargainOffer(
-//            id = "BO12346",
-//            username = "JaSmith",
-//            userId = "U002",
-//            message = "Can I get free shipping for orders above $50?",
-//            timeStamp = "1 day ago",
-//            amount = "5000",
-//            currency = Currency.COIN
-//        ),
-//        BargainOffer(
-//            id = "BO12347",
-//            username = "Alehnson",
-//            userId = "U003",
-//            message = "Would you accept a counteroffer of $30 for this item?",
-//            timeStamp = "2 days ago",
-//            amount = "3000",
-//            currency = Currency.COIN
-//        ),
-//        BargainOffer(
-//            id = "BO12348",
-//            username = "Emilvis",
-//            userId = "U004",
-//            message = "If I buy two items, can I get a third one free?",
-//            timeStamp = "2 days ago",
-//            amount = "4000",
-//            currency = Currency.CASH
-//        ),
-//        BargainOffer(
-//            id = "BO12349",
-//            username = "Michaerown",
-//            userId = "U005",
-//            message = "Is there any holiday discount available?",
-//            timeStamp = "1 week ago",
-//            amount = "1000",
-//            currency = Currency.CASH
-//        )
-//    ),
+    val deliveryEstimation: DeliveryEstimationResponse? = null,
+    val pincodeLocation: StateAndCity? = null,
 
     val isLoading: Boolean = false,
     val error: String = ""

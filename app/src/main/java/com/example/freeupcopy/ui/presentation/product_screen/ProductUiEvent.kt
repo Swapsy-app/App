@@ -1,5 +1,6 @@
 package com.example.freeupcopy.ui.presentation.product_screen
 
+import android.content.Context
 import com.example.freeupcopy.data.remote.dto.product.ProductBargain
 import com.example.freeupcopy.data.remote.dto.product.UserSearchResult
 import com.example.freeupcopy.domain.enums.Currency
@@ -10,6 +11,7 @@ sealed class ProductUiEvent {
     data object RemoveFromMainWishlist : ProductUiEvent()
 
     data class ChangePincode(val pincode : String) : ProductUiEvent()
+    data class CheckPincode(val context: Context, val pincode: String): ProductUiEvent()
 
     data class ChangeComment(val comment : String) : ProductUiEvent()
     data class PostComment(val taggedUser: List<String>?): ProductUiEvent()
@@ -56,4 +58,6 @@ sealed class ProductUiEvent {
     object DismissPaymentModeDialog : ProductUiEvent()
     data class SelectPaymentMode(val mode: String) : ProductUiEvent()
     data class ConfirmAddToCart(val selectedMode: String) : ProductUiEvent()
+
+    data class GetEstimatedDelivery(val productId: String, val pincode: String?) : ProductUiEvent()
 }

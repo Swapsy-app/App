@@ -73,3 +73,5 @@ val LinkColor = Color(0xFF007AFF)
 val PrimaryLight1 = Color(0xFF0D274B)
 val PrimaryLight2 = Color(0xFF0E2B52)
 val PrimaryLight3 = Color(0xFF12335F)
+
+val LightPink = Color(0xFFF1E6FF)

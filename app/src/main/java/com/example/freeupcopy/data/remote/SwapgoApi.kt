@@ -26,10 +26,13 @@ import com.example.freeupcopy.data.remote.dto.product.BargainResponse
 import com.example.freeupcopy.data.remote.dto.product.BuyerBargainsResponse
 import com.example.freeupcopy.data.remote.dto.product.CommentResponse
 import com.example.freeupcopy.data.remote.dto.product.CommentsResponse
+import com.example.freeupcopy.data.remote.dto.product.DeliveryEstimationRequest
+import com.example.freeupcopy.data.remote.dto.product.DeliveryEstimationResponse
 import com.example.freeupcopy.data.remote.dto.product.ProductBargainListResponse
 import com.example.freeupcopy.data.remote.dto.product.RepliesResponse
 import com.example.freeupcopy.data.remote.dto.product.ReplyResponse
 import com.example.freeupcopy.data.remote.dto.product.SellerBargainsResponse
+import com.example.freeupcopy.data.remote.dto.product.ServiceabilityResult
 import com.example.freeupcopy.data.remote.dto.product.UserSearchResult
 import com.example.freeupcopy.data.remote.dto.sell.AutocompleteResponse
 import com.example.freeupcopy.data.remote.dto.sell.FetchWishlistResponse
@@ -275,6 +278,18 @@ interface SwapgoApi {
         @Path("productId") productId: String
     ): WishlistCountResponse
 
+    @GET("/api/pincode/check-serviceability-pincode")
+    suspend fun checkPincodeServiceability(
+        @Query("pincode") pincode: String? = null,
+//        @Header("Authorization") authorization: String? = null
+    ): ServiceabilityResult
+
+    @GET("/api/pincode/estimate-delivery")
+    suspend fun estimateDelivery(
+        @Query("productId") productId: String,
+        @Query("pincode") pincode: String? = null,
+//        @Header("Authorization") authorization: String? = null
+    ): DeliveryEstimationResponse
 
     // create bargain offer
     @POST("/api/bargain/bargain-offer/{productId}")

@@ -11,14 +11,27 @@ import com.example.freeupcopy.data.remote.dto.product.BargainResponse
 import com.example.freeupcopy.data.remote.dto.product.BuyerBargainsResponse
 import com.example.freeupcopy.data.remote.dto.product.CommentResponse
 import com.example.freeupcopy.data.remote.dto.product.CommentsResponse
+import com.example.freeupcopy.data.remote.dto.product.DeliveryEstimationResponse
 import com.example.freeupcopy.data.remote.dto.product.ProductBargainListResponse
 import com.example.freeupcopy.data.remote.dto.product.RepliesResponse
 import com.example.freeupcopy.data.remote.dto.product.ReplyResponse
 import com.example.freeupcopy.data.remote.dto.product.SellerBargainsResponse
+import com.example.freeupcopy.data.remote.dto.product.ServiceabilityResult
 import com.example.freeupcopy.data.remote.dto.product.UserSearchResult
 import kotlinx.coroutines.flow.Flow
 
 interface ProductRepository {
+
+    fun checkPincodeServiceability(
+        pincode: String?,
+//        authorization: String? = null
+    ): Flow<Resource<ServiceabilityResult>>
+
+    fun getDeliveryEstimation(
+        productId: String,
+        pincode: String? = null,
+//        authorization: String? = null
+    ): Flow<Resource<DeliveryEstimationResponse>>
 
     fun makeOffer(productId: String, request: BargainOfferRequest): Flow<Resource<BargainResponse>>
 
