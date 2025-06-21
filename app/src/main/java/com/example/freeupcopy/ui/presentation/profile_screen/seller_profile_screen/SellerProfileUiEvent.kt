@@ -4,4 +4,6 @@ sealed class SellerProfileUiEvent {
     data object FollowClicked : SellerProfileUiEvent()
     data object ProfileActionClicked : SellerProfileUiEvent()
     data object ClearError : SellerProfileUiEvent()
+    // Add product tab events
+    data class OnProductTabSelected(val tabIndex: Int) : SellerProfileUiEvent()
 }

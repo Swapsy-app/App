@@ -33,4 +33,7 @@ data class SellerProfileUiState(
     val error: String = "",
 
     val isFollowLoading: Boolean = false,
+    // Add product tabs state
+    val selectedProductTab: Int = 0, // 0 for Available, 1 for Sold
+    val isProductsLoading: Boolean = false
 )

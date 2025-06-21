@@ -1,21 +1,25 @@
 package com.example.freeupcopy.ui.presentation.profile_screen.seller_profile_screen
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
 import com.example.freeupcopy.common.Resource
 import com.example.freeupcopy.data.pref.SwapGoPref
 import com.example.freeupcopy.domain.repository.ProfileRepository
+import com.example.freeupcopy.domain.use_case.GetUserProductsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class SellerProfileViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
+    private val getUserProductsUseCase: GetUserProductsUseCase,
     private val swapGoPref: SwapGoPref,
     savedStateHandle: SavedStateHandle,
 ): ViewModel() {
@@ -25,8 +29,43 @@ class SellerProfileViewModel @Inject constructor(
     // Retrieve the userId from the saved state
     private val userId: String? = savedStateHandle["userId"]
 
+    // Use userId directly instead of targetUserId
+    private val _userId = MutableStateFlow<String?>(userId)
+
+    // Create paging flows for available products
+    val availableProducts = _userId
+        .flatMapLatest { id ->
+            if (id != null) {
+                Log.e("SellerProfileViewModel", "Fetching products for userId: $id")
+                getUserProductsUseCase(id, "available")
+            } else {
+                flowOf(PagingData.empty())
+            }
+        }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.Lazily,
+            PagingData.empty()
+        )
+
+    // Create paging flows for sold products
+    val soldProducts = _userId
+        .flatMapLatest { id ->
+            if (id != null) {
+                getUserProductsUseCase(id, "sold")
+            } else {
+                flowOf(PagingData.empty())
+            }
+        }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.Lazily,
+            PagingData.empty()
+        )
+
     init {
         if (userId != null) {
+            _userId.value = userId
             getCurrentUser()
             getProfileById()
         } else {
@@ -37,20 +76,20 @@ class SellerProfileViewModel @Inject constructor(
     fun onEvent(event: SellerProfileUiEvent) {
         when (event) {
             is SellerProfileUiEvent.FollowClicked -> {
-//                _state.update {
-//                    it.copy(isFollowing = !it.isFollowing)
-//                }
                 handleFollowClick()
             }
-
             is SellerProfileUiEvent.ProfileActionClicked -> {
                 _state.update {
                     it.copy(isProfileActionSheetOpen = !it.isProfileActionSheetOpen)
                 }
             }
-
             is SellerProfileUiEvent.ClearError -> {
                 _state.update { it.copy(error = "") }
+            }
+            is SellerProfileUiEvent.OnProductTabSelected -> {
+                _state.update {
+                    it.copy(selectedProductTab = event.tabIndex)
+                }
             }
         }
     }
@@ -64,6 +103,10 @@ class SellerProfileViewModel @Inject constructor(
                         isMyProfile = user?._id == userId,
                         isLoading = false
                     )
+                }
+                // If no userId provided, use current user's ID
+                if (userId == null) {
+                    _userId.value = user?._id
                 }
             }
         }
@@ -146,10 +189,9 @@ class SellerProfileViewModel @Inject constructor(
         }
     }
 
-
     fun getUserProfile() {
         if (userId != null) {
-            getCurrentUser() // Replace getSellerBasicInfo() with this
+            getCurrentUser()
             getProfileById()
         } else {
             getProfile()
@@ -169,6 +211,7 @@ class SellerProfileViewModel @Inject constructor(
                         }
                     }
                     is Resource.Success -> {
+                        _userId.value = result.data?.id
                         _state.update {
                             it.copy(
                                 sellerId = result.data?.id ?: "",
@@ -176,18 +219,12 @@ class SellerProfileViewModel @Inject constructor(
                                 sellerUsername = result.data?.username ?: "",
                                 sellerBio = result.data?.aboutMe ?: "",
                                 sellerProfileImageUrl = result.data?.avatar ?: "",
-//                                shippingTime = result.data.shippingTime,
                                 lastActive = result.data?.lastActive ?: "",
                                 occupation = result.data?.occupation ?: "",
                                 joinedTime = result.data?.createdAt ?: "",
                                 gender = result.data?.gender ?: "",
                                 followers = result.data?.followers ?: "0",
                                 following = result.data?.following ?: "0",
-//                                sold = result.data.sold,
-//                                rating = result.data.rating,
-//                                numberOfReviews = result.data.numberOfReviews,
-//                                cancelled = result.data.cancelled,
-
                                 isLoading = false,
                                 error = ""
                             )
@@ -208,7 +245,7 @@ class SellerProfileViewModel @Inject constructor(
 
     private fun getProfileById() {
         viewModelScope.launch {
-            profileRepository.getProfileById(userId!!, ).collect { result ->
+            profileRepository.getProfileById(userId!!).collect { result ->
                 when (result) {
                     is Resource.Loading -> {
                         _state.update {
@@ -226,17 +263,12 @@ class SellerProfileViewModel @Inject constructor(
                                 sellerUsername = result.data?.username ?: "",
                                 sellerBio = result.data?.aboutMe ?: "",
                                 sellerProfileImageUrl = result.data?.avatar ?: "",
-//                                shippingTime = result.data.shippingTime,
                                 lastActive = result.data?.lastActive ?: "",
                                 occupation = result.data?.occupation ?: "",
                                 joinedTime = result.data?.createdAt ?: "",
                                 gender = result.data?.gender ?: "",
                                 followers = result.data?.followers ?: "0",
                                 following = result.data?.following ?: "0",
-//                                sold = result.data.sold,
-//                                rating = result.data.rating,
-//                                numberOfReviews = result.data.numberOfReviews,
-//                                cancelled = result.data.cancelled,
                                 isFollowing = result.data?.isFollowing ?: false,
                                 isLoading = false,
                                 error = ""
